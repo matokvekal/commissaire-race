@@ -139,3 +139,80 @@
   display: flex;
   gap: 90px;
 }
+
+/* Empty State */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 32px;
+  text-align: center;
+  min-height: 400px;
+}
+
+.emptyIcon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f0f6ff 0%, #e8f4ff 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(99, 166, 252, 0.15);
+}
+
+.emptyTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 12px 0;
+}
+
+.emptyMessage {
+  font-size: 14px;
+  color: #7a7a9a;
+  margin: 0 0 32px 0;
+  line-height: 1.6;
+  max-width: 320px;
+}
+
+.emptyActions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 280px;
+}
+
+.addRiderBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 24px;
+  background: linear-gradient(135deg, #63a6fc 0%, #5094eb 100%);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(99, 166, 252, 0.3);
+}
+
+.addRiderBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(99, 166, 252, 0.4);
+}
+
+.addRiderBtn:active {
+  transform: translateY(0);
+}
+
+.addRiderBtn span {
+  font-size: 15px;
+  font-weight: 600;
+}

@@ -12,31 +12,202 @@
   font-size: 14px;
 }
 
+/* Header with current time and add button */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 14px;
+  margin-bottom: 8px;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.currentTime {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.timeLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.timeValue {
+  font-size: 18px;
+  font-weight: 900;
+  color: #fff;
+  font-family: "Courier New", monospace;
+  letter-spacing: 1px;
+}
+/* Wave Time Control */
+.waveTimeControl {
+  background: linear-gradient(135deg, #3edda4 0%, #1a8a5a 100%);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 10px;
+  box-shadow: 0 4px 12px rgba(62, 221, 164, 0.3);
+}
+
+.waveTimeHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.waveLabel {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.waveTimeHelp {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  font-style: italic;
+}
+
+.waveTimeAdjust {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.waveTimeBtn {
+  padding: 8px 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.waveTimeBtn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+.waveTimeBtn:active {
+  transform: scale(0.95);
+}
+
+.waveTimeDisplay {
+  font-size: 24px;
+  font-weight: 900;
+  color: #fff;
+  font-family: "Courier New", monospace;
+  letter-spacing: 2px;
+  padding: 8px 20px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+  min-width: 120px;
+  text-align: center;
+}
+
+.waveTimeDisplay:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
 .startBlock {
   background: #fff;
   border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .startHeader {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
   padding: 10px 14px;
   background: #f8f8fe;
   border-bottom: 1px solid #f0f0f8;
 }
 
+.startInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
 .startLabel {
   font-size: 12px;
   font-weight: 700;
   color: #1a1a2e;
+  min-width: 60px;
+}
+
+.timeControls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.timeBtn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #d0e0fc;
+  border-radius: 6px;
+  background: #fff;
+  color: #63a6fc;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.timeBtn:hover {
+  background: #63a6fc;
+  color: #fff;
+  transform: scale(1.1);
+}
+
+.timeBtn:active {
+  transform: scale(0.95);
 }
 
 .startTime {
-  font-size: 12px;
-  color: #7a7a9a;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a1a2e;
+  font-family: "Courier New", monospace;
+  padding: 4px 12px;
+  background: #fff;
+  border: 1.5px solid #d0e0fc;
+  border-radius: 8px;
+  cursor: pointer;
+  min-width: 90px;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.startTime:hover {
+  border-color: #63a6fc;
+  background: #f8faff;
+}
+
+.startActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .catList {
@@ -65,14 +236,35 @@
   color: #1a1a2e;
 }
 
+.subCategory {
+  font-size: 12px;
+  color: #7a7a9a;
+  font-weight: 400;
+}
+
 .statusTag {
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   color: #7a7a9a;
 }
-.statusTag.running  { color: #1a8a5a; }
-.statusTag.finished { color: #7a7a9a; }
+.statusTag.running {
+  color: #1a8a5a;
+}
+.statusTag.finished {
+  color: #7a7a9a;
+}
+
+.emptyStart {
+  padding: 24px;
+  text-align: center;
+}
+
+.emptyStart p {
+  margin: 0 0 12px 0;
+  color: #7a7a9a;
+  font-size: 13px;
+}
 
 .actions {
   display: flex;
@@ -148,10 +340,187 @@
 .countdownCancel {
   margin-top: 32px;
   padding: 10px 32px;
-  border: 1.5px solid rgba(255,255,255,0.3);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
   border-radius: 8px;
   background: transparent;
   color: #fff;
   font-size: 14px;
   cursor: pointer;
+}
+
+/* Modal Overlay and Content */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 26, 46, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modalContent {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 900px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 2px solid #f0f0f8;
+}
+
+.modalHeader h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.closeBtn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  background: #f4f4fb;
+  color: #7a7a9a;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.closeBtn:hover {
+  background: #e0e0ef;
+  color: #1a1a2e;
+}
+
+.modalBody {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 20px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.categoriesPanel {
+  display: flex;
+  flex-direction: column;
+  background: #f8f8fe;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.count {
+  background: rgba(255, 255, 255, 0.3);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+}
+
+.categoryList {
+  flex: 1;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 200px;
+  overflow-y: auto;
+}
+
+.categoryItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #fff;
+  border: 2px solid #e0e0ef;
+  border-radius: 10px;
+  cursor: grab;
+  transition: all 0.2s;
+}
+
+.categoryItem:hover {
+  border-color: #63a6fc;
+  transform: translateX(2px);
+  box-shadow: 0 2px 8px rgba(99, 166, 252, 0.2);
+}
+
+.categoryItem:active {
+  cursor: grabbing;
+}
+
+.categoryItem.selected {
+  background: linear-gradient(135deg, #e8f4ff 0%, #f0f8ff 100%);
+  border-color: #63a6fc;
+}
+
+.dragHandle {
+  color: #b0b0c8;
+  flex-shrink: 0;
+  cursor: grab;
+}
+
+.categoryItem:active .dragHandle {
+  cursor: grabbing;
+}
+
+.removeBtn {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  background: #ffe5e5;
+  color: #ff4444;
+  cursor: pointer;
+  margin-left: auto;
+  transition: all 0.2s;
+}
+
+.removeBtn:hover {
+  background: #ff4444;
+  color: #fff;
+}
+
+.emptyMessage {
+  padding: 40px 20px;
+  text-align: center;
+  color: #b0b0c8;
+  font-size: 13px;
+  font-style: italic;
+}
+
+.modalFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 2px solid #f0f0f8;
+  background: #f8f8fe;
 }

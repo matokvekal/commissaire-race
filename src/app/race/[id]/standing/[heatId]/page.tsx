@@ -150,7 +150,38 @@ const Standing: React.FC = () => {
                 />
               ))
             ) : (
-              <p>No riders in this category.</p>
+              <div className={styles.emptyState}>
+                <div className={styles.emptyIcon}>
+                  <img
+                    src={Icons.plusBlue}
+                    alt="No riders"
+                    width={48}
+                    height={48}
+                  />
+                </div>
+                <h3 className={styles.emptyTitle}>No Riders in Category</h3>
+                <p className={styles.emptyMessage}>
+                  {searchTerm
+                    ? "No riders match your search."
+                    : `There are no riders assigned to "${categoryName}" yet.`}
+                </p>
+                {!searchTerm && (
+                  <div className={styles.emptyActions}>
+                    <button
+                      className={styles.addRiderBtn}
+                      onClick={handleAddRider}
+                    >
+                      <img
+                        src={Icons.plusBlue}
+                        alt="add"
+                        width={16}
+                        height={16}
+                      />
+                      <span>Add Rider</span>
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>
