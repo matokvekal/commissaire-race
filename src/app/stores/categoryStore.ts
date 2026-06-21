@@ -11,6 +11,7 @@ interface CategoryState {
   categories: CategoryProps[];
   getCategories: (raceUuid: string) => Promise<CategoryProps[]>;
   createCategoriesFromRiders: (raceUuid: string) => Promise<void>;
+  rebuildCategoriesFromRiders: (raceUuid: string) => Promise<void>;
   updateRiderColor: (categoryName: string, color: string, raceUuid: string) => Promise<void>;
   updateCategory: (updatedCategory: CategoryProps) => void;
 }
@@ -52,6 +53,12 @@ const useCategoryStore = create<CategoryState>()(
 
       createCategoriesFromRiders: async (raceUuid) => {
         try {
+          const normTime = (t: string | null | undefined): string | null => {
+            if (!t) return null;
+            const m = t.match(/^(\d{1,2}):(\d{2})/);
+            return m ? `${m[1].padStart(2, "0")}:${m[2]}` : null;
+          };
+
           const db = await initIndexedDB();
           let riders: RiderProps[] = await db.getAll("riders");
 
@@ -87,7 +94,7 @@ const useCategoryStore = create<CategoryState>()(
                 laps: rider.totalLaps || 0,
                 lapsCounter: 0,
                 riders: 0, // ✅ Always initialize to 0
-                startTime: rider.timeStartRace || null,
+                startTime: normTime(rider.timeStartRace),
                 isConnected: false,
                 color: COLORS[colorIndex].code, // ✅ Assign color from COLORS array
                 heat: rider.heat || null,
@@ -123,6 +130,32 @@ const useCategoryStore = create<CategoryState>()(
         }
       },
 
+
+      rebuildCategoriesFromRiders: async (raceUuid) => {
+        try {
+          // Clear existing categories for this race from IDB
+          const db = await initIndexedDB();
+          const allCats: CategoryProps[] = await db.getAll("categories");
+          const toDelete = allCats.filter((c) => c.raceUuid === raceUuid);
+          if (toDelete.length > 0) {
+            const tx = db.transaction("categories", "readwrite");
+            const store = tx.objectStore("categories");
+            for (const cat of toDelete) await store.delete(cat.id);
+            await tx.done;
+          }
+          db.close();
+
+          // Clear from Zustand
+          set((state) => ({
+            categories: state.categories.filter((c) => c.raceUuid !== raceUuid),
+          }));
+
+          // Rebuild from current riders
+          await get().createCategoriesFromRiders(raceUuid);
+        } catch (error) {
+          console.error("Error rebuilding categories:", error);
+        }
+      },
 
       updateRiderColor: async (categoryName, color, raceUuid) => {
         try {

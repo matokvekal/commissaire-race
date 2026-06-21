@@ -36,7 +36,7 @@ function HeaderMain() {
         >
           <Menu className={styles.navIcon} aria-hidden="true" />
         </Button>
-        <div className={styles.head}>commissaire</div>
+        <div className={styles.head}>Simple MTB Race</div>
         <div className={styles.right}>
           <Button
             variant="icon"
@@ -67,7 +67,7 @@ function HeaderMain() {
         className={`${styles.drawer} ${drawerOpen ? styles.drawerOpen : ""}`}
       >
         <div className={styles.drawerHeader}>
-          <div className={styles.drawerTitle}>commissaire</div>
+          <div className={styles.drawerTitle}>Simple MTB Race</div>
           <Button
             variant="icon"
             size="md"

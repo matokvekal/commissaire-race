@@ -17,6 +17,11 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
+  transition: height 0.2s ease;
+}
+
+.topCompact {
+  height: 72px;
 }
 .headerRaceWrapper {
   position: absolute; /* Position the header on top of the image */

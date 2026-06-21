@@ -114,4 +114,6 @@ export interface RiderProps {
   image: string | null;
   comment: string | null;
   chipNumber?: string;
+  points?: number | null;
+  federation?: string | null;
 }

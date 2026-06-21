@@ -14,9 +14,13 @@ import {
   Trash2,
   Clock,
   Save,
-  X
+  X,
+  ArrowUp,
+  Check
 } from "lucide-react";
 import useCategoryStore from "@/stores/categoryStore";
+import useRiderStore from "@/stores/ridersStore";
+import { RiderProps } from "@/types/types";
 
 interface Props {
   raceUuid: string;
@@ -36,22 +40,63 @@ interface Wave {
   startSlots: StartSlot[];
 }
 
-/** Group categories into waves (heat number) then start groups (startTime) */
-function buildSchedule(categories: CategoryProps[]) {
+// Minimum gap in minutes between the last start of one wave and the first of the next
+export const DEFAULT_WAVE_GAP_MINUTES = 30;
+
+/** Normalize any HH:MM, H:MM, HH:MM:SS → "HH:MM" */
+export function normalizeTime(t: string | null | undefined): string | null {
+  if (!t) return null;
+  const m = t.match(/^(\d{1,2}):(\d{2})/);
+  if (!m) return null;
+  return `${m[1].padStart(2, "0")}:${m[2]}`;
+}
+
+/** "HH:MM" → minutes since midnight, or Infinity for TBD */
+export function toMinutes(t: string | null | undefined): number {
+  const norm = normalizeTime(t);
+  if (!norm) return Infinity;
+  const [h, m] = norm.split(":").map(Number);
+  return h * 60 + m;
+}
+
+/**
+ * Group categories into waves by TIME GAP.
+ * A new wave starts when the gap between consecutive start times
+ * exceeds waveGapMinutes (default 60 min).
+ * Within a wave, categories are grouped by their exact start time.
+ */
+export function buildSchedule(
+  categories: CategoryProps[],
+  waveGapMinutes = DEFAULT_WAVE_GAP_MINUTES
+) {
+  // Sort by start time ascending; TBD goes last
+  const sorted = [...categories].sort(
+    (a, b) => toMinutes(a.startTime) - toMinutes(b.startTime)
+  );
+
+  // wave number (1-based) → startTime string → categories[]
   const waveMap = new Map<number, Map<string, CategoryProps[]>>();
-  const sorted = [...categories].sort((a, b) => {
-    if ((a.heat ?? 0) !== (b.heat ?? 0)) return (a.heat ?? 0) - (b.heat ?? 0);
-    return (a.startTime ?? "").localeCompare(b.startTime ?? "");
-  });
+
+  let waveNum = 0;
+  let lastStartMinutes = -Infinity;
 
   for (const cat of sorted) {
-    const wave = cat.heat ?? 0;
-    const startKey = cat.startTime ?? "TBD";
-    if (!waveMap.has(wave)) waveMap.set(wave, new Map());
-    const startMap = waveMap.get(wave)!;
+    const catMinutes = toMinutes(cat.startTime);
+    const startKey = normalizeTime(cat.startTime) ?? "TBD";
+
+    // New wave when gap from the LAST start of current wave exceeds threshold
+    if (catMinutes - lastStartMinutes > waveGapMinutes) {
+      waveNum++;
+    }
+    // Always advance the last-seen start time (so intra-wave gaps accumulate correctly)
+    if (catMinutes !== Infinity) lastStartMinutes = catMinutes;
+
+    if (!waveMap.has(waveNum)) waveMap.set(waveNum, new Map());
+    const startMap = waveMap.get(waveNum)!;
     if (!startMap.has(startKey)) startMap.set(startKey, []);
     startMap.get(startKey)!.push(cat);
   }
+
   return waveMap;
 }
 
@@ -61,10 +106,41 @@ const STATUS_COLOR: Record<string, string> = {
   finished: "#aaa"
 };
 
+const OUT_STATUSES = new Set(["DNS", "DSQ", "DNF"]);
+
+function sortRidersForStanding(riderList: RiderProps[]): RiderProps[] {
+  return [...riderList].sort((a, b) => {
+    const aOut = OUT_STATUSES.has(a.status ?? "");
+    const bOut = OUT_STATUSES.has(b.status ?? "");
+    if (aOut !== bOut) return aOut ? 1 : -1;
+    if (b.lapsCounter !== a.lapsCounter) return b.lapsCounter - a.lapsCounter;
+    if (a.status === "finished" && b.status !== "finished") return -1;
+    if (b.status === "finished" && a.status !== "finished") return 1;
+    return a.bibNumber - b.bibNumber;
+  });
+}
+
 const Schedule: React.FC<Props> = ({ raceUuid, categories }) => {
   const navigate = useNavigate();
   const { updateCategory } = useCategoryStore();
+  const { riders, getRiders, updateRider } = useRiderStore((s) => ({
+    riders: s.riders,
+    getRiders: s.getRiders,
+    updateRider: s.updateRider
+  }));
   const [editMode, setEditMode] = useState(false);
+  const [waveGap, setWaveGap] = useState(DEFAULT_WAVE_GAP_MINUTES);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    getRiders(raceUuid);
+  }, [raceUuid, getRiders]);
+
+  useEffect(() => {
+    const onScroll = () => setShowScrollTop(window.scrollY > 80);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
   const [waves, setWaves] = useState<Wave[]>([]);
   const [unassignedCategories, setUnassignedCategories] = useState<
     CategoryProps[]
@@ -74,7 +150,7 @@ const Schedule: React.FC<Props> = ({ raceUuid, categories }) => {
   );
   const [dragOverSlot, setDragOverSlot] = useState<string | null>(null);
 
-  const schedule = buildSchedule(categories);
+  const schedule = buildSchedule(categories, waveGap);
 
   // Initialize waves from categories
   useEffect(() => {
@@ -631,24 +707,56 @@ const Schedule: React.FC<Props> = ({ raceUuid, categories }) => {
     <div className={styles.container}>
       <div className={styles.viewHeader}>
         <h3>Race Schedule</h3>
-        <Button
-          variant="primary"
-          size="sm"
-          startIcon={<Edit2 size={14} />}
-          onClick={() => setEditMode(true)}
-        >
-          Edit Schedule
-        </Button>
+        <div className={styles.headerRight}>
+          <label className={styles.gapLabel}>
+            Wave gap
+            <select
+              className={styles.gapSelect}
+              value={waveGap}
+              onChange={(e) => setWaveGap(Number(e.target.value))}
+            >
+              <option value={15}>15 min</option>
+              <option value={30}>30 min</option>
+              <option value={45}>45 min</option>
+              <option value={60}>1 hour</option>
+              <option value={90}>1.5 hrs</option>
+            </select>
+          </label>
+          <Button
+            variant="primary"
+            size="sm"
+            startIcon={<Edit2 size={14} />}
+            onClick={() => setEditMode(true)}
+          >
+            Edit Schedule
+          </Button>
+        </div>
       </div>
 
       {[...schedule.entries()].map(([waveNum, startMap]) => {
         const firstTime = [...startMap.keys()][0];
+        const allWaveCats = [...startMap.values()].flat();
+        const waveRiders = allWaveCats.flatMap((cat) =>
+          riders.filter(
+            (r) =>
+              r.raceUuid === raceUuid &&
+              r.category === cat.name &&
+              r.subCategory === cat.subCategory
+          )
+        );
+        const waveFinished = waveRiders.filter((r) => r.status === "finished").length;
+
         return (
           <div key={waveNum} className={styles.wave}>
             <div className={styles.waveHeader}>
               <span className={styles.waveLabel}>Wave {waveNum}</span>
               {firstTime !== "TBD" && (
                 <span className={styles.waveTime}>{firstTime}</span>
+              )}
+              {waveRiders.length > 0 && (
+                <span className={styles.waveStat}>
+                  {waveFinished}/{waveRiders.length} ✓
+                </span>
               )}
               <Button
                 variant="success"
@@ -662,8 +770,16 @@ const Schedule: React.FC<Props> = ({ raceUuid, categories }) => {
             </div>
 
             {[...startMap.entries()].map(([startTime, cats], si) => {
-              const allStarted = cats.every((c) => c.status !== "upcoming");
               const anyRunning = cats.some((c) => c.status === "running");
+              const startRiders = cats.flatMap((cat) =>
+                riders.filter(
+                  (r) =>
+                    r.raceUuid === raceUuid &&
+                    r.category === cat.name &&
+                    r.subCategory === cat.subCategory
+                )
+              );
+              const startFinished = startRiders.filter((r) => r.status === "finished").length;
 
               return (
                 <div key={startTime} className={styles.startGroup}>
@@ -679,35 +795,13 @@ const Schedule: React.FC<Props> = ({ raceUuid, categories }) => {
                       {si > 0 && startTime !== "TBD" && (
                         <span className={styles.startTime}> · {startTime}</span>
                       )}
+                      {startRiders.length > 0 && (
+                        <span className={styles.startStat}>
+                          {startFinished}/{startRiders.length}
+                        </span>
+                      )}
                     </div>
                     <div className={styles.startActions}>
-                      {!allStarted && (
-                        <Button
-                          variant="success"
-                          size="md"
-                          onClick={async () => {
-                            // Start all categories in this start slot
-                            const { default: useCategoryStore } =
-                              await import("@/stores/categoryStore");
-                            for (const cat of cats) {
-                              if (cat.status === "upcoming") {
-                                await useCategoryStore
-                                  .getState()
-                                  .updateCategory({
-                                    ...cat,
-                                    status: "running",
-                                    startTime:
-                                      startTime !== "TBD"
-                                        ? startTime
-                                        : new Date().toISOString()
-                                  });
-                              }
-                            }
-                          }}
-                        >
-                          Start All ({cats.length})
-                        </Button>
-                      )}
                       {anyRunning && (
                         <Button
                           variant="secondary"
@@ -723,56 +817,144 @@ const Schedule: React.FC<Props> = ({ raceUuid, categories }) => {
                     </div>
                   </div>
 
-                  {cats.map((cat) => (
-                    <div key={cat.id} className={styles.categoryRow}>
-                      <div
-                        className={styles.colorDot}
-                        style={{ background: cat.color ?? "#ccc" }}
-                      />
-                      <div className={styles.catInfo}>
-                        <span className={styles.catName}>{cat.name}</span>
-                        {cat.subCategory && (
-                          <span className={styles.subCategory}>
-                            {" "}
-                            · {cat.subCategory}
+                  {cats.map((cat) => {
+                    const catRiders = sortRidersForStanding(
+                      riders.filter(
+                        (r) =>
+                          r.raceUuid === raceUuid &&
+                          r.category === cat.name &&
+                          r.subCategory === cat.subCategory
+                      )
+                    );
+
+                    return (
+                      <div key={cat.id} className={styles.catBlock}>
+                        <div className={styles.categoryRow}>
+                          <div
+                            className={styles.colorDot}
+                            style={{ background: cat.color ?? "#ccc" }}
+                          />
+                          <div className={styles.catInfo}>
+                            <span className={styles.catName}>{cat.name}</span>
+                            {cat.subCategory && (
+                              <span className={styles.catMeta}>
+                                {" "}· {cat.subCategory}
+                              </span>
+                            )}
+                            <span className={styles.catMeta}>
+                              {catRiders.length} riders · {cat.laps ?? 0} laps
+                            </span>
+                          </div>
+                          <span
+                            className={styles.statusBadge}
+                            style={{
+                              color: STATUS_COLOR[cat.status ?? "upcoming"]
+                            }}
+                          >
+                            {cat.status ?? "upcoming"}
                           </span>
+                          <div className={styles.catActions}>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              className={styles.standingsBtn}
+                              onClick={() =>
+                                navigate(
+                                  `/race/${raceUuid}/standing/${waveNum}?category=${encodeURIComponent(cat.name)}`
+                                )
+                              }
+                            >
+                              <Trophy size={12} />
+                            </Button>
+                          </div>
+                        </div>
+
+                        {catRiders.length > 0 && (
+                          <div className={styles.standingsList}>
+                            {catRiders.map((rider, idx) => {
+                              const isOut = OUT_STATUSES.has(rider.status ?? "");
+                              const isFinished = rider.status === "finished";
+                              const isDNS = rider.status === "DNS";
+                              const isDSQ = rider.status === "DSQ";
+                              return (
+                                <div
+                                  key={rider.id}
+                                  className={`${styles.standingRow} ${isOut ? styles.standingRowOut : ""}`}
+                                >
+                                  <span className={styles.standingPos}>
+                                    {isOut ? "—" : idx + 1}
+                                  </span>
+                                  <span className={styles.standingBib}>
+                                    #{rider.bibNumber}
+                                  </span>
+                                  <span className={styles.standingName}>
+                                    {rider.lastName} {rider.firstName}
+                                  </span>
+                                  <span className={styles.standingLaps}>
+                                    {rider.lapsCounter}/{rider.totalLaps}
+                                  </span>
+                                  <div className={styles.standingActions}>
+                                    <button
+                                      className={`${styles.vBtn} ${isFinished ? styles.vBtnOn : ""}`}
+                                      title="Mark finished"
+                                      onClick={() =>
+                                        updateRider({
+                                          ...rider,
+                                          status: isFinished ? "running" : "finished",
+                                          raceStatus: isFinished ? "running" : "finished"
+                                        })
+                                      }
+                                    >
+                                      <Check size={11} />
+                                    </button>
+                                    <button
+                                      className={`${styles.statusBtn} ${isDNS ? styles.dnsOn : ""}`}
+                                      onClick={() =>
+                                        updateRider({
+                                          ...rider,
+                                          status: isDNS ? "standing" : "DNS",
+                                          raceStatus: "upcoming"
+                                        })
+                                      }
+                                    >
+                                      DNS
+                                    </button>
+                                    <button
+                                      className={`${styles.statusBtn} ${isDSQ ? styles.dsqOn : ""}`}
+                                      onClick={() =>
+                                        updateRider({
+                                          ...rider,
+                                          status: isDSQ ? "running" : "DSQ"
+                                        })
+                                      }
+                                    >
+                                      DSQ
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
                         )}
-                        <span className={styles.catMeta}>
-                          {cat.riders ?? 0} riders · {cat.lapsCounter ?? 0}/
-                          {cat.laps ?? 0} laps
-                        </span>
                       </div>
-                      <span
-                        className={styles.statusBadge}
-                        style={{
-                          color: STATUS_COLOR[cat.status ?? "upcoming"]
-                        }}
-                      >
-                        {cat.status ?? "upcoming"}
-                      </span>
-                      <div className={styles.catActions}>
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          className={styles.standingsBtn}
-                          onClick={() =>
-                            navigate(
-                              `/race/${raceUuid}/standing/${waveNum}?category=${encodeURIComponent(cat.name)}`
-                            )
-                          }
-                        >
-                          <Trophy size={12} />
-                          Standings
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               );
             })}
           </div>
         );
       })}
+
+      {showScrollTop && (
+        <button
+          className={styles.scrollTopBtn}
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          aria-label="Back to top"
+        >
+          <ArrowUp size={18} />
+        </button>
+      )}
     </div>
   );
 };

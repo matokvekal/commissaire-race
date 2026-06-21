@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import styles from "./raceMode.module.css";
 import { CategoryProps } from "@/types/types";
 import StartManager from "./StartManager";
 import CheckIn from "./CheckIn";
 import LiveBoard from "./LiveBoard";
+import { buildSchedule, DEFAULT_WAVE_GAP_MINUTES } from "../schedule/Schedule";
 
 interface Props {
   raceUuid: string;
@@ -13,11 +14,21 @@ interface Props {
 type SubTab = "start" | "checkin" | "board";
 
 const RaceMode: React.FC<Props> = ({ raceUuid, categories }) => {
-  const waves = [...new Set(categories.map((c) => c.heat ?? 0))].sort((a, b) => a - b);
-  const [selectedWave, setSelectedWave] = useState<number>(waves[0] ?? 1);
+  // Group categories by time gap (same logic as Schedule view)
+  const schedule = useMemo(
+    () => buildSchedule(categories, DEFAULT_WAVE_GAP_MINUTES),
+    [categories]
+  );
+  const waveNums = useMemo(() => [...schedule.keys()], [schedule]);
+  const [selectedWave, setSelectedWave] = useState<number>(waveNums[0] ?? 1);
   const [subTab, setSubTab] = useState<SubTab>("start");
 
-  const waveCategories = categories.filter((c) => (c.heat ?? 0) === selectedWave);
+  // All categories in the selected time-based wave (all start slots combined)
+  const waveCategories = useMemo(() => {
+    const startMap = schedule.get(selectedWave);
+    if (!startMap) return [];
+    return [...startMap.values()].flat();
+  }, [schedule, selectedWave]);
 
   return (
     <div className={styles.container}>
@@ -25,15 +36,19 @@ const RaceMode: React.FC<Props> = ({ raceUuid, categories }) => {
       <div className={styles.waveBar}>
         <span className={styles.waveBarLabel}>Wave:</span>
         <div className={styles.wavePills}>
-          {waves.map((w) => (
-            <button
-              key={w}
-              className={`${styles.wavePill} ${selectedWave === w ? styles.wavePillActive : ""}`}
-              onClick={() => setSelectedWave(w)}
-            >
-              {w}
-            </button>
-          ))}
+          {waveNums.map((w) => {
+            const startMap = schedule.get(w);
+            const firstTime = startMap ? [...startMap.keys()][0] : null;
+            return (
+              <button
+                key={w}
+                className={`${styles.wavePill} ${selectedWave === w ? styles.wavePillActive : ""}`}
+                onClick={() => setSelectedWave(w)}
+              >
+                {w}{firstTime && firstTime !== "TBD" ? ` · ${firstTime}` : ""}
+              </button>
+            );
+          })}
         </div>
       </div>
 

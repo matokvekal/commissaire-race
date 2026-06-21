@@ -43,7 +43,10 @@ export type RiderFieldKey =
    | 'heat'
    | 'startTime'
    | 'totalLaps'
-   | 'position';
+   | 'position'
+   | 'raceDay'
+   | 'points'
+   | 'federation';
 
 export interface ColumnMapping {
    sourceColumn: string;      // Original CSV column name
@@ -123,6 +126,20 @@ export interface ImportProgress {
 }
 
 // ============================================================================
+// Mapping Templates (saved structures for reuse)
+// ============================================================================
+
+export interface MappingTemplate {
+  id: string;
+  name: string;
+  headers: string[];   // Original source headers at save time
+  mappings: { sourceColumn: string; targetField: RiderFieldKey | null }[];
+  createdAt: number;
+  lastUsed: number;
+  usedCount: number;
+}
+
+// ============================================================================
 // Learning/Memory Types
 // ============================================================================
 
@@ -172,68 +189,165 @@ export interface FieldKeywords {
 export const FIELD_KEYWORDS: FieldKeywords[] = [
    {
       field: 'bibNumber',
-      hebrew: ['מספר', 'מס\'', 'ביב', 'רוכב', 'מס רוכב', 'מספר רוכב'],
-      english: ['bib', 'number', 'num', 'rider', 'rider number', '#'],
+      hebrew: [
+         'מספר', 'מס\'', 'מס.', 'מס', 'ביב', 'רוכב',
+         'מס רוכב', 'מספר רוכב', 'מספר מתחרה', 'מס מתחרה',
+         'מס\' רוכב', 'ב\''
+      ],
+      english: [
+         'bib', 'bib#', 'bib no', 'bib number', 'bib num',
+         'number', 'num', 'no', 'no.',
+         'rider', 'rider number', 'rider no',
+         'start number', 'start no', 'start num',
+         'athlete no', 'athlete number', '#', 'sno'
+      ],
       priority: 10
    },
    {
       field: 'firstName',
-      hebrew: ['שם', 'שם פרטי', 'פרטי', 'שם ראשון'],
-      english: ['first', 'first name', 'fname', 'given', 'given name'],
+      hebrew: [
+         'שם פרטי', 'פרטי', 'שם ראשון', 'שם',
+         'שם\' פרטי', 'פ\''
+      ],
+      english: [
+         'first', 'first name', 'firstname', 'fname', 'f name',
+         'given', 'given name', 'forename',
+         'p name', 'pname', 'prename'
+      ],
       priority: 8
    },
    {
       field: 'lastName',
-      hebrew: ['שם משפחה', 'משפחה', 'מש\'', 'שם אחרון'],
-      english: ['last', 'last name', 'lname', 'surname', 'family', 'family name'],
+      hebrew: [
+         'שם משפחה', 'משפחה', 'מש\'', 'שם אחרון',
+         'שם\' משפחה', 'פמיליה'
+      ],
+      english: [
+         'last', 'last name', 'lastname', 'lname', 'l name',
+         'surname', 'family', 'family name',
+         's name', 'second name'
+      ],
       priority: 8
    },
    {
       field: 'fullName',
-      hebrew: ['שם מלא', 'שם', 'רוכב'],
-      english: ['full name', 'name', 'rider name', 'full'],
+      hebrew: ['שם מלא', 'שם מלא של הרוכב', 'שם ומשפחה'],
+      english: [
+         'full name', 'fullname', 'name', 'full',
+         'rider name', 'athlete name', 'competitor name', 'competitor'
+      ],
       priority: 7
    },
    {
       field: 'category',
-      hebrew: ['קטגוריה', 'קט\'', 'גיל', 'שכבת גיל', 'שכבה'],
-      english: ['category', 'cat', 'age', 'age group', 'class', 'group'],
+      hebrew: [
+         'קטגוריה', 'קט\'', 'קט.', 'קטגורייה',
+         'גיל', 'שכבת גיל', 'שכבה', 'ענף',
+         'קבוצת גיל', 'סוג', 'מחלקה'
+      ],
+      english: [
+         'category', 'cat', 'cat.',
+         'age', 'age group', 'age cat',
+         'class', 'group', 'division', 'section', 'event class'
+      ],
       priority: 9
    },
    {
       field: 'team',
-      hebrew: ['קבוצה', 'קב\'', 'מועדון', 'צוות', 'אגודה'],
-      english: ['team', 'club', 'squad', 'organization', 'org'],
+      hebrew: [
+         'קבוצה', 'קב\'', 'קב.',
+         'מועדון', 'שם מועדון',
+         'אגודה', 'שם אגודה',
+         'צוות', 'שם קבוצה',
+         'מועדון ספורט', 'קלוב', 'ע"ר'
+      ],
+      english: [
+         'team', 'team name',
+         'club', 'club name', 'club/team',
+         'squad', 'organization', 'org', 'association',
+         'society', 'sponsor'
+      ],
       priority: 6
    },
    {
       field: 'gender',
-      hebrew: ['מגדר', 'מין', 'זכר', 'נקבה'],
-      english: ['gender', 'sex', 'male', 'female', 'm/f', 'm', 'f'],
+      hebrew: ['מגדר', 'מין', 'זכר', 'נקבה', 'ז/נ'],
+      english: ['gender', 'sex', 'male', 'female', 'm/f', 'g'],
       priority: 5
    },
    {
       field: 'heat',
-      hebrew: ['חימום', 'מקצה', 'סבב', 'גל', 'התחלה'],
-      english: ['heat', 'wave', 'start', 'start group', 'group'],
+      hebrew: [
+         'מקצה', 'חימום', 'סבב', 'גל', 'התחלה',
+         'גל התחלה', 'קבוצת התחלה', 'גל פתיחה'
+      ],
+      english: [
+         'heat', 'wave', 'flight',
+         'start group', 'start wave', 'start heat',
+         'wave no', 'heat no', 'group'
+      ],
       priority: 7
    },
    {
       field: 'startTime',
-      hebrew: ['זמן התחלה', 'שעת התחלה', 'שעה', 'זמן'],
-      english: ['start time', 'time', 'start', 'clock'],
+      hebrew: [
+         'שעה', 'שעת התחלה', 'זמן התחלה',
+         'זמן פתיחה', 'שעת פתיחה', 'זמן', 'שעת סטארט'
+      ],
+      english: [
+         'time', 'start time', 'start hour', 'stime',
+         'clock', 'hour', 'gun time', 'wave time'
+      ],
       priority: 6
    },
    {
       field: 'totalLaps',
-      hebrew: ['סבבים', 'הקפות', 'מספר סבבים', 'לאפים'],
-      english: ['laps', 'total laps', 'rounds', 'total rounds'],
+      hebrew: [
+         'סבבים', 'הקפות', 'מספר סבבים', 'לאפים',
+         'מספר הקפות', 'כמות סבבים', 'כמות הקפות'
+      ],
+      english: [
+         'laps', 'total laps', 'lap count', 'nlaps', 'num laps',
+         'rounds', 'total rounds', 'loops'
+      ],
       priority: 5
    },
    {
       field: 'position',
-      hebrew: ['מיקום', 'עמדה', 'מקום', 'דירוג'],
-      english: ['position', 'pos', 'place', 'rank', 'standing'],
+      hebrew: [
+         'מיקום', 'עמדה', 'מקום', 'דירוג',
+         'מיקום התחלה', 'עמדת התחלה', 'מיקום פתיחה'
+      ],
+      english: [
+         'position', 'pos', 'place', 'rank', 'standing',
+         'start pos', 'starting position', 'grid', 'grid pos'
+      ],
       priority: 4
+   },
+   {
+      field: 'points',
+      hebrew: ['ניקוד', 'נקודות', 'ניקוד כולל', 'נקודות כולל'],
+      english: ['points', 'score', 'pts', 'total points', 'ranking points'],
+      priority: 5
+   },
+   {
+      field: 'federation',
+      hebrew: ['איגוד', 'פדרציה', 'ארגון', 'אגודה'],
+      english: ['federation', 'fed', 'org', 'organization', 'association', 'union'],
+      priority: 5
+   },
+   {
+      field: 'raceDay',
+      hebrew: [
+         'יום', 'יום מרוץ', 'יום תחרות', 'יום אירוע',
+         'שישי', 'שבת', 'ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי',
+         'תאריך', 'תאריך אירוע'
+      ],
+      english: [
+         'day', 'race day', 'event day', 'day no', 'day number',
+         'date', 'event date', 'day1', 'day2', 'd1', 'd2',
+         'friday', 'saturday', 'sunday', 'monday'
+      ],
+      priority: 8
    }
 ];

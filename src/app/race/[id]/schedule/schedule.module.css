@@ -139,6 +139,10 @@
   flex-shrink: 0;
 }
 
+.catBlock {
+  border-top: 1px solid #ecf2fc;
+}
+
 .catActions {
   display: flex;
   align-items: center;
@@ -148,6 +152,191 @@
 
 .standingsBtn {
   min-height: 32px;
+}
+
+/* Wave/start stats */
+.waveStat {
+  font-size: 11px;
+  font-weight: 700;
+  color: #3edda4;
+  background: rgba(62, 221, 164, 0.15);
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: auto;
+  margin-right: 8px;
+}
+
+.startStat {
+  font-size: 11px;
+  font-weight: 700;
+  color: #f57c00;
+  background: rgba(255, 193, 7, 0.18);
+  padding: 2px 7px;
+  border-radius: 8px;
+  margin-left: 8px;
+}
+
+/* Inline standings */
+.standingsList {
+  border-top: 1px dashed #e8f0fc;
+  background: #f9fbff;
+}
+
+.standingRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-bottom: 1px solid #f0f4fc;
+  font-size: 12px;
+}
+
+.standingRowOut {
+  opacity: 0.45;
+}
+
+.standingPos {
+  font-size: 11px;
+  font-weight: 800;
+  color: #7a8aa8;
+  min-width: 18px;
+  text-align: right;
+}
+
+.standingBib {
+  font-size: 11px;
+  font-weight: 700;
+  color: #4a8ee7;
+  min-width: 32px;
+}
+
+.standingName {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1a304f;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.standingLaps {
+  font-size: 11px;
+  color: #7a8aa8;
+  min-width: 36px;
+  text-align: right;
+}
+
+.standingActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* V (finish) button — gray by default, blue when on */
+.vBtn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid #c6d9fb;
+  background: #fff;
+  color: #b0c4de;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.vBtn:active { transform: scale(0.9); }
+
+.vBtnOn {
+  border-color: #4a8ee7;
+  background: #4a8ee7;
+  color: #fff;
+}
+
+/* DNS / DSQ text buttons */
+.statusBtn {
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: 1.5px solid #dde6f5;
+  background: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  color: #9bb5d4;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.statusBtn:hover { border-color: #b0c4de; color: #5a7aa0; }
+
+.dnsOn {
+  border-color: #ef9a9a;
+  background: #ffebee;
+  color: #c62828;
+}
+
+.dsqOn {
+  border-color: #ffe082;
+  background: #fff8e1;
+  color: #e65100;
+}
+
+/* Scroll-to-top button */
+.scrollTopBtn {
+  position: fixed;
+  bottom: 22px;
+  right: 20px;
+  z-index: 50;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border: none;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(102, 126, 234, 0.45);
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.scrollTopBtn:active {
+  transform: scale(0.92);
+}
+
+/* Wave gap control */
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.gapLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #7b95b8;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.gapSelect {
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #c6d9fb;
+  border-radius: 8px;
+  padding: 4px 6px;
+  color: #1a304f;
+  background: #f5f9ff;
+  cursor: pointer;
 }
 
 /* Edit Mode Styles */

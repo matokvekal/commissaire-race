@@ -153,8 +153,32 @@ function detectLanguage(text: string): 'he' | 'en' | 'mixed' {
 // ============================================================================
 
 /**
- * Find best field match for a CSV column
- * Uses keyword matching and fuzzy string matching
+ * Score a single column name against a single keyword.
+ * Also tries matching individual words of the column (e.g. "שם מועדון" → "מועדון").
+ */
+function scoreAgainstKeyword(columnName: string, keyword: string): number {
+   // Full column vs keyword
+   const fullScore = fuzzyMatchScore(columnName, keyword);
+   if (fullScore >= 100) return 100;
+
+   // Try each individual word of the column name
+   const words = columnName.trim().split(/\s+/);
+   if (words.length > 1) {
+      let wordBest = 0;
+      for (const word of words) {
+         const s = fuzzyMatchScore(word, keyword);
+         if (s > wordBest) wordBest = s;
+      }
+      // Word match is slightly penalised (it's a partial match)
+      return Math.max(fullScore, Math.round(wordBest * 0.92));
+   }
+
+   return fullScore;
+}
+
+/**
+ * Find best field match for a CSV column.
+ * Uses keyword matching, fuzzy string matching, and per-word matching.
  */
 function findBestFieldMatch(
    columnName: string,
@@ -165,25 +189,24 @@ function findBestFieldMatch(
    const language = detectLanguage(columnName);
 
    for (const fieldKeywords of FIELD_KEYWORDS) {
-      // Skip if field already mapped
       if (usedFields.has(fieldKeywords.field)) continue;
 
-      const keywords = language === 'en'
-         ? fieldKeywords.english
-         : language === 'he'
-            ? fieldKeywords.hebrew
+      // For mixed-language columns try all keywords; otherwise restrict to detected language
+      const keywords = language === 'mixed'
+         ? [...fieldKeywords.hebrew, ...fieldKeywords.english]
+         : language === 'en'
+            ? [...fieldKeywords.english, ...fieldKeywords.hebrew]   // try Hebrew too for safety
             : [...fieldKeywords.hebrew, ...fieldKeywords.english];
 
       let bestScore = 0;
       let matchReason = '';
 
       for (const keyword of keywords) {
-         const score = fuzzyMatchScore(columnName, keyword);
+         const score = scoreAgainstKeyword(columnName, keyword);
 
          if (score > bestScore) {
             bestScore = score;
 
-            // Determine reason
             if (normalize(columnName) === normalize(keyword)) {
                matchReason = 'Exact match';
             } else if (contains(normalized, normalize(keyword))) {
@@ -196,11 +219,10 @@ function findBestFieldMatch(
          }
       }
 
-      // Boost score based on field priority
       const priorityBoost = fieldKeywords.priority * 2;
       const finalScore = Math.min(100, bestScore + (bestScore > 50 ? priorityBoost : 0));
 
-      if (finalScore > 40) { // Only add decent matches
+      if (finalScore > 40) {
          suggestions.push({
             field: fieldKeywords.field,
             confidence: finalScore,
@@ -209,9 +231,7 @@ function findBestFieldMatch(
       }
    }
 
-   // Sort by confidence (highest first)
    suggestions.sort((a, b) => b.confidence - a.confidence);
-
    return suggestions;
 }
 

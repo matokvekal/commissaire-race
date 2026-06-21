@@ -4,6 +4,7 @@ import Button from "@/components/ui/Button";
 import useRiderStore from "@/stores/ridersStore";
 import useCategoryStore from "@/stores/categoryStore";
 import { RiderProps } from "@/types/types";
+import RiderDetailModal from "../../components/riderDetailModal/RiderDetailModal";
 
 interface Props {
   raceUuid: string;
@@ -42,6 +43,7 @@ const Results: React.FC<Props> = ({ raceUuid }) => {
   const { categories } = useCategoryStore();
   const [sortBy, setSortBy] = useState<SortKey>("place");
   const [filterCategory, setFilterCategory] = useState("all");
+  const [selectedRider, setSelectedRider] = useState<RiderProps | null>(null);
 
   useEffect(() => {
     getRiders(raceUuid);
@@ -102,6 +104,10 @@ const Results: React.FC<Props> = ({ raceUuid }) => {
         </div>
       </div>
 
+      {selectedRider && (
+        <RiderDetailModal rider={selectedRider} onClose={() => setSelectedRider(null)} />
+      )}
+
       {displayed.map((catName) => {
         const group = sorted(raceRiders.filter((r) => r.category === catName));
         const catMeta = categories.find(
@@ -129,6 +135,8 @@ const Results: React.FC<Props> = ({ raceUuid }) => {
                 <div
                   key={rider.id}
                   className={`${styles.row} ${isActive ? styles.active : ""} ${isOut ? styles.out : ""}`}
+                  style={{ cursor: "pointer" }}
+                  onClick={() => setSelectedRider(rider)}
                 >
                   <span className={styles.pos}>
                     {isOut ? "—" : sortBy === "place" ? idx + 1 : "·"}

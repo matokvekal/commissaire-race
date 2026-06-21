@@ -200,6 +200,171 @@
   background: linear-gradient(150deg, #5295ed, #3e82d6);
 }
 
+/* ── Home / App Store layout ── */
+.home {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 32px;
+}
+
+.section {
+  padding-top: 20px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px 10px;
+}
+
+.sectionLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sectionTitle {
+  font-size: 17px;
+  font-weight: 800;
+  color: #14243c;
+}
+
+.sectionCount {
+  font-size: 13px;
+  font-weight: 700;
+  color: #8facd4;
+  background: #edf4ff;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.sectionActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.seeAllBtn {
+  font-size: 13px;
+  font-weight: 700;
+  color: #4a8ee7;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.seeAllBtn:active {
+  opacity: 0.6;
+}
+
+.addTileBtn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(150deg, #3edda4, #2fcf95);
+  border: none;
+  border-radius: 10px;
+  padding: 5px 11px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(39, 191, 136, 0.3);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.addTileBtn:active {
+  transform: scale(0.96);
+}
+
+/* Horizontal tile scroll row */
+.tileRow {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 4px 16px 12px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.tileRow::-webkit-scrollbar {
+  display: none;
+}
+
+/* Discover / Download card */
+.discoverCard {
+  margin: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: linear-gradient(135deg, #eef5ff, #e3eeff);
+  border: 1px solid #c6d9fb;
+  border-radius: 16px;
+  padding: 16px 18px;
+  cursor: pointer;
+  transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.discoverCard:active {
+  background: linear-gradient(135deg, #e0ecff, #d6e7ff);
+  transform: scale(0.98);
+}
+
+.discoverIcon {
+  color: #4a8ee7;
+  flex-shrink: 0;
+}
+
+.discoverText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.discoverTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a304f;
+}
+
+.discoverSub {
+  font-size: 12px;
+  color: #7b95b8;
+}
+
+/* "See All" full list view — toolbar */
+.toolbarTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.backBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  font-size: 15px;
+  font-weight: 700;
+  color: #4a8ee7;
+  cursor: pointer;
+  padding: 4px 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.backBtn:active {
+  opacity: 0.6;
+}
+
 /* Race list */
 .list {
   display: flex;

@@ -5,6 +5,9 @@
   max-width: 1200px;
   margin: 20px auto;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .header {
@@ -100,5 +103,6 @@
 
 .content {
   padding: 32px;
-  min-height: 400px;
+  flex: 1;
+  overflow-y: auto;
 }

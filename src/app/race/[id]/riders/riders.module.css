@@ -20,6 +20,15 @@
   font-size: 11px;
 }
 
+.dangerBtn {
+  color: #c62828 !important;
+  border-color: #ffcdd2 !important;
+}
+
+.dangerBtn:hover {
+  background: #ffebee !important;
+}
+
 .sortActive {
   letter-spacing: 0.01em;
 }
@@ -91,4 +100,27 @@
 .hide {
   opacity: 0;
   pointer-events: none;
+}
+
+.wizardOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.wizardModal {
+  background: white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 700px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }

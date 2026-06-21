@@ -1,0 +1,118 @@
+.tile {
+  flex-shrink: 0;
+  width: 136px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid #e0eaf8;
+  box-shadow: 0 6px 18px rgba(17, 62, 126, 0.10);
+  overflow: hidden;
+  cursor: pointer;
+  scroll-snap-align: start;
+  transition: transform 0.15s, box-shadow 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tile:active {
+  transform: scale(0.96);
+  box-shadow: 0 3px 10px rgba(17, 62, 126, 0.10);
+}
+
+/* Image area */
+.imgWrap {
+  position: relative;
+  width: 100%;
+  height: 116px;
+}
+
+.img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Status badge — top right */
+.statusBadge {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  font-weight: 800;
+  color: #fff;
+  padding: 3px 7px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Live pulse dot */
+.dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #fff;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.6); opacity: 0.5; }
+}
+
+/* Favorite button — top left */
+.favBtn {
+  position: absolute;
+  top: 7px;
+  left: 7px;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.82);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #8facd4;
+  backdrop-filter: blur(4px);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.favActive {
+  color: #e04a7a;
+}
+
+/* Text info below image */
+.info {
+  padding: 8px 9px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.name {
+  font-size: 12px;
+  font-weight: 800;
+  color: #1a304f;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.3;
+}
+
+.date {
+  font-size: 10px;
+  font-weight: 600;
+  color: #7b95b8;
+}
+
+.riders {
+  font-size: 10px;
+  font-weight: 600;
+  color: #9eb5d4;
+}

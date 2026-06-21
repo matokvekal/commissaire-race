@@ -6,7 +6,6 @@ import Papa from "papaparse";
 
 export const saveRidersFromCsv = async (csvData: string, raceUuid: string) => {
    try {
-      debugger
       // Parse CSV file while ignoring the first row
       const parsed = Papa.parse<string[]>(csvData, {
          skipEmptyLines: true,

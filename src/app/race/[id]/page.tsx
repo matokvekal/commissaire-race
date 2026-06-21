@@ -6,6 +6,7 @@ import Images from "@/constants/Images";
 import RaceInfo from "../components/raceInfo/RaceInfo";
 import useCategoryStore from "@/stores/categoryStore";
 import useRaceStore from "@/stores/racesStore";
+import useRiderStore from "@/stores/ridersStore";
 import useUIStore from "@/stores/uiStore";
 import Riders from "./riders/Riders";
 import Map from "./map/Map";
@@ -15,7 +16,7 @@ import Results from "./results/Results";
 import Info from "./info/Info";
 import RaceMode from "./raceMode/RaceMode";
 import EditRiders from "./editRiders/EditRiders";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useDataStore } from "@/stores/appStore";
 
 const TABS = [
@@ -32,10 +33,13 @@ type Tab = (typeof TABS)[number];
 const Race: React.FC = () => {
   const params = useParams();
   const raceUuid = params?.id as string;
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
 
   const getRaces = useRaceStore((s) => s.getRaces);
   const races = useRaceStore((s) => s.races);
+  const deleteRace = useRaceStore((s) => s.deleteRace);
+  const deleteRidersByRace = useRiderStore((s) => s.deleteRidersByRace);
   const getCategories = useCategoryStore((s) => s.getCategories);
   const createCategoriesFromRiders = useCategoryStore(
     (s) => s.createCategoriesFromRiders
@@ -87,7 +91,7 @@ const Race: React.FC = () => {
 
   return (
     <div className={styles.race}>
-      <div className={styles.top}>
+      <div className={`${styles.top} ${isRaceMode ? styles.topCompact : ""}`}>
         <div className={styles.headerRaceWrapper}>
           <HeaderRace />
         </div>
@@ -104,9 +108,11 @@ const Race: React.FC = () => {
             }}
           />
         </div>
-        <div className={styles.raceInfo}>
-          <RaceInfo {...race} />
-        </div>
+        {!isRaceMode && (
+          <div className={styles.raceInfo}>
+            <RaceInfo {...race} />
+          </div>
+        )}
       </div>
 
       <div className={styles.bottom}>
@@ -146,7 +152,16 @@ const Race: React.FC = () => {
                 />
               )}
               {activeTabSafe === "map" && <Map raceUuid={raceUuid} />}
-              {activeTabSafe === "info" && <Info race={race} />}
+              {activeTabSafe === "info" && (
+                <Info
+                  race={race}
+                  onDeleteRace={async () => {
+                    await deleteRidersByRace(raceUuid);
+                    await deleteRace(raceUuid);
+                    navigate("/");
+                  }}
+                />
+              )}
             </div>
           </>
         )}

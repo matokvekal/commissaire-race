@@ -116,7 +116,7 @@ export default function PreviewStep({
         if (!timeRegex.test(rider.timeStartRace)) {
           issues.push({
             row: lineNumber,
-            field: "timeStartRace",
+            field: "startTime",
             message: "Start time must be in HH:MM or HH:MM:SS format",
             severity: "warning",
             value: rider.timeStartRace
@@ -196,7 +196,10 @@ export default function PreviewStep({
   return (
     <div className={styles.previewStep}>
       <div className={styles.header}>
-        <h3>Preview & Validate</h3>
+        <div className={styles.headerLeft}>
+          <button onClick={onBack} className={styles.backButtonTop}>← Back</button>
+          <h3>Preview & Validate</h3>
+        </div>
         {validation && (
           <div className={styles.validationSummary}>
             <div className={styles.summaryItem}>
@@ -278,6 +281,7 @@ export default function PreviewStep({
                     return (
                       <td
                         key={colIndex}
+                        dir="auto"
                         className={
                           fieldIssues.length > 0 ? styles.errorCell : ""
                         }
@@ -311,37 +315,6 @@ export default function PreviewStep({
           </tbody>
         </table>
       </div>
-
-      {validation && validation.issues.length > 0 && (
-        <div className={styles.issuesPanel}>
-          <h4>Validation Issues</h4>
-          <div className={styles.issuesList}>
-            {validation.issues.slice(0, 10).map((issue, index) => (
-              <div
-                key={index}
-                className={`${styles.issueItem} ${styles[issue.severity]}`}
-              >
-                <span className={styles.issueIcon}>
-                  {issue.severity === "error"
-                    ? "❌"
-                    : issue.severity === "warning"
-                      ? "⚠️"
-                      : "ℹ️"}
-                </span>
-                <span className={styles.issueText}>
-                  Row {issue.row}, {issue.field}: {issue.message}
-                  {issue.value && ` (${issue.value})`}
-                </span>
-              </div>
-            ))}
-            {validation.issues.length > 10 && (
-              <div className={styles.moreIssues}>
-                + {validation.issues.length - 10} more issues...
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
       <div className={styles.actions}>
         <button onClick={onBack} className={styles.backButton}>

@@ -30,6 +30,7 @@
     "react-dropzone": "^14.3.5",
     "react-router-dom": "^6.28.0",
     "react-toastify": "^10.0.5",
+    "xlsx": "^0.18.5",
     "zod": "^3.24.2",
     "zustand": "^4.5.4"
   },

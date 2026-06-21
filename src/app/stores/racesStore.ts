@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { fetchRaces as fetchRacesFromAPI } from "@/services/fetchRaces";
 import { initIndexedDB } from "@/stores/indexDb/indexedDbHelper";
-import { RaceProps } from "@/types/types";
+import { RaceProps, CategoryProps, RiderProps } from "@/types/types";
 import raceStorageAdapter from "./indexDb/raceStorageAdapter";
 
 interface RaceState {
@@ -10,6 +10,7 @@ interface RaceState {
    getRaces: () => Promise<RaceProps[]>;
    insertRace: (newRace: RaceProps) => Promise<void>;
    updateRace: (updatedRace: RaceProps) => Promise<void>;
+   deleteRace: (raceUuid: string) => Promise<void>;
 }
 
 const useRaceStore = create<RaceState>()(
@@ -90,6 +91,46 @@ const useRaceStore = create<RaceState>()(
                console.log("Race updated successfully");
             } catch (error) {
                console.error("Error updating race:", error);
+            }
+         },
+
+         deleteRace: async (raceUuid) => {
+            try {
+               const db = await initIndexedDB();
+
+               // Delete riders for this race
+               const allRiders = await db.getAll("riders");
+               const ridersToDelete = allRiders.filter((r: RiderProps) => r.raceUuid === raceUuid);
+               if (ridersToDelete.length > 0) {
+                  const riderTx = db.transaction("riders", "readwrite");
+                  const riderStore = riderTx.objectStore("riders");
+                  await Promise.all(ridersToDelete.map((r: RiderProps) => riderStore.delete(r.id)));
+                  await riderTx.done;
+               }
+
+               // Delete categories for this race
+               const allCats = await db.getAll("categories");
+               const catsToDelete = allCats.filter((c: CategoryProps) => c.raceUuid === raceUuid);
+               if (catsToDelete.length > 0) {
+                  const catTx = db.transaction("categories", "readwrite");
+                  const catStore = catTx.objectStore("categories");
+                  await Promise.all(catsToDelete.map((c: CategoryProps) => catStore.delete(c.id)));
+                  await catTx.done;
+               }
+
+               // Delete the race itself
+               const allRaces = await db.getAll("races");
+               const raceRecord = allRaces.find((r: RaceProps) => r.uuid === raceUuid);
+               if (raceRecord) {
+                  await db.delete("races", raceRecord.id);
+               }
+
+               db.close();
+               set((state) => ({
+                  races: state.races.filter((r) => r.uuid !== raceUuid),
+               }));
+            } catch (error) {
+               console.error("Error deleting race:", error);
             }
          },
       }),

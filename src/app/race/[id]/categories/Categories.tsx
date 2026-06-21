@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import styles from "./categories.module.css";
 import Button from "@/components/ui/Button";
-import { Plus, Trash2, Edit2, Check, X } from "lucide-react";
-import { CategoryProps, CategoryTemplate } from "@/types/types";
+import { Plus, Trash2, Edit2, Check, X, Users } from "lucide-react";
+import { CategoryProps, CategoryTemplate, RiderProps } from "@/types/types";
 import { COLORS } from "@/constants/index";
 import useCategoryStore from "@/stores/categoryStore";
 import useRiderStore from "@/stores/ridersStore";
@@ -68,6 +68,7 @@ const Categories: React.FC<CategoriesProps> = ({ raceUuid }) => {
   const [showCreateNew, setShowCreateNew] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<Partial<CategoryProps>>({});
+  const [showRidersFor, setShowRidersFor] = useState<CategoryProps | null>(null);
   const [newCategoryForm, setNewCategoryForm] = useState({
     name: "",
     subCategory: "",
@@ -407,6 +408,15 @@ const Categories: React.FC<CategoriesProps> = ({ raceUuid }) => {
                         variant="icon"
                         size="sm"
                         iconOnly
+                        title={`Show riders in ${cat.name}`}
+                        onClick={() => setShowRidersFor(cat)}
+                      >
+                        <Users size={14} />
+                      </Button>
+                      <Button
+                        variant="icon"
+                        size="sm"
+                        iconOnly
                         onClick={() => startEdit(cat)}
                       >
                         <Edit2 size={14} />
@@ -598,8 +608,80 @@ const Categories: React.FC<CategoriesProps> = ({ raceUuid }) => {
           </div>
         </div>
       )}
+
+      {showRidersFor && (
+        <CategoryRidersModal
+          category={showRidersFor}
+          riders={riders.filter(
+            (r) =>
+              r.raceUuid === raceUuid &&
+              r.category === showRidersFor.name &&
+              r.subCategory === showRidersFor.subCategory
+          )}
+          onClose={() => setShowRidersFor(null)}
+        />
+      )}
     </div>
   );
 };
+
+function CategoryRidersModal({
+  category,
+  riders,
+  onClose
+}: {
+  category: CategoryProps;
+  riders: RiderProps[];
+  onClose: () => void;
+}) {
+  return (
+    <div className={styles.bankModal} onClick={onClose}>
+      <div className={styles.bankContent} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.bankHeader}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ width: 12, height: 12, borderRadius: "50%", background: category.color ?? "#ccc", flexShrink: 0 }} />
+            <h3 style={{ margin: 0, fontSize: 16 }}>
+              {category.name}{category.subCategory ? ` · ${category.subCategory}` : ""}
+            </h3>
+            <span style={{ fontSize: 12, color: "#7a8aa8", fontWeight: 600 }}>({riders.length})</span>
+          </div>
+          <button className={styles.closeBtn} onClick={onClose}>
+            <X size={20} />
+          </button>
+        </div>
+        <div className={styles.bankList}>
+          {riders.length === 0 ? (
+            <div style={{ textAlign: "center", color: "#7a8aa8", padding: "32px 16px", fontSize: 13 }}>
+              No riders in this category
+            </div>
+          ) : (
+            riders
+              .slice()
+              .sort((a, b) => a.bibNumber - b.bibNumber)
+              .map((r) => (
+                <div
+                  key={r.id}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "10px 14px",
+                    background: "#fff",
+                    border: "1px solid #e8f0fc",
+                    borderRadius: 10,
+                    fontSize: 13
+                  }}
+                >
+                  <span style={{ fontWeight: 800, color: "#4a8ee7", minWidth: 32 }}>#{r.bibNumber}</span>
+                  <span style={{ fontWeight: 600, color: "#1a304f", flex: 1 }}>{r.firstName} {r.lastName}</span>
+                  {r.team && <span style={{ fontSize: 11, color: "#7a8aa8" }}>{r.team}</span>}
+                </div>
+              ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default Categories;

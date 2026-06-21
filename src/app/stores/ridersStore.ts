@@ -18,6 +18,7 @@ interface RiderState {
   insertRiders: (newRiders: RiderProps[]) => Promise<void>;
   addNewRider: (newRider: RiderProps) => Promise<void>;
   deleteRider: (riderId: number) => Promise<void>;
+  deleteRidersByRace: (raceUuid: string) => Promise<void>;
 }
 
 /**
@@ -225,6 +226,26 @@ const useRiderStore = create<RiderState>()(
           db.close();
         } catch (error) {
           console.error("Error deleting rider:", error);
+        }
+      },
+
+      deleteRidersByRace: async (raceUuid) => {
+        try {
+          const db = await initIndexedDB();
+          const allRiders = await db.getAll("riders");
+          const toDelete = allRiders.filter((r: RiderProps) => r.raceUuid === raceUuid);
+          if (toDelete.length > 0) {
+            const tx = db.transaction("riders", "readwrite");
+            const store = tx.objectStore("riders");
+            await Promise.all(toDelete.map((r: RiderProps) => store.delete(r.id)));
+            await tx.done;
+          }
+          db.close();
+          set((state) => ({
+            riders: state.riders.filter((r) => r.raceUuid !== raceUuid),
+          }));
+        } catch (error) {
+          console.error("Error deleting riders by race:", error);
         }
       },
     }),

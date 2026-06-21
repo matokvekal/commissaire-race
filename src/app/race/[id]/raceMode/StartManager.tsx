@@ -21,13 +21,22 @@ interface StartGroup {
   categoryIds: number[];
 }
 
+/** Normalize any time string to "HH:MM" for consistent grouping */
+function normStartTime(t: string | null | undefined): string | null {
+  if (!t) return null;
+  const m = t.match(/^(\d{1,2}):(\d{2})/);
+  return m ? `${m[1].padStart(2, "0")}:${m[2]}` : null;
+}
+
 /** Group categories by startTime within a wave */
 function groupByStart(cats: CategoryProps[]) {
   const map = new Map<string, CategoryProps[]>();
-  for (const cat of [...cats].sort((a, b) =>
-    (a.startTime ?? "").localeCompare(b.startTime ?? "")
-  )) {
-    const key = cat.startTime ?? "TBD";
+  for (const cat of [...cats].sort((a, b) => {
+    const ta = normStartTime(a.startTime) ?? "";
+    const tb = normStartTime(b.startTime) ?? "";
+    return ta.localeCompare(tb);
+  })) {
+    const key = normStartTime(cat.startTime) ?? "TBD";
     if (!map.has(key)) map.set(key, []);
     map.get(key)!.push(cat);
   }

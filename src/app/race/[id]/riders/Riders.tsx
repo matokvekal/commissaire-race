@@ -7,6 +7,9 @@ import RiderCard from "../../components/riderCard/RiderCard";
 import Icons from "@/constants/Icons";
 import { shallow } from "zustand/shallow";
 import { debounce } from "lodash";
+import CSVImportWizard from "@/components/csv/CSVImportWizard";
+import DeleteConfirmModal from "@/components/ui/DeleteConfirmModal";
+import RiderDetailModal from "../../components/riderDetailModal/RiderDetailModal";
 
 interface ManageHeatProps {
   raceUuid: string;
@@ -46,9 +49,16 @@ const Riders: React.FC<ManageHeatProps> = ({ raceUuid, categories }) => {
   const [sortBy, setSortBy] = useState<SortKey>("name");
   const [waveFilter, setWaveFilter] = useState<WaveFilter>("all");
   const [groupByCategory, setGroupByCategory] = useState(false);
+  const [showImportWizard, setShowImportWizard] = useState(false);
+  const [showDeleteRiders, setShowDeleteRiders] = useState(false);
+  const [selectedRider, setSelectedRider] = useState<RiderProps | null>(null);
 
-  const { getRiders, riders } = useRiderStore(
-    (state) => ({ getRiders: state.getRiders, riders: state.riders }),
+  const { getRiders, riders, deleteRidersByRace } = useRiderStore(
+    (state) => ({
+      getRiders: state.getRiders,
+      riders: state.riders,
+      deleteRidersByRace: state.deleteRidersByRace
+    }),
     shallow
   );
 
@@ -132,6 +142,24 @@ const Riders: React.FC<ManageHeatProps> = ({ raceUuid, categories }) => {
         >
           Group
         </Button>
+        <Button
+          variant="secondary"
+          size="sm"
+          className={styles.sortBtn}
+          onClick={() => setShowImportWizard(true)}
+        >
+          Import CSV
+        </Button>
+        {riders.some((r) => r.raceUuid === raceUuid) && (
+          <Button
+            variant="secondary"
+            size="sm"
+            className={`${styles.sortBtn} ${styles.dangerBtn}`}
+            onClick={() => setShowDeleteRiders(true)}
+          >
+            🗑 Delete Riders
+          </Button>
+        )}
       </div>
 
       {waves.length > 1 && (
@@ -179,12 +207,16 @@ const Riders: React.FC<ManageHeatProps> = ({ raceUuid, categories }) => {
                 <div key={catName} className={styles.catGroup}>
                   <div className={styles.catGroupHeader}>{catName}</div>
                   {catRiders.map((rider) => (
-                    <RiderCard key={rider.id} {...rider} />
+                    <div key={rider.id} onClick={() => setSelectedRider(rider)} style={{ cursor: "pointer" }}>
+                      <RiderCard {...rider} />
+                    </div>
                   ))}
                 </div>
               ))
             : filteredAndSorted.map((rider) => (
-                <RiderCard key={rider.id} {...rider} />
+                <div key={rider.id} onClick={() => setSelectedRider(rider)} style={{ cursor: "pointer" }}>
+                  <RiderCard {...rider} />
+                </div>
               ))}
 
           <div
@@ -201,6 +233,40 @@ const Riders: React.FC<ManageHeatProps> = ({ raceUuid, categories }) => {
         </>
       ) : (
         <p className={styles.empty}>No riders found.</p>
+      )}
+
+      {showDeleteRiders && (
+        <DeleteConfirmModal
+          title="Delete All Riders"
+          description="This will permanently remove all riders from this race, including all lap data. This cannot be undone."
+          onConfirm={async () => {
+            await deleteRidersByRace(raceUuid);
+            setShowDeleteRiders(false);
+          }}
+          onCancel={() => setShowDeleteRiders(false)}
+        />
+      )}
+
+      {selectedRider && (
+        <RiderDetailModal
+          rider={selectedRider}
+          onClose={() => setSelectedRider(null)}
+        />
+      )}
+
+      {showImportWizard && (
+        <div className={styles.wizardOverlay}>
+          <div className={styles.wizardModal}>
+            <CSVImportWizard
+              raceUuid={raceUuid}
+              onClose={() => setShowImportWizard(false)}
+              onComplete={() => {
+                setShowImportWizard(false);
+                getRiders(raceUuid);
+              }}
+            />
+          </div>
+        </div>
       )}
     </div>
   );
