@@ -14,6 +14,7 @@ import type {
 } from '@/types/csv.types';
 import { FIELD_KEYWORDS } from '@/types/csv.types';
 import { fuzzyMatchScore, normalize, contains } from '@/utils/levenshtein';
+import { detectFieldForHeader } from '@/utils/csvFieldDetector';
 import { openDB, IDBPDatabase } from 'idb';
 
 const DB_NAME = 'csvMappingMemory';
@@ -262,7 +263,21 @@ export async function autoMapColumns(
          continue;
       }
 
-      // Find best match
+      // Try dictionary-based detection first
+      const dictDetection = detectFieldForHeader(header);
+      if (dictDetection && !usedFields.has(dictDetection.field) && dictDetection.confidence >= 60) {
+         mappings.push({
+            sourceColumn: header,
+            targetField: dictDetection.field,
+            confidence: dictDetection.confidence,
+            isAutoMapped: true,
+            needsConfirmation: dictDetection.confidence < 85
+         });
+         usedFields.add(dictDetection.field);
+         continue;
+      }
+
+      // Fall back to keyword-based matching
       const suggestions = findBestFieldMatch(header, usedFields);
 
       if (suggestions.length > 0 && suggestions[0].confidence >= 60) {

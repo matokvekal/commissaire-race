@@ -35,7 +35,10 @@ export interface CSVDetectionResult {
 export type RiderFieldKey =
    | 'bibNumber'
    | 'firstName'
+   | 'middleName'
    | 'lastName'
+   | 'firstNameEnglish'
+   | 'lastNameEnglish'
    | 'fullName'
    | 'category'
    | 'team'
@@ -44,9 +47,18 @@ export type RiderFieldKey =
    | 'startTime'
    | 'totalLaps'
    | 'position'
+   | 'standing'
    | 'raceDay'
    | 'points'
-   | 'federation';
+   | 'federation'
+   | 'uciNumber'
+   | 'idNumber'
+   | 'birthDate'
+   | 'federationNumber'
+   | 'federationChip'
+   | 'roadNumber'
+   | 'chip'
+   | 'notes';
 
 export interface ColumnMapping {
    sourceColumn: string;      // Original CSV column name
@@ -217,6 +229,18 @@ export const FIELD_KEYWORDS: FieldKeywords[] = [
       priority: 8
    },
    {
+      field: 'middleName',
+      hebrew: [
+         'שם אמצעי', 'אמצעי', 'שם אמצעי של הרוכב',
+         'שם\' אמצעי'
+      ],
+      english: [
+         'middle', 'middle name', 'middlename', 'mname', 'm name',
+         'second name'
+      ],
+      priority: 5
+   },
+   {
       field: 'lastName',
       hebrew: [
          'שם משפחה', 'משפחה', 'מש\'', 'שם אחרון',
@@ -225,7 +249,7 @@ export const FIELD_KEYWORDS: FieldKeywords[] = [
       english: [
          'last', 'last name', 'lastname', 'lname', 'l name',
          'surname', 'family', 'family name',
-         's name', 'second name'
+         's name'
       ],
       priority: 8
    },
@@ -335,6 +359,12 @@ export const FIELD_KEYWORDS: FieldKeywords[] = [
       hebrew: ['איגוד', 'פדרציה', 'ארגון', 'אגודה'],
       english: ['federation', 'fed', 'org', 'organization', 'association', 'union'],
       priority: 5
+   },
+   {
+      field: 'standing',
+      hebrew: ['דירוג', 'דירוג כללי', 'ראנקינג', 'דירוג UCI', 'דירוג ישראלי'],
+      english: ['standing', 'ranking', 'rank', 'current rank', 'current ranking'],
+      priority: 6
    },
    {
       field: 'raceDay',

@@ -94,6 +94,7 @@ export interface RiderProps {
   timeStartRace: string | null;
   timeArrive: string | null;      // Timestamp of last lap end
   firstName: string;
+  middleName?: string | null;     // Optional middle name
   flag: string | null;
   id: number;
   lapsCounter: number | 0;

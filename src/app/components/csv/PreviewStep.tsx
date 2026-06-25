@@ -9,6 +9,7 @@ import type {
   RiderFieldKey
 } from "@/types/csv.types";
 import { splitFullName } from "@/services/csvMapper";
+import { FIELD_KEYWORDS } from "@/types/csv.types";
 import styles from "./previewStep.module.css";
 
 interface PreviewStepProps {
@@ -16,6 +17,7 @@ interface PreviewStepProps {
   mappings: ColumnMapping[];
   onStartImport: (validation: ValidationResult) => void;
   onBack: () => void;
+  onClose?: () => void;
 }
 
 interface ParsedRider {
@@ -26,7 +28,8 @@ export default function PreviewStep({
   parseResult,
   mappings,
   onStartImport,
-  onBack
+  onBack,
+  onClose
 }: PreviewStepProps) {
   const [validation, setValidation] = useState<ValidationResult | null>(null);
   const [showOnlyErrors, setShowOnlyErrors] = useState(false);
@@ -85,8 +88,8 @@ export default function PreviewStep({
         bibNumbers.add(rider.bibNumber);
       }
 
-      // Validate first name
-      if (!rider.firstName) {
+      // Validate first name (or full name)
+      if (!rider.firstName && !rider.fullName) {
         issues.push({
           row: lineNumber,
           field: "firstName",
@@ -111,15 +114,15 @@ export default function PreviewStep({
       }
 
       // Validate start time
-      if (rider.timeStartRace) {
+      if (rider.startTime) {
         const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/;
-        if (!timeRegex.test(rider.timeStartRace)) {
+        if (!timeRegex.test(rider.startTime)) {
           issues.push({
             row: lineNumber,
             field: "startTime",
             message: "Start time must be in HH:MM or HH:MM:SS format",
             severity: "warning",
-            value: rider.timeStartRace
+            value: rider.startTime
           });
         }
       }
@@ -193,6 +196,11 @@ export default function PreviewStep({
   const visibleRows = getVisibleRows();
   const mappedFields = mappings.filter((m) => m.targetField !== null);
 
+  const getFieldLabel = (field: RiderFieldKey): string => {
+    const keywords = FIELD_KEYWORDS.find((f) => f.field === field);
+    return keywords?.english[0] || field;
+  };
+
   return (
     <div className={styles.previewStep}>
       <div className={styles.header}>
@@ -200,8 +208,9 @@ export default function PreviewStep({
           <button onClick={onBack} className={styles.backButtonTop}>← Back</button>
           <h3>Preview & Validate</h3>
         </div>
-        {validation && (
-          <div className={styles.validationSummary}>
+        <div className={styles.headerRight}>
+          {validation && (
+            <div className={styles.validationSummary}>
             <div className={styles.summaryItem}>
               <span className={styles.summaryLabel}>Total:</span>
               <span className={styles.summaryValue}>
@@ -225,7 +234,13 @@ export default function PreviewStep({
               </div>
             )}
           </div>
-        )}
+          )}
+          {onClose && (
+            <button onClick={onClose} className={styles.closeButton} title="Close wizard">
+              ✕
+            </button>
+          )}
+        </div>
       </div>
 
       {validation && validation.summary.errors > 0 && (
@@ -246,13 +261,23 @@ export default function PreviewStep({
         </div>
       )}
 
+      {mappedFields.length === 0 && (
+        <div className={styles.errorAlert}>
+          <strong>⚠️ No Columns Mapped</strong>
+          <p>
+            Please go back to the mapping step and map at least one column to continue.
+          </p>
+        </div>
+      )}
+
+      {mappedFields.length > 0 && (
       <div className={styles.previewTable}>
         <table>
           <thead>
             <tr>
               <th className={styles.rowNumCol}>#</th>
               {mappedFields.map((mapping, index) => (
-                <th key={index}>{mapping.targetField}</th>
+                <th key={index}>{getFieldLabel(mapping.targetField!)}</th>
               ))}
               <th className={styles.issuesCol}>Issues</th>
             </tr>
@@ -315,6 +340,7 @@ export default function PreviewStep({
           </tbody>
         </table>
       </div>
+      )}
 
       <div className={styles.actions}>
         <button onClick={onBack} className={styles.backButton}>

@@ -14,6 +14,7 @@ import {
   touchTemplate,
   removeTemplate
 } from "@/services/templateStorage";
+import ClubDictionaryManager from "./ClubDictionaryManager";
 import styles from "./columnMappingStep.module.css";
 
 interface ColumnMappingStepProps {
@@ -54,6 +55,9 @@ export default function ColumnMappingStep({
   const [savingName, setSavingName] = useState("");
   const [appliedMsg, setAppliedMsg] = useState("");
   const saveInputRef = useRef<HTMLInputElement>(null);
+
+  // Dictionary manager state
+  const [showDictionary, setShowDictionary] = useState(false);
 
   useEffect(() => {
     const { shouldSplit } = detectNameSplitting(mappings);
@@ -245,6 +249,23 @@ export default function ColumnMappingStep({
       )}
 
       {appliedMsg && <div className={styles.appliedMsg}>{appliedMsg}</div>}
+
+      {/* Club Dictionary Manager Button */}
+      <div className={styles.dictionarySection}>
+        <button
+          className={styles.dictionaryBtn}
+          onClick={() => setShowDictionary(true)}
+          title="Manage club name dictionary mappings"
+        >
+          📖 Club Dictionary
+        </button>
+      </div>
+
+      {showDictionary && (
+        <ClubDictionaryManager
+          onClose={() => setShowDictionary(false)}
+        />
+      )}
 
       {splitFullName && (
         <div className={styles.nameSplitWarning}>

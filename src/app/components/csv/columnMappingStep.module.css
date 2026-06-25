@@ -35,7 +35,10 @@
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   overflow-x: auto;
+  overflow-y: hidden;
   margin-bottom: 24px;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
 
 .tableHeader {
@@ -344,4 +347,29 @@
 .confirmButton:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* ── Dictionary section ── */
+.dictionarySection {
+  margin: 16px 0;
+}
+
+.dictionaryBtn {
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dictionaryBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }

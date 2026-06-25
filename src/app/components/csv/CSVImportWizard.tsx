@@ -16,6 +16,7 @@ import { touchTemplate } from "@/services/templateStorage";
 import useRiderStore from "@/stores/ridersStore";
 import useCategoryStore from "@/stores/categoryStore";
 import useRaceStore from "@/stores/racesStore";
+import useClubDictionaryStore from "@/stores/clubDictionaryStore";
 import UploadStep from "./UploadStep";
 import ColumnMappingStep from "./ColumnMappingStep";
 import PreviewStep from "./PreviewStep";
@@ -38,7 +39,8 @@ function rowToRider(
   mappings: ColumnMapping[],
   raceUuid: string,
   index: number,
-  heatNameToNumber: Map<string, number> = new Map()
+  heatNameToNumber: Map<string, number> = new Map(),
+  clubDictionary?: typeof useClubDictionaryStore
 ): RiderProps {
   const data: Record<string, any> = {};
 
@@ -53,6 +55,9 @@ function rowToRider(
       case "firstName":
         data.firstName = value;
         break;
+      case "middleName":
+        data.middleName = value || null;
+        break;
       case "lastName":
         data.lastName = value;
         break;
@@ -65,9 +70,27 @@ function rowToRider(
       case "category":
         data.category = value;
         break;
-      case "team":
-        data.team = value || null;
+      case "team": {
+        let teamValue = value || null;
+        // Apply club dictionary mapping if available
+        if (clubDictionary && teamValue) {
+          const getStandardName = clubDictionary.getState().getStandardName;
+          const standardName = getStandardName(teamValue);
+          if (standardName) {
+            teamValue = standardName;
+            const incrementUsageCount = clubDictionary.getState().incrementUsageCount;
+            // Find the matching entry to increment usage
+            const entries = clubDictionary.getState().getAllEntries();
+            const entry = entries.find(e =>
+              e.hebrewName.toLowerCase() === value.toLowerCase() ||
+              e.alternateNames.some(alt => alt.toLowerCase() === value.toLowerCase())
+            );
+            if (entry) incrementUsageCount(entry.id);
+          }
+        }
+        data.team = teamValue;
         break;
+      }
       case "heat": {
         const numVal = parseInt(value);
         // Use numeric value if available, otherwise look up from name map
@@ -83,11 +106,44 @@ function rowToRider(
       case "position":
         data.position_start = parseInt(value) || null;
         break;
+      case "standing":
+        data.standing = parseInt(value) || null;
+        break;
       case "points":
         data.points = parseFloat(value) || null;
         break;
       case "federation":
         data.federation = value || null;
+        break;
+      case "firstNameEnglish":
+        data.firstNameEnglish = value || null;
+        break;
+      case "lastNameEnglish":
+        data.lastNameEnglish = value || null;
+        break;
+      case "uciNumber":
+        data.uciNumber = value || null;
+        break;
+      case "idNumber":
+        data.idNumber = value || null;
+        break;
+      case "birthDate":
+        data.birthDate = value || null;
+        break;
+      case "federationNumber":
+        data.federationNumber = value || null;
+        break;
+      case "federationChip":
+        data.federationChip = value || null;
+        break;
+      case "roadNumber":
+        data.roadNumber = value || null;
+        break;
+      case "chip":
+        data.chip = value || null;
+        break;
+      case "notes":
+        data.notes = value || null;
         break;
       case "raceDay":
         // grouping only — not stored on rider
@@ -100,6 +156,7 @@ function rowToRider(
     raceUuid,
     bibNumber: data.bibNumber ?? 0,
     firstName: data.firstName ?? "",
+    middleName: data.middleName ?? null,
     lastName: data.lastName ?? "",
     category: data.category ?? "",
     team: data.team ?? null,
@@ -148,6 +205,7 @@ export default function CSVImportWizard({
   const races = useRaceStore((state) => state.races);
   const insertRace = useRaceStore((state) => state.insertRace);
   const updateRace = useRaceStore((state) => state.updateRace);
+  const clubDictionary = useClubDictionaryStore;
 
   const handleFileUpload = async (file: File, template?: MappingTemplate) => {
     try {
@@ -269,7 +327,7 @@ export default function CSVImportWizard({
       }
 
       const riders = rows.map((row, idx) =>
-        rowToRider(row, columnMappings, targetRaceUuid, totalSuccessful + idx, heatNameToNumber)
+        rowToRider(row, columnMappings, targetRaceUuid, totalSuccessful + idx, heatNameToNumber, clubDictionary)
       );
       await insertRiders(riders);
       await rebuildCategoriesFromRiders(targetRaceUuid);
@@ -323,7 +381,7 @@ export default function CSVImportWizard({
 
     try {
       const riders = validRows.map((row, i) =>
-        rowToRider(row, columnMappings, raceUuid, i, heatNameToNumber)
+        rowToRider(row, columnMappings, raceUuid, i, heatNameToNumber, clubDictionary)
       );
       await insertRiders(riders);
       await rebuildCategoriesFromRiders(raceUuid);
@@ -424,6 +482,7 @@ export default function CSVImportWizard({
             mappings={columnMappings}
             onStartImport={handleStartImport}
             onBack={handleBack}
+            onClose={handleClose}
           />
         )}
         {currentStep === "importing" && importProgress && (

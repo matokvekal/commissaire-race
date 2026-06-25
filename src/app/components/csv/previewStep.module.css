@@ -1,5 +1,10 @@
 .previewStep {
   max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  overflow-y: auto;
+  overflow-x: auto;
 }
 
 .header {
@@ -8,6 +13,9 @@
   align-items: center;
   margin-bottom: 20px;
   gap: 12px;
+  flex-shrink: 0;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 12px;
 }
 
 .headerLeft {
@@ -16,9 +24,37 @@
   gap: 12px;
 }
 
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .header h3 {
   margin: 0;
   font-size: 20px;
+}
+
+.closeButton {
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 20px;
+  color: #999;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  min-width: 32px;
+  min-height: 32px;
+}
+
+.closeButton:hover {
+  background: #fee;
+  border-color: #ccc;
+  color: #d32f2f;
 }
 
 .backButtonTop {
@@ -94,10 +130,11 @@
 .previewTable {
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  overflow-x: scroll;
+  overflow-x: auto;
   overflow-y: auto;
-  max-height: 400px;
+  flex: 1;
   margin-bottom: 20px;
+  min-height: 200px;
 }
 
 .previewTable table {

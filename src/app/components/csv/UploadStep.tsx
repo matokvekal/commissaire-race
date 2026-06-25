@@ -24,6 +24,7 @@ export default function UploadStep({ onFileUpload }: UploadStepProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [templates, setTemplates] = useState<MappingTemplate[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<MappingTemplate | null>(null);
+  const [showTemplates, setShowTemplates] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -140,33 +141,44 @@ export default function UploadStep({ onFileUpload }: UploadStepProps) {
       {/* ── Saved templates ── */}
       {templates.length > 0 && (
         <div className={styles.templateSection}>
-          <div className={styles.templateHeader}>
-            <span className={styles.templateTitle}>Saved Templates</span>
-            <span className={styles.templateHint}>
-              {selectedTemplate
-                ? "Template selected — upload a file to apply it and skip mapping"
-                : "Select a template to skip the mapping step"}
-            </span>
-          </div>
-          <div className={styles.templateCards}>
-            {templates.map((tpl) => {
-              const isSelected = selectedTemplate?.id === tpl.id;
-              return (
-                <button
-                  key={tpl.id}
-                  className={`${styles.templateCard} ${isSelected ? styles.templateCardSelected : ""}`}
-                  onClick={() => toggleTemplate(tpl)}
-                  type="button"
-                >
-                  {isSelected && <span className={styles.checkmark}>✓</span>}
-                  <span className={styles.cardName} dir="auto">{tpl.name}</span>
-                  <span className={styles.cardMeta}>
-                    {tpl.mappings.filter((m) => m.targetField).length} columns · {formatDate(tpl.lastUsed)}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+          <button
+            type="button"
+            className={styles.templateToggle}
+            onClick={() => setShowTemplates((v) => !v)}
+          >
+            {showTemplates ? "▾" : "▸"} Saved Templates ({templates.length})
+          </button>
+
+          {showTemplates && (
+            <>
+              <div className={styles.templateHeader}>
+                <span className={styles.templateHint}>
+                  {selectedTemplate
+                    ? "Template selected — upload a file to apply it and skip mapping"
+                    : "Select a template to skip the mapping step"}
+                </span>
+              </div>
+              <div className={styles.templateCards}>
+                {templates.map((tpl) => {
+                  const isSelected = selectedTemplate?.id === tpl.id;
+                  return (
+                    <button
+                      key={tpl.id}
+                      className={`${styles.templateCard} ${isSelected ? styles.templateCardSelected : ""}`}
+                      onClick={() => toggleTemplate(tpl)}
+                      type="button"
+                    >
+                      {isSelected && <span className={styles.checkmark}>✓</span>}
+                      <span className={styles.cardName} dir="auto">{tpl.name}</span>
+                      <span className={styles.cardMeta}>
+                        {tpl.mappings.filter((m) => m.targetField).length} columns · {formatDate(tpl.lastUsed)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

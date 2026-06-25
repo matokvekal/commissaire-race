@@ -23,7 +23,10 @@ function groupByRow(issues: ValidationIssue[]): Map<number, ValidationIssue[]> {
 const FIELD_LABELS: Record<RiderFieldKey | "general", string> = {
   bibNumber: "Bib #",
   firstName: "First Name",
+  middleName: "Middle Name",
   lastName: "Last Name",
+  firstNameEnglish: "First Name (English)",
+  lastNameEnglish: "Last Name (English)",
   fullName: "Full Name",
   category: "Category",
   team: "Team",
@@ -32,9 +35,18 @@ const FIELD_LABELS: Record<RiderFieldKey | "general", string> = {
   startTime: "Start Time",
   totalLaps: "Laps",
   position: "Position",
+  standing: "Standing",
   raceDay: "Race Day",
   points: "Points",
   federation: "Federation",
+  uciNumber: "UCI #",
+  idNumber: "ID #",
+  birthDate: "Birth Date",
+  federationNumber: "Federation #",
+  federationChip: "Federation Chip",
+  roadNumber: "Road #",
+  chip: "Chip",
+  notes: "Notes",
   general: "General"
 };
 
