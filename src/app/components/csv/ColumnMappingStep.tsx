@@ -145,10 +145,45 @@ export default function ColumnMappingStep({
     onConfirm(mappings);
   };
 
-  const getFieldLabel = (field: RiderFieldKey): string => {
-    const keywords = FIELD_KEYWORDS.find((f) => f.field === field);
-    return keywords?.english[0] || field;
+  const FIELD_LABELS: Record<string, string> = {
+    bibNumber: "Bib #",
+    firstName: "First Name",
+    middleName: "Middle Name",
+    lastName: "Last Name",
+    fullName: "Full Name",
+    firstNameEnglish: "First Name (English)",
+    lastNameEnglish: "Last Name (English)",
+    category: "Category",
+    subCategory: "Sub-Category",
+    team: "Team / Club",
+    gender: "Gender",
+    heat: "Wave Number",
+    startTime: "Start Time",
+    totalLaps: "Total Laps",
+    position: "Start Position",
+    standing: "Standing / Ranking",
+    raceDay: "Race Day",
+    points: "Points",
+    federation: "Federation",
+    uciNumber: "UCI Number",
+    idNumber: "ID Number",
+    birthDate: "Birth Date",
+    federationNumber: "Federation Number",
+    federationChip: "Federation Chip",
+    roadNumber: "Road Number",
+    chip: "Chip",
+    notes: "Notes",
   };
+
+  const FIELD_HINTS: Partial<Record<string, string>> = {
+    category: "Main group — e.g. Men Junior, Gravel, MTB",
+    subCategory: "Sub-group within a category — e.g. age range 19-29, 30-39",
+    heat: "Wave group number — e.g. 1, 2, 3  (not a clock time)",
+    startTime: "Clock start time — e.g. 09:00, 11:30  (not a wave number)",
+  };
+
+  const getFieldLabel = (field: RiderFieldKey): string =>
+    FIELD_LABELS[field] || field;
 
   const getConfidenceBadge = (confidence: number) => {
     if (confidence >= 85) {
@@ -318,6 +353,11 @@ export default function ColumnMappingStep({
                   </option>
                 ))}
               </select>
+              {mapping.targetField && FIELD_HINTS[mapping.targetField] && (
+                <div className={styles.fieldHint}>
+                  {FIELD_HINTS[mapping.targetField]}
+                </div>
+              )}
             </div>
 
             <div className={styles.colConfidence}>

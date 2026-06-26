@@ -549,11 +549,11 @@
   background: rgba(255, 255, 255, 0.95);
   border: 1px solid #d0e0fc;
   border-radius: 6px;
-  padding: 4px 8px;
+  padding: 4px 6px;
   font-size: 13px;
   font-weight: 700;
   color: #1a304f;
-  width: 80px;
+  width: 105px;
 }
 
 .timeInput:focus {
@@ -681,4 +681,141 @@
   .unassignedPanel {
     max-height: 300px;
   }
+}
+
+/* ── Expand all button ── */
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.expandAllBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid #d0e0fc;
+  background: #f2f7ff;
+  color: #5a7ab8;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.expandAllBtn:hover {
+  background: #ddeeff;
+  color: #2255aa;
+}
+
+/* ── Category expand toggle ── */
+.expandIcon {
+  display: flex;
+  align-items: center;
+  color: #7a8aa8;
+  flex-shrink: 0;
+}
+
+/* ── Standing color bar ── */
+.standingColorBar {
+  width: 4px;
+  align-self: stretch;
+  border-radius: 2px;
+  flex-shrink: 0;
+  margin-right: 2px;
+}
+
+/* ── Simplified edit mode ── */
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: linear-gradient(140deg, #1f3558, #162640);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.assignHint {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.65);
+  font-weight: 400;
+}
+
+.waveTimeSection {
+  background: #fff;
+  border: 2px solid #d0e0fc;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.waveTimeRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(135deg, #1f3558, #162640);
+}
+
+.waveTimeRow:last-child {
+  border-bottom: none;
+}
+
+.categoryAssignSection {
+  background: #fff;
+  border: 2px solid #d0e0fc;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.categoryAssignRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid #eef2fc;
+}
+
+.categoryAssignRow:last-child {
+  border-bottom: none;
+}
+
+.catAssignInfo {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.waveSelect {
+  padding: 6px 10px;
+  border: 1px solid #c6d9fb;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a304f;
+  background: #f5f9ff;
+  cursor: pointer;
+  flex-shrink: 0;
+  min-width: 150px;
+}
+
+.waveSelect:focus {
+  outline: none;
+  border-color: #63a6fc;
+  box-shadow: 0 0 0 3px rgba(99, 166, 252, 0.15);
+}
+
+.emptyMessage {
+  text-align: center;
+  color: #7a8aa8;
+  font-size: 13px;
+  padding: 24px 16px;
 }

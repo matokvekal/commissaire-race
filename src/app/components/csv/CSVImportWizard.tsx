@@ -70,6 +70,9 @@ function rowToRider(
       case "category":
         data.category = value;
         break;
+      case "subCategory":
+        data.subCategory = value || null;
+        break;
       case "team": {
         let teamValue = value || null;
         // Apply club dictionary mapping if available

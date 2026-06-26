@@ -69,6 +69,7 @@ const Categories: React.FC<CategoriesProps> = ({ raceUuid }) => {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<Partial<CategoryProps>>({});
   const [showRidersFor, setShowRidersFor] = useState<CategoryProps | null>(null);
+  const [riderFilter, setRiderFilter] = useState<"all" | "with" | "without">("all");
   const [newCategoryForm, setNewCategoryForm] = useState({
     name: "",
     subCategory: "",
@@ -166,7 +167,7 @@ const Categories: React.FC<CategoriesProps> = ({ raceUuid }) => {
       (r) =>
         r.raceUuid === raceUuid &&
         r.category === updatedCategory.name &&
-        r.subCategory === updatedCategory.subCategory
+        (r.subCategory ?? null) === (updatedCategory.subCategory ?? null)
     );
 
     for (const rider of categoryRiders) {
@@ -185,7 +186,7 @@ const Categories: React.FC<CategoriesProps> = ({ raceUuid }) => {
       (r) =>
         r.raceUuid === raceUuid &&
         r.category === category.name &&
-        r.subCategory === category.subCategory
+        (r.subCategory ?? null) === (category.subCategory ?? null)
     );
 
     if (categoryRiders.length > 0) {
@@ -259,15 +260,35 @@ const Categories: React.FC<CategoriesProps> = ({ raceUuid }) => {
       (r) =>
         r.raceUuid === raceUuid &&
         r.category === cat.name &&
-        r.subCategory === cat.subCategory
+        (r.subCategory ?? null) === (cat.subCategory ?? null)
     ).length;
     return { id: cat.id, count };
+  });
+
+  const filteredCategories = raceCategories.filter((cat) => {
+    const count = riderCounts.find((rc) => rc.id === cat.id)?.count ?? 0;
+    if (riderFilter === "with") return count > 0;
+    if (riderFilter === "without") return count === 0;
+    return true;
   });
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h3 className={styles.title}>Race Categories</h3>
+        <div className={styles.titleRow}>
+          <h3 className={styles.title}>Race Categories</h3>
+          <div className={styles.filterPills}>
+            {(["all", "with", "without"] as const).map((f) => (
+              <button
+                key={f}
+                className={`${styles.filterPill} ${riderFilter === f ? styles.filterPillActive : ""}`}
+                onClick={() => setRiderFilter(f)}
+              >
+                {f === "all" ? "All" : f === "with" ? "With riders" : "Empty"}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className={styles.headerActions}>
           <Button
             variant="primary"
@@ -302,7 +323,7 @@ const Categories: React.FC<CategoriesProps> = ({ raceUuid }) => {
         </div>
       ) : (
         <div className={styles.list}>
-          {raceCategories.map((cat) => {
+          {filteredCategories.map((cat) => {
             const isEditing = editingId === cat.id;
             const riderCount =
               riderCounts.find((rc) => rc.id === cat.id)?.count || 0;
@@ -616,7 +637,7 @@ const Categories: React.FC<CategoriesProps> = ({ raceUuid }) => {
             (r) =>
               r.raceUuid === raceUuid &&
               r.category === showRidersFor.name &&
-              r.subCategory === showRidersFor.subCategory
+              (r.subCategory ?? null) === (showRidersFor.subCategory ?? null)
           )}
           onClose={() => setShowRidersFor(null)}
         />

@@ -41,6 +41,7 @@ export type RiderFieldKey =
    | 'lastNameEnglish'
    | 'fullName'
    | 'category'
+   | 'subCategory'
    | 'team'
    | 'gender'
    | 'heat'
@@ -266,15 +267,30 @@ export const FIELD_KEYWORDS: FieldKeywords[] = [
       field: 'category',
       hebrew: [
          'קטגוריה', 'קט\'', 'קט.', 'קטגורייה',
-         'גיל', 'שכבת גיל', 'שכבה', 'ענף',
-         'קבוצת גיל', 'סוג', 'מחלקה'
+         'שכבה', 'ענף', 'סוג', 'מחלקה'
       ],
       english: [
          'category', 'cat', 'cat.',
-         'age', 'age group', 'age cat',
-         'class', 'group', 'division', 'section', 'event class'
+         'class', 'division', 'section', 'event class'
       ],
       priority: 9
+   },
+   {
+      field: 'subCategory',
+      hebrew: [
+         'תת קטגוריה', 'תת-קטגוריה', 'תת קט\'', 'תת',
+         'קבוצת גיל', 'שכבת גיל', 'גיל', 'טווח גיל',
+         'קבוצה', 'תת מחלקה', 'תת ענף'
+      ],
+      english: [
+         'sub category', 'subcategory', 'sub-category', 'sub cat',
+         'sub', 'subcat',
+         'age group', 'age range', 'age division', 'age class',
+         'age bracket', 'age band',
+         'sub class', 'subclass', 'sub-class',
+         'group class', 'division class'
+      ],
+      priority: 8
    },
    {
       field: 'team',
@@ -302,13 +318,16 @@ export const FIELD_KEYWORDS: FieldKeywords[] = [
    {
       field: 'heat',
       hebrew: [
-         'מקצה', 'חימום', 'סבב', 'גל', 'התחלה',
-         'גל התחלה', 'קבוצת התחלה', 'גל פתיחה'
+         'גל', 'גל התחלה', 'גל פתיחה', 'גל מס\'',
+         'מקצה', 'סבב', 'קבוצת התחלה', 'קבוצת פתיחה',
+         'עלייה', 'שלב'
       ],
       english: [
-         'heat', 'wave', 'flight',
-         'start group', 'start wave', 'start heat',
-         'wave no', 'heat no', 'group'
+         'wave', 'wave no', 'wave number', 'wave#', 'wave num',
+         'heat', 'heat no', 'heat number', 'heat#',
+         'flight', 'flight no',
+         'start group', 'start wave', 'start heat', 'startgroup',
+         'group no', 'group number'
       ],
       priority: 7
    },

@@ -1,75 +1,78 @@
 import React from "react";
 import { RiderProps } from "@/types/types";
 import styles from "./riderCard.module.css";
-import Icons from "@/constants/Icons";
-import Images from "@/constants/Images";
 
 const RiderCard: React.FC<RiderProps> = (rider) => {
-  return (
-    <div className={styles.riderCard}>
-      <div className={styles.left}>
-        <div className={styles.imageWrapper}>
-          <img
-            className={styles.imageRider}
-            src={Images.user}
-            alt="Rider Image"
-            width={36}
-            height={36}
-          />
-          <img
-            className={styles.imageFlag}
-            src={Icons.flag_us}
-            alt="Rider Image"
-            width={14}
-            height={14}
-          />
-        </div>
-      </div>
-      <div className={styles.middle}>
-        <div className={styles.middleTop}>
-          <div className={styles.name}>
-            {`${rider.lastName}   ${rider.firstName}`}
-          </div>
-          <div className={styles.linespace}>|</div>
-          <div className={styles.number}> {rider.bibNumber}</div>
-        </div>
-        <div className={styles.middleCenter}>
-          <div className={styles.raceStatus}>Heat {rider.heat}</div>
-          <div
-            className={styles.point}
-            style={{ background: `${rider.color || "lightgray"}` }}
-          ></div>
-          <div className={styles.category}>
-            {rider.category}
-            {rider.subCategory && (
-              <span className={styles.subCategory}> · {rider.subCategory}</span>
-            )}
-          </div>
-        </div>
-        <div className={styles.middleBottom}>
-          <div className={styles.laps}>
-            {`Laps:${rider.lapsCounter}/${rider.totalLaps}`}
-          </div>
-          <div className={styles.point}></div>
-          <div className={styles.time}>
-            {`Time:${rider.elapsedTimeFromStart}`}
-          </div>
-        </div>
-      </div>
-      <div className={styles.right}>
-        <div className={`${styles.riderStatus} ${styles.finishcolor}`}>
-          {rider.raceStatus}
-        </div>
-        <div className={styles.pos}>
-          {/* {rider.raceStatus === "running" ? "Pos:" : "Final Pos:"} {rider.position_category || rider.position_start}</div> */}
-          {/* Pos: {rider.position_category || rider.position_start} */}
+  const isRacing =
+    rider.raceStatus === "running" || rider.raceStatus === "finished";
 
-          {rider.raceStatus === "upcoming"
-            ? `Stand:${rider.position_start}`
-            : `Pos:${rider.position_category}`}
+  const fullName = rider.lastName || rider.firstName
+    ? `${rider.lastName ?? ""} ${rider.firstName ?? ""}`.trim()
+    : "—";
+
+  return (
+    <div
+      className={styles.riderCard}
+      style={{ borderLeft: `4px solid ${rider.color ?? "#c6d9fb"}` }}
+    >
+      <div className={styles.bibBlock}>
+        <span className={styles.bib}>#{rider.bibNumber || "—"}</span>
+      </div>
+
+      <div className={styles.middle}>
+        <div className={styles.name} dir="auto">{fullName}</div>
+
+        <div className={styles.metaRow}>
+          {rider.category && (
+            <span className={styles.catBadge} style={{ background: rider.color ? `${rider.color}22` : "#eef2fc", color: rider.color ?? "#3a5080" }}>
+              {rider.category}
+              {rider.subCategory && <span className={styles.subCat}> · {rider.subCategory}</span>}
+            </span>
+          )}
         </div>
+
+        <div className={styles.infoRow}>
+          {isRacing ? (
+            <>
+              <span className={styles.infoChip}>
+                {rider.lapsCounter ?? 0}/{rider.totalLaps ?? 0} laps
+              </span>
+              {rider.elapsedTimeFromStart && (
+                <span className={styles.infoChip}>{rider.elapsedTimeFromStart}</span>
+              )}
+            </>
+          ) : (
+            <>
+              {rider.team && (
+                <span className={styles.infoChip} dir="auto">{rider.team}</span>
+              )}
+              {rider.heat ? (
+                <span className={styles.infoChip}>Wave {rider.heat}</span>
+              ) : null}
+              {rider.startTime && (
+                <span className={styles.infoChip}>{rider.startTime}</span>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+
+      <div className={styles.right}>
+        {isRacing ? (
+          <>
+            <span className={styles.statusBadge}>{rider.raceStatus}</span>
+            <span className={styles.pos}>
+              {rider.raceStatus === "finished"
+                ? `P${rider.position_category ?? "—"}`
+                : `#${rider.position_start ?? "—"}`}
+            </span>
+          </>
+        ) : rider.gender ? (
+          <span className={styles.genderChip}>{rider.gender}</span>
+        ) : null}
       </div>
     </div>
   );
 };
+
 export default RiderCard;

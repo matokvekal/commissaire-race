@@ -49,6 +49,7 @@ const Riders: React.FC<ManageHeatProps> = ({ raceUuid, categories }) => {
   const [sortBy, setSortBy] = useState<SortKey>("name");
   const [waveFilter, setWaveFilter] = useState<WaveFilter>("all");
   const [groupByCategory, setGroupByCategory] = useState(false);
+  const [viewMode, setViewMode] = useState<"table" | "cards">("table");
   const [showImportWizard, setShowImportWizard] = useState(false);
   const [showDeleteRiders, setShowDeleteRiders] = useState(false);
   const [selectedRider, setSelectedRider] = useState<RiderProps | null>(null);
@@ -135,12 +136,28 @@ const Riders: React.FC<ManageHeatProps> = ({ raceUuid, categories }) => {
           </Button>
         ))}
         <Button
-          variant={groupByCategory ? "primary" : "secondary"}
+          variant={groupByCategory && viewMode === "cards" ? "primary" : "secondary"}
           size="sm"
-          className={`${styles.sortBtn} ${groupByCategory ? styles.sortActive : ""}`}
-          onClick={() => setGroupByCategory((v) => !v)}
+          className={`${styles.sortBtn} ${groupByCategory && viewMode === "cards" ? styles.sortActive : ""}`}
+          onClick={() => { setViewMode("cards"); setGroupByCategory((v) => !v); }}
         >
           Group
+        </Button>
+        <Button
+          variant={viewMode === "table" ? "primary" : "secondary"}
+          size="sm"
+          className={`${styles.sortBtn} ${viewMode === "table" ? styles.sortActive : ""}`}
+          onClick={() => setViewMode("table")}
+        >
+          Data
+        </Button>
+        <Button
+          variant={viewMode === "cards" && !groupByCategory ? "primary" : "secondary"}
+          size="sm"
+          className={`${styles.sortBtn} ${viewMode === "cards" && !groupByCategory ? styles.sortActive : ""}`}
+          onClick={() => { setViewMode("cards"); setGroupByCategory(false); }}
+        >
+          Cards
         </Button>
         <Button
           variant="secondary"
@@ -157,7 +174,7 @@ const Riders: React.FC<ManageHeatProps> = ({ raceUuid, categories }) => {
             className={`${styles.sortBtn} ${styles.dangerBtn}`}
             onClick={() => setShowDeleteRiders(true)}
           >
-            🗑 Delete Riders
+            Delete All
           </Button>
         )}
       </div>
@@ -202,22 +219,69 @@ const Riders: React.FC<ManageHeatProps> = ({ raceUuid, categories }) => {
 
       {filteredAndSorted.length > 0 ? (
         <>
-          {groupByCategory && grouped
-            ? [...grouped.entries()].map(([catName, catRiders]) => (
-                <div key={catName} className={styles.catGroup}>
-                  <div className={styles.catGroupHeader}>{catName}</div>
-                  {catRiders.map((rider) => (
-                    <div key={rider.id} onClick={() => setSelectedRider(rider)} style={{ cursor: "pointer" }}>
-                      <RiderCard {...rider} />
-                    </div>
-                  ))}
-                </div>
-              ))
-            : filteredAndSorted.map((rider) => (
-                <div key={rider.id} onClick={() => setSelectedRider(rider)} style={{ cursor: "pointer" }}>
-                  <RiderCard {...rider} />
+          {viewMode === "table" ? (
+            <div className={styles.dataTable}>
+              <div className={styles.dataTableHeader}>
+                <span className={styles.colRow}>#</span>
+                <span className={styles.colDot} />
+                <span className={styles.colBib}>Bib</span>
+                <span className={styles.colName}>Name</span>
+                <span className={styles.colCat}>Category</span>
+                <span className={styles.colWave}>Wave</span>
+                <span className={styles.colClub}>Club</span>
+              </div>
+              {filteredAndSorted.map((rider, idx) => (
+                <div
+                  key={rider.id}
+                  className={styles.dataRow}
+                  onClick={() => setSelectedRider(rider)}
+                >
+                  <span className={styles.colRow}>{idx + 1}</span>
+                  <span
+                    className={styles.colDot}
+                    style={{ background: rider.color ?? "#ddd" }}
+                  />
+                  <span className={styles.colBib}>
+                    <strong>#{rider.bibNumber || "—"}</strong>
+                  </span>
+                  <span className={styles.colName} dir="auto">
+                    {rider.lastName || rider.firstName
+                      ? `${rider.lastName} ${rider.firstName}`.trim()
+                      : "—"}
+                  </span>
+                  <span className={styles.colCat} dir="auto">
+                    {rider.category || "—"}
+                    {rider.subCategory && (
+                      <span className={styles.subCatLabel}> · {rider.subCategory}</span>
+                    )}
+                  </span>
+                  <span className={styles.colWave}>
+                    {rider.heat || "—"}
+                  </span>
+                  <span className={styles.colClub} dir="auto">
+                    {rider.team || "—"}
+                  </span>
                 </div>
               ))}
+            </div>
+          ) : groupByCategory && grouped ? (
+            [...grouped.entries()].map(([catName, catRiders]) => (
+              <div key={catName} className={styles.catGroup}>
+                <div className={styles.catGroupHeader}>{catName}</div>
+                {catRiders.map((rider) => (
+                  <div key={rider.id} onClick={() => setSelectedRider(rider)} style={{ cursor: "pointer" }}>
+                    <RiderCard {...rider} />
+                  </div>
+                ))}
+              </div>
+            ))
+          ) : (
+            filteredAndSorted.map((rider) => (
+              <div key={rider.id} onClick={() => setSelectedRider(rider)} style={{ cursor: "pointer" }}>
+                <RiderCard {...rider} />
+              </div>
+            ))
+          )}
 
           <div
             className={`${styles.goUp} ${isVisible ? styles.show : styles.hide}`}
@@ -232,7 +296,12 @@ const Riders: React.FC<ManageHeatProps> = ({ raceUuid, categories }) => {
           </div>
         </>
       ) : (
-        <p className={styles.empty}>No riders found.</p>
+        <div className={styles.emptyState}>
+          <p className={styles.empty}>No riders yet.</p>
+          <button className={styles.emptyImportBtn} onClick={() => setShowImportWizard(true)}>
+            Import CSV
+          </button>
+        </div>
       )}
 
       {showDeleteRiders && (

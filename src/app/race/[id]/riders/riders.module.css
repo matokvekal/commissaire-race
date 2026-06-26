@@ -84,7 +84,134 @@
   text-align: center;
   color: #7a7a9a;
   font-size: 13px;
-  padding: 24px 0;
+  padding: 8px 0;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 32px 0;
+}
+
+.emptyImportBtn {
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ── Data table view ── */
+.dataTable {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e4eaf4;
+  border-radius: 10px;
+  overflow: hidden;
+  font-size: 13px;
+}
+
+.dataTableHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #f2f6ff;
+  border-bottom: 1px solid #dce8fb;
+  font-size: 11px;
+  font-weight: 700;
+  color: #6b7fa8;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.dataRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-bottom: 1px solid #f0f4fc;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.dataRow:last-child {
+  border-bottom: none;
+}
+
+.dataRow:hover {
+  background: #f7f9ff;
+}
+
+.colRow {
+  width: 28px;
+  flex-shrink: 0;
+  color: #b0bcd4;
+  font-size: 11px;
+  text-align: right;
+}
+
+.colDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #ddd;
+}
+
+.colBib {
+  width: 54px;
+  flex-shrink: 0;
+  font-size: 13px;
+  color: #3a5080;
+}
+
+.colName {
+  flex: 3;
+  font-weight: 600;
+  color: #1a304f;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.colCat {
+  flex: 2;
+  color: #3a5080;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subCatLabel {
+  font-size: 11px;
+  color: #8aa0c4;
+  font-weight: 400;
+}
+
+.colWave {
+  width: 42px;
+  flex-shrink: 0;
+  text-align: center;
+  color: #667eea;
+  font-weight: 600;
+}
+
+.colClub {
+  flex: 2;
+  color: #7a8faa;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
 }
 
 .goUp {
