@@ -1,60 +1,90 @@
-/* @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Assistant:wght@400;500;700&display=swap"); */
-
-/* @font-face {
-  font-family: "Roboto";
-  src: url("/fonts/Roboto-Regular.woff2") format("woff2"),
-    url("/fonts/Roboto-Regular.woff") format("woff");
-  font-weight: 400;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Roboto";
-  src: url("/fonts/Roboto-Bold.woff2") format("woff2"),
-    url("/fonts/Roboto-Bold.woff") format("woff");
-  font-weight: 700;
-  font-style: normal;
-} */
-
 :root {
   --max-width: 24.875rem;
   --border-radius: 1rem;
-  --font-mono:
-    ui-monospace, "Roboto", "Cascadia Mono", "Segoe UI Mono", "Roboto Mono",
+  --font-mono: ui-monospace, "Roboto", "Cascadia Mono", "Segoe UI Mono", "Roboto Mono",
     "Oxygen Mono", "Ubuntu Monospace", "Source Code Pro", "Fira Mono",
     "Droid Sans Mono", "Courier New", monospace;
   --font-sans: "Assistant", "Roboto", Arial, sans-serif;
 
-  --foreground-rgb: 12, 18, 28;
-  --background-start-rgb: 242, 246, 252;
-  --background-end-rgb: 252, 254, 255;
-  --main-background: #f5f8fc;
-  --surface-1: #ffffff;
-  --surface-2: #f5f8ff;
-  --surface-3: #edf3ff;
-  --border-soft: #d8e3f6;
+  /* Brand / accent — same in both themes */
   --brand: #63a6fc;
   --brand-strong: #3f86e7;
   --ok: #3edda4;
   --ok-strong: #2fcf95;
   --danger: #df4b7b;
+
+  /* Light theme */
+  --foreground-rgb: 12, 18, 28;
+  --background-start-rgb: 242, 246, 252;
+  --background-end-rgb: 252, 254, 255;
+
+  --bg-body: #f5f8fc;
+  --bg-card: #ffffff;
+  --bg-card-2: #f7fbff;
+  --bg-surface: #f5f8ff;
+  --bg-surface-3: #edf4ff;
+
+  --text-primary: #14243c;
+  --text-secondary: #7b95b8;
+  --text-muted: #8498ba;
+
+  --border-card: #d9e7fb;
+  --border-subtle: rgba(99, 166, 252, 0.2);
+  --border-soft: #d8e3f6;
+
+  --shadow-sm: rgba(17, 62, 126, 0.10);
+  --shadow-md: rgba(22, 64, 126, 0.12);
   --shadow-soft: 0 8px 28px rgba(26, 61, 116, 0.12);
   --shadow-glow: 0 2px 0 rgba(255, 255, 255, 0.6) inset;
+
+  --header-bg: rgba(255, 255, 255, 0.96);
+  --header-bg-2: rgba(248, 252, 255, 0.92);
+  --drawer-bg: #ffffff;
+  --drawer-bg-2: #f4f8ff;
+  --drawer-border: #dee9fb;
+
+  --surface-1: #ffffff;
+  --surface-2: #f5f8ff;
+  --surface-3: #edf3ff;
+  --main-background: #f5f8fc;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-    --primary-glow: radial-gradient(rgba(1, 65, 255, 0.4), rgba(1, 65, 255, 0));
-    --secondary-glow: linear-gradient(
-      to bottom right,
-      rgba(1, 65, 255, 0),
-      rgba(1, 65, 255, 0),
-      rgba(1, 65, 255, 0.3)
-    );
-  }
+[data-theme="dark"] {
+  --foreground-rgb: 228, 233, 240;
+  --background-start-rgb: 13, 17, 23;
+  --background-end-rgb: 15, 20, 30;
+
+  --bg-body: #0d1117;
+  --bg-card: #161b22;
+  --bg-card-2: #1a2030;
+  --bg-surface: #1c2230;
+  --bg-surface-3: #1e2740;
+
+  --text-primary: #e4e9f0;
+  --text-secondary: #8b949e;
+  --text-muted: #6e7b90;
+
+  --border-card: rgba(255, 255, 255, 0.1);
+  --border-subtle: rgba(99, 166, 252, 0.18);
+  --border-soft: rgba(255, 255, 255, 0.1);
+
+  --shadow-sm: rgba(0, 0, 0, 0.35);
+  --shadow-md: rgba(0, 0, 0, 0.4);
+  --shadow-soft: 0 8px 28px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 2px 0 rgba(255, 255, 255, 0.04) inset;
+
+  --header-bg: rgba(22, 27, 38, 0.97);
+  --header-bg-2: rgba(18, 22, 32, 0.97);
+  --drawer-bg: #1a1f2e;
+  --drawer-bg-2: #161b28;
+  --drawer-border: rgba(255, 255, 255, 0.08);
+
+  --surface-1: #161b22;
+  --surface-2: #1c2230;
+  --surface-3: #1e2740;
+  --main-background: #0d1117;
+
+  color-scheme: dark;
 }
 
 * {
@@ -97,6 +127,7 @@ body {
       rgb(var(--background-start-rgb)) 0%,
       rgb(var(--background-end-rgb)) 100%
     );
+  transition: background 0.25s ease, color 0.25s ease;
 }
 
 button,
@@ -128,8 +159,15 @@ a {
   text-decoration: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    /* color-scheme: dark; */
-  }
+/* Dark mode input overrides */
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  border-color: var(--border-card);
+}
+
+[data-theme="dark"] input::placeholder {
+  color: var(--text-muted);
 }

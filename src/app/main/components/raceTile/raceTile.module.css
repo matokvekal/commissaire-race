@@ -2,13 +2,13 @@
   flex-shrink: 0;
   width: 136px;
   border-radius: 16px;
-  background: #fff;
-  border: 1px solid #e0eaf8;
-  box-shadow: 0 6px 18px rgba(17, 62, 126, 0.10);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  box-shadow: 0 6px 18px var(--shadow-sm);
   overflow: hidden;
   cursor: pointer;
   scroll-snap-align: start;
-  transition: transform 0.15s, box-shadow 0.15s;
+  transition: transform 0.15s, box-shadow 0.15s, background 0.25s ease;
   -webkit-tap-highlight-color: transparent;
 }
 

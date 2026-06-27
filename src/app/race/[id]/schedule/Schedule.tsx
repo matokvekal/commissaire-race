@@ -73,7 +73,7 @@ export function buildSchedule(
     const startKey = normalizeTime(cat.startTime) ?? "TBD";
 
     if (catMinutes - lastStartMinutes > waveGapMinutes) waveNum++;
-    if (catMinutes !== Infinity) lastStartMinutes = catMinutes;
+    lastStartMinutes = catMinutes;
 
     if (!waveMap.has(waveNum)) waveMap.set(waveNum, new Map());
     const startMap = waveMap.get(waveNum)!;

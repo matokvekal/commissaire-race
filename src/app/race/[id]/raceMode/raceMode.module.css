@@ -41,6 +41,31 @@
   color: #fff;
 }
 
+.wavePillRunning {
+  border-color: #3edda4;
+  color: #1a8a5a;
+  background: rgba(62, 221, 164, 0.08);
+  font-weight: 700;
+}
+
+.wavePillRunning.wavePillActive {
+  background: #2ab882;
+  border-color: #2ab882;
+  color: #fff;
+}
+
+.wavePillFinished {
+  border-color: #b0b8cc;
+  color: #7a7a9a;
+  background: #f4f6fa;
+}
+
+.wavePillFinished.wavePillActive {
+  background: #5a6480;
+  border-color: #5a6480;
+  color: #fff;
+}
+
 .subTabs {
   display: flex;
   gap: 4px;

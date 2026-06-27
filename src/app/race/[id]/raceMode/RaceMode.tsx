@@ -23,6 +23,18 @@ const RaceMode: React.FC<Props> = ({ raceUuid, categories }) => {
   const [selectedWave, setSelectedWave] = useState<number>(waveNums[0] ?? 1);
   const [subTab, setSubTab] = useState<SubTab>("start");
 
+  const waveStatusMap = useMemo(() => {
+    const map = new Map<number, "upcoming" | "running" | "finished">();
+    waveNums.forEach((w) => {
+      const cats = [...(schedule.get(w)?.values() ?? [])].flat();
+      if (cats.length === 0) { map.set(w, "upcoming"); return; }
+      if (cats.every((c) => c.status === "finished")) map.set(w, "finished");
+      else if (cats.some((c) => c.status === "running")) map.set(w, "running");
+      else map.set(w, "upcoming");
+    });
+    return map;
+  }, [schedule, waveNums]);
+
   // All categories in the selected time-based wave (all start slots combined)
   const waveCategories = useMemo(() => {
     const startMap = schedule.get(selectedWave);
@@ -39,12 +51,19 @@ const RaceMode: React.FC<Props> = ({ raceUuid, categories }) => {
           {waveNums.map((w) => {
             const startMap = schedule.get(w);
             const firstTime = startMap ? [...startMap.keys()][0] : null;
+            const waveStatus = waveStatusMap.get(w);
             return (
               <button
                 key={w}
-                className={`${styles.wavePill} ${selectedWave === w ? styles.wavePillActive : ""}`}
+                className={[
+                  styles.wavePill,
+                  selectedWave === w ? styles.wavePillActive : "",
+                  waveStatus === "finished" ? styles.wavePillFinished : "",
+                  waveStatus === "running" ? styles.wavePillRunning : "",
+                ].join(" ")}
                 onClick={() => setSelectedWave(w)}
               >
+                {waveStatus === "finished" ? "🏁 " : waveStatus === "running" ? "● " : ""}
                 {w}{firstTime && firstTime !== "TBD" ? ` · ${firstTime}` : ""}
               </button>
             );

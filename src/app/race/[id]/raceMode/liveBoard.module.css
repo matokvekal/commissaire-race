@@ -19,6 +19,18 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
+.catBlockDone {
+  opacity: 0.9;
+}
+
+.catHeaderDone {
+  background: linear-gradient(90deg, #7a5500, #b07800) !important;
+}
+
+.flagIcon {
+  margin-right: 5px;
+}
+
 .catHeader {
   display: flex;
   align-items: center;

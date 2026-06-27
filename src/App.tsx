@@ -20,6 +20,7 @@ export default function App() {
       <Route path="/loginerror" element={<LoginErrorPage />} />
       <Route path="/main" element={<MainPage />} />
       <Route path="/contact" element={<ContactPage />} />
+      <Route path="/race" element={<Navigate to="/main" replace />} />
       <Route path="/race/:id" element={<RacePage />} />
       <Route path="/race/:id/heat/:heatId" element={<HeatPage />} />
       <Route path="/race/:id/standing/:heatId" element={<StandingPage />} />

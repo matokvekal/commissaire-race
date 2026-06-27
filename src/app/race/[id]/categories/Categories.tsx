@@ -69,7 +69,7 @@ const Categories: React.FC<CategoriesProps> = ({ raceUuid }) => {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<Partial<CategoryProps>>({});
   const [showRidersFor, setShowRidersFor] = useState<CategoryProps | null>(null);
-  const [riderFilter, setRiderFilter] = useState<"all" | "with" | "without">("all");
+  const [riderFilter, setRiderFilter] = useState<"all" | "with" | "without">("with");
   const [newCategoryForm, setNewCategoryForm] = useState({
     name: "",
     subCategory: "",
@@ -265,29 +265,38 @@ const Categories: React.FC<CategoriesProps> = ({ raceUuid }) => {
     return { id: cat.id, count };
   });
 
-  const filteredCategories = raceCategories.filter((cat) => {
-    const count = riderCounts.find((rc) => rc.id === cat.id)?.count ?? 0;
-    if (riderFilter === "with") return count > 0;
-    if (riderFilter === "without") return count === 0;
-    return true;
-  });
+  const emptyCount = raceCategories.filter(
+    (cat) => (riderCounts.find((rc) => rc.id === cat.id)?.count ?? 0) === 0
+  ).length;
+
+  const filteredCategories = raceCategories
+    .filter((cat) => {
+      const count = riderCounts.find((rc) => rc.id === cat.id)?.count ?? 0;
+      if (riderFilter === "with") return count > 0;
+      if (riderFilter === "without") return count === 0;
+      return true;
+    })
+    .sort((a, b) => {
+      const aFinished = a.status === "finished" ? 1 : 0;
+      const bFinished = b.status === "finished" ? 1 : 0;
+      return aFinished - bFinished;
+    });
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <div className={styles.titleRow}>
           <h3 className={styles.title}>Race Categories</h3>
-          <div className={styles.filterPills}>
-            {(["all", "with", "without"] as const).map((f) => (
-              <button
-                key={f}
-                className={`${styles.filterPill} ${riderFilter === f ? styles.filterPillActive : ""}`}
-                onClick={() => setRiderFilter(f)}
-              >
-                {f === "all" ? "All" : f === "with" ? "With riders" : "Empty"}
-              </button>
-            ))}
-          </div>
+          {emptyCount > 0 && (
+            <button
+              className={`${styles.emptyToggle} ${riderFilter === "all" ? styles.emptyToggleActive : ""}`}
+              onClick={() => setRiderFilter(riderFilter === "all" ? "with" : "all")}
+            >
+              {riderFilter === "all"
+                ? `Hide empty (${emptyCount})`
+                : `Show empty (${emptyCount})`}
+            </button>
+          )}
         </div>
         <div className={styles.headerActions}>
           <Button
@@ -328,8 +337,9 @@ const Categories: React.FC<CategoriesProps> = ({ raceUuid }) => {
             const riderCount =
               riderCounts.find((rc) => rc.id === cat.id)?.count || 0;
 
+            const isDone = cat.status === "finished";
             return (
-              <div key={cat.id} className={styles.categoryCard}>
+              <div key={cat.id} className={`${styles.categoryCard} ${isDone ? styles.categoryCardDone : ""}`}>
                 {isEditing ? (
                   <div className={styles.editForm}>
                     <div className={styles.editRow}>
@@ -355,18 +365,25 @@ const Categories: React.FC<CategoriesProps> = ({ raceUuid }) => {
                     <div className={styles.editRow}>
                       <div className={styles.formGroup}>
                         <label>Laps</label>
-                        <input
-                          type="number"
-                          className={styles.input}
-                          value={editForm.laps || 0}
-                          onChange={(e) =>
-                            setEditForm({
-                              ...editForm,
-                              laps: parseInt(e.target.value) || 0
-                            })
-                          }
-                          min="0"
-                        />
+                        <div className={styles.stepperWrap}>
+                          <button
+                            type="button"
+                            className={styles.stepBtn}
+                            onClick={() => setEditForm({ ...editForm, laps: Math.max(0, (editForm.laps || 0) - 1) })}
+                          >−</button>
+                          <input
+                            type="number"
+                            className={`${styles.input} ${styles.stepInput}`}
+                            value={editForm.laps || 0}
+                            onChange={(e) => setEditForm({ ...editForm, laps: parseInt(e.target.value) || 0 })}
+                            min="0"
+                          />
+                          <button
+                            type="button"
+                            className={styles.stepBtn}
+                            onClick={() => setEditForm({ ...editForm, laps: (editForm.laps || 0) + 1 })}
+                          >+</button>
+                        </div>
                       </div>
 
                       <div className={styles.formGroup}>
@@ -385,6 +402,18 @@ const Categories: React.FC<CategoriesProps> = ({ raceUuid }) => {
                         />
                       </div>
                     </div>
+
+                    <label className={styles.linkedFinishRow}>
+                      <input
+                        type="checkbox"
+                        checked={!!editForm.linkedFinish}
+                        onChange={(e) => setEditForm({ ...editForm, linkedFinish: e.target.checked })}
+                      />
+                      <span className={styles.linkedFinishLabel}>
+                        🔔 First finishes = all finish
+                        <span className={styles.linkedFinishHint}>When the leader completes their last lap, show the bell for all other riders</span>
+                      </span>
+                    </label>
 
                     <div className={styles.editActions}>
                       <Button
@@ -410,6 +439,7 @@ const Categories: React.FC<CategoriesProps> = ({ raceUuid }) => {
                       />
                       <div className={styles.categoryDetails}>
                         <div className={styles.categoryName}>
+                          {isDone && <span className={styles.finishedFlag}>🏁</span>}
                           {cat.name}
                           {cat.subCategory && (
                             <span className={styles.subCategory}>
@@ -421,6 +451,7 @@ const Categories: React.FC<CategoriesProps> = ({ raceUuid }) => {
                         <div className={styles.categoryMeta}>
                           {cat.laps ? `${cat.laps} laps` : "No laps set"} · Wave{" "}
                           {cat.heat || 1} · {riderCount} riders
+                          {cat.linkedFinish && <span className={styles.linkedBadge}>🔔 linked</span>}
                         </div>
                       </div>
                     </div>
@@ -582,18 +613,25 @@ const Categories: React.FC<CategoriesProps> = ({ raceUuid }) => {
               <div className={styles.editRow}>
                 <div className={styles.formGroup}>
                   <label>Laps</label>
-                  <input
-                    type="number"
-                    className={styles.input}
-                    value={newCategoryForm.laps}
-                    onChange={(e) =>
-                      setNewCategoryForm({
-                        ...newCategoryForm,
-                        laps: parseInt(e.target.value) || 0
-                      })
-                    }
-                    min="0"
-                  />
+                  <div className={styles.stepperWrap}>
+                    <button
+                      type="button"
+                      className={styles.stepBtn}
+                      onClick={() => setNewCategoryForm({ ...newCategoryForm, laps: Math.max(0, (newCategoryForm.laps || 0) - 1) })}
+                    >−</button>
+                    <input
+                      type="number"
+                      className={`${styles.input} ${styles.stepInput}`}
+                      value={newCategoryForm.laps}
+                      onChange={(e) => setNewCategoryForm({ ...newCategoryForm, laps: parseInt(e.target.value) || 0 })}
+                      min="0"
+                    />
+                    <button
+                      type="button"
+                      className={styles.stepBtn}
+                      onClick={() => setNewCategoryForm({ ...newCategoryForm, laps: (newCategoryForm.laps || 0) + 1 })}
+                    >+</button>
+                  </div>
                 </div>
 
                 <div className={styles.formGroup}>

@@ -1,47 +1,54 @@
-import React from "react";
+import React, { useRef } from "react";
 import styles from "./racingRider.module.css";
 import { RiderProps } from "@/types/types";
 
-interface GRacingRiderProps {
+interface Props {
   rider: RiderProps;
+  color: string;
+  forceBell?: boolean;
   onClick: () => void;
+  onDoubleClick: () => void;
 }
-const RacingRider: React.FC<GRacingRiderProps> = ({ rider, onClick }) => {
+
+const RacingRider: React.FC<Props> = ({ rider, color, forceBell = false, onClick, onDoubleClick }) => {
+  const lastTapRef = useRef<number>(0);
+
+  const isPenultimate = forceBell || (rider.totalLaps > 0 && rider.lapsCounter === rider.totalLaps - 1);
+
+  const bgStyle = isPenultimate
+    ? `repeating-linear-gradient(-45deg, ${color} 0px, ${color} 11px, rgba(255,255,255,0.32) 11px, rgba(255,255,255,0.32) 18px)`
+    : color;
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const now = Date.now();
+    if (now - lastTapRef.current < 300) {
+      e.preventDefault(); // block the click that would record a lap
+      onDoubleClick();
+      lastTapRef.current = 0;
+    } else {
+      lastTapRef.current = now;
+    }
+  };
+
   return (
     <div
-      className={styles.rider}
+      className={`${styles.rider} ${isPenultimate ? styles.penultimate : ""}`}
+      style={{ background: bgStyle }}
       onClick={onClick}
-      style={{ background: rider.color || "lightgray" }}
+      onDoubleClick={(e) => { e.preventDefault(); onDoubleClick(); }}
+      onTouchEnd={handleTouchEnd}
     >
+      {isPenultimate && <div className={styles.bellBadge}>🔔</div>}
       <div className={styles.bib}>{rider.bibNumber}</div>
-      <div className={styles.time}>Pos:{rider.position_category}</div>
-      <div className={styles.time}>{rider.elapsedLastLap}</div>
-      <div className={styles.lap}>
-        {" "}
-        {rider.totalLaps - rider.lapsCounter} Laps
+      <div className={styles.laps}>
+        {rider.lapsCounter}/{rider.totalLaps}
       </div>
-      - {rider.viewOrder}
+      {rider.elapsedLastLap && (
+        <div className={styles.lapTime}>{rider.elapsedLastLap}</div>
+      )}
+      <div className={styles.pos}>P{rider.position_category ?? "—"}</div>
     </div>
   );
 };
 
 export default RacingRider;
-
-// import React from "react";
-// import PropTypes from "prop-types";
-// import styles from "./gridRider.module.css";
-// import Image from "next/image";
-// import Icons from "@/constants/Icons";
-
-// const GridRider = () => {
-// return (
-// <div className={styles.rider}>
-
-//     <div className={styles.bib}>975</div>
-//     <div className={styles.time}>00:08:12</div>
-//     <div className={styles.lap}>1/2</div>
-// </div>
-// );
-// };
-
-// export default GridRider;

@@ -71,6 +71,8 @@ export interface CategoryProps {
   color: string | null;
   heat: number | null;
   status?: "finished" | "running" | "upcoming";
+  linkedFinish?: boolean;
+  finishedAt?: number; // epoch ms when race was finished
 }
 
 // Template for reusable categories across races
@@ -98,7 +100,7 @@ export interface RiderProps {
   flag: string | null;
   id: number;
   lapsCounter: number | 0;
-  lapsDetails: Array<{ lap: number; startTime: Date; endTime: Date; lapTime: string }>;
+  lapsDetails: Array<{ lap: number; startTime: Date; endTime: Date; lapTime: string; position?: number; speed_kph?: number }>;
   lastName: string;
   position_start: number | null;
   position_category: number;

@@ -27,6 +27,30 @@
   flex-wrap: wrap;
 }
 
+/* ── Empty-category toggle ── */
+.emptyToggle {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1.5px solid #c6ddfc;
+  background: transparent;
+  color: #5a7a9a;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.emptyToggle:hover {
+  border-color: #63a6fc;
+  color: #1a4fa8;
+}
+
+.emptyToggleActive {
+  background: #f0f4ff;
+  border-color: #63a6fc;
+  color: #1a4fa8;
+}
+
 .filterPill {
   font-size: 12px;
   font-weight: 600;
@@ -102,6 +126,22 @@
 .categoryCard:hover {
   border-color: #63a6fc;
   box-shadow: 0 6px 16px rgba(99, 166, 252, 0.15);
+}
+
+.categoryCardDone {
+  background: linear-gradient(135deg, #f4fbf7, #eaf7f0);
+  border-color: #a8dfbe;
+  opacity: 0.82;
+}
+
+.categoryCardDone:hover {
+  border-color: #5cba8a;
+  box-shadow: 0 6px 16px rgba(62, 180, 120, 0.15);
+}
+
+.finishedFlag {
+  margin-right: 5px;
+  font-size: 15px;
 }
 
 .categoryInfo {
@@ -218,6 +258,95 @@
   color: #1a304f;
   outline: none;
   transition: all 0.2s;
+}
+
+/* ── Laps +/− stepper ── */
+/* ── Linked finish checkbox ── */
+.linkedFinishRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 4px 4px;
+  cursor: pointer;
+}
+
+.linkedFinishRow input[type="checkbox"] {
+  margin-top: 2px;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  accent-color: #4a8ee7;
+  cursor: pointer;
+}
+
+.linkedFinishLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a304f;
+}
+
+.linkedFinishHint {
+  font-size: 11px;
+  font-weight: 400;
+  color: #7a8aa8;
+}
+
+.linkedBadge {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #b06000;
+  background: #fff4e0;
+  border: 1px solid #f5c880;
+  border-radius: 8px;
+  padding: 1px 6px;
+}
+
+.stepperWrap {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border: 1px solid #c6ddfc;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.stepBtn {
+  width: 36px;
+  height: 36px;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+  background: #eef4ff;
+  border: none;
+  color: #2563eb;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.stepBtn:hover { background: #dbeafe; }
+.stepBtn:active { background: #bfdbfe; }
+
+.stepInput {
+  border: none !important;
+  border-radius: 0 !important;
+  text-align: center;
+  width: 56px;
+  padding: 8px 4px !important;
+  /* hide native number spin arrows */
+  -moz-appearance: textfield;
+}
+
+.stepInput::-webkit-outer-spin-button,
+.stepInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .input:focus {

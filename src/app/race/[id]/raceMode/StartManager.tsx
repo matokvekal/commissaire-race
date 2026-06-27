@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import styles from "./startManager.module.css";
-import { CategoryProps } from "@/types/types";
+import { CategoryProps, RiderProps } from "@/types/types";
 import useCategoryStore from "@/stores/categoryStore";
 import useRiderStore from "@/stores/ridersStore";
 import useRaceStore from "@/stores/racesStore";
 import { useNavigate } from "react-router-dom";
 import Icons from "@/constants/Icons";
 import Button from "@/components/ui/Button";
-import { Plus, Edit2, GripVertical, X, Trash2 } from "lucide-react";
+import { Plus, Edit2, GripVertical, X, Trash2, AlertTriangle } from "lucide-react";
 
 interface Props {
   raceUuid: string;
@@ -28,6 +28,20 @@ function normStartTime(t: string | null | undefined): string | null {
   return m ? `${m[1].padStart(2, "0")}:${m[2]}` : null;
 }
 
+/** Format seconds elapsed between now and a "HH:MM:SS" start string */
+function formatElapsed(now: Date, startTimeStr: string | null | undefined): string {
+  if (!startTimeStr) return "--:--";
+  const [h, m, s = 0] = startTimeStr.split(":").map(Number);
+  const startMs = new Date(now);
+  startMs.setHours(h, m, s, 0);
+  const diffSec = Math.max(0, Math.floor((now.getTime() - startMs.getTime()) / 1000));
+  const hrs = Math.floor(diffSec / 3600);
+  const mins = Math.floor((diffSec % 3600) / 60);
+  const secs = diffSec % 60;
+  if (hrs > 0) return `${hrs}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+}
+
 /** Group categories by startTime within a wave */
 function groupByStart(cats: CategoryProps[]) {
   const map = new Map<string, CategoryProps[]>();
@@ -43,24 +57,54 @@ function groupByStart(cats: CategoryProps[]) {
   return map;
 }
 
-const Countdown: React.FC<{ onDone: () => void }> = ({ onDone }) => {
-  const [count, setCount] = useState(60);
+interface CountdownProps {
+  seconds: number;
+  groupLabel: string;
+  onDone: () => void;
+  onStart: () => void;
+  onCancel: () => void;
+}
+
+const Countdown: React.FC<CountdownProps> = ({ seconds: initial, groupLabel, onDone, onStart, onCancel }) => {
+  const [remaining, setRemaining] = useState(initial);
+  const [paused, setPaused] = useState(false);
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
+
   useEffect(() => {
-    if (count <= 0) {
-      onDone();
-      return;
-    }
-    const t = setTimeout(() => setCount((c) => c - 1), 1000);
+    if (paused || remaining <= 0) return;
+    const t = setTimeout(() => setRemaining((r) => r - 1), 1000);
     return () => clearTimeout(t);
-  }, [count, onDone]);
+  }, [remaining, paused]);
+
+  useEffect(() => {
+    if (remaining <= 0) onDoneRef.current();
+  }, [remaining]);
+
+  const pct = Math.round((remaining / initial) * 100);
+  const color = remaining <= 10 ? "#ff6b6b" : remaining <= 30 ? "#ffc107" : "#3edda4";
 
   return (
-    <div className={styles.countdownOverlay}>
-      <div className={styles.countdownNum}>{count}</div>
-      <div className={styles.countdownLabel}>seconds to start</div>
-      <button className={styles.countdownCancel} onClick={onDone}>
-        Cancel
-      </button>
+    <div className={styles.countdownBar}>
+      <div className={styles.countdownProgress} style={{ width: `${pct}%`, background: color }} />
+      <div className={styles.countdownInner}>
+        <div className={styles.countdownTimer}>
+          <span className={styles.countdownNum} style={{ color }}>{remaining}</span>
+          <span className={styles.countdownSec}>sec</span>
+        </div>
+        <span className={styles.countdownGroup}>{groupLabel}</span>
+        <div className={styles.countdownBtns}>
+          <button className={styles.countdownStartNow} onClick={() => { onStart(); onCancel(); }}>
+            ▶ Start Now
+          </button>
+          <button className={styles.countdownPauseBtn} onClick={() => setPaused((p) => !p)}>
+            {paused ? "▶ Resume" : "⏸ Pause"}
+          </button>
+          <button className={styles.countdownCancelBtn} onClick={onCancel}>
+            ✕ Cancel
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
@@ -264,11 +308,14 @@ const StartManager: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
   const { updateCategory } = useCategoryStore();
   const { riders, updateAllRiders } = useRiderStore();
   const { races, updateRace } = useRaceStore();
-  const [countdown, setCountdown] = useState<string | null>(null);
-  const [editingStartId, setEditingStartId] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState<{ groupId: string; seconds: number } | null>(null);
+const [editingStartId, setEditingStartId] = useState<string | null>(null);
   const [startGroups, setStartGroups] = useState<StartGroup[]>([]);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [waveBaseTime, setWaveBaseTime] = useState<string>("");
+  const [confirmFinishId, setConfirmFinishId] = useState<string | null>(null);
+  const [expandedFinished, setExpandedFinished] = useState<Set<string>>(new Set());
+  const [startError, setStartError] = useState<string[] | null>(null);
 
   // Update current time every second
   useEffect(() => {
@@ -436,7 +483,65 @@ const StartManager: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
     }
   };
 
+  const validateGroup = (group: StartGroup): string[] => {
+    const errors: string[] = [];
+    const cats = group.categoryIds
+      .map((id) => categories.find((c) => c.id === id))
+      .filter(Boolean) as CategoryProps[];
+
+    if (cats.length === 0) {
+      errors.push("No categories assigned to this start group");
+      return errors;
+    }
+
+    for (const cat of cats) {
+      if (!cat.laps || cat.laps <= 0) {
+        errors.push(`"${cat.name}": no laps configured`);
+      }
+      const catRiders = riders.filter(
+        (r) => r.category === cat.name && r.raceUuid === raceUuid && r.status !== "DNS"
+      );
+      if (catRiders.length === 0) {
+        errors.push(`"${cat.name}": no riders assigned`);
+      } else {
+        const unchecked = catRiders.filter(
+          (r) => !r.checked && !["DNS", "DNF", "DSQ"].includes(r.status)
+        );
+        if (unchecked.length > 0) {
+          errors.push(
+            `"${cat.name}": ${unchecked.length} rider${unchecked.length > 1 ? "s" : ""} not checked in`
+          );
+        }
+      }
+    }
+    return errors;
+  };
+
+  const getCatIssues = (cat: CategoryProps): string[] => {
+    const issues: string[] = [];
+    if (!cat.laps || cat.laps <= 0) issues.push("No laps configured");
+    const catRiders = riders.filter(
+      (r) => r.category === cat.name && r.raceUuid === raceUuid && r.status !== "DNS"
+    );
+    if (catRiders.length === 0) {
+      issues.push("No riders assigned");
+    } else {
+      const unchecked = catRiders.filter(
+        (r) => !r.checked && !["DNS", "DNF", "DSQ"].includes(r.status)
+      );
+      if (unchecked.length > 0)
+        issues.push(`${unchecked.length} rider${unchecked.length > 1 ? "s" : ""} not checked in`);
+    }
+    return issues;
+  };
+
   const startGroup = async (group: StartGroup) => {
+    const errors = validateGroup(group);
+    if (errors.length > 0) {
+      setStartError(errors);
+      return;
+    }
+
     const now = new Date().toLocaleTimeString("en-GB", {
       hour: "2-digit",
       minute: "2-digit",
@@ -449,6 +554,8 @@ const StartManager: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
       .map((id) => categories.find((c) => c.id === id))
       .filter(Boolean) as CategoryProps[];
 
+    const allUpdatedRiders: RiderProps[] = [];
+
     for (const cat of cats) {
       if (cat.status !== "upcoming") continue;
       const catRiders = riders.filter(
@@ -457,23 +564,51 @@ const StartManager: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
           r.raceUuid === raceUuid &&
           r.status !== "DNS"
       );
-      const updatedCat = {
+      await updateCategory({
         ...cat,
         status: "running" as const,
-        startTime: now,
         lapsCounter: 0,
-        riders: catRiders.length
-      };
-      await updateCategory(updatedCat);
-      const updatedRiders = catRiders.map((r, i) => ({
-        ...r,
-        raceStatus: "running" as const,
-        timeStartRace: now,
-        lapsCounter: 0,
-        viewOrder: r.position_start ?? i + 1
-      }));
-      await updateAllRiders(updatedRiders);
+        riders: catRiders.length,
+      });
+      catRiders.forEach((r, i) => {
+        allUpdatedRiders.push({
+          ...r,
+          raceStatus: "running" as const,
+          timeStartRace: now,
+          lapsCounter: 0,
+          viewOrder: r.position_start ?? i + 1,
+        });
+      });
     }
+
+    if (allUpdatedRiders.length > 0) {
+      await updateAllRiders(allUpdatedRiders);
+    }
+  };
+
+  const endRace = async (group: StartGroup) => {
+    const now = new Date();
+    if (countdown?.groupId === group.id) setCountdown(null);
+
+    const cats = group.categoryIds
+      .map((id) => categories.find((c) => c.id === id))
+      .filter(Boolean) as CategoryProps[];
+
+    for (const cat of cats) {
+      if (cat.status === "running") {
+        await updateCategory({ ...cat, status: "finished" as const, finishedAt: now.getTime() });
+      }
+      const catRiders = riders.filter(
+        (r) => r.category === cat.name && r.raceUuid === raceUuid && r.status !== "DNS"
+      );
+      const updatedRiders = catRiders.map((r) => ({
+        ...r,
+        raceStatus: r.raceStatus === "running" ? ("finished" as const) : r.raceStatus,
+        elapsedTimeFromStart: r.elapsedTimeFromStart ?? formatElapsed(now, r.timeStartRace),
+      }));
+      if (updatedRiders.length > 0) await updateAllRiders(updatedRiders);
+    }
+
   };
 
   const adjustTime = (groupId: string, seconds: number) => {
@@ -576,13 +711,56 @@ const StartManager: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
     return assigned;
   };
 
+  const toggleExpandFinished = (groupId: string) => {
+    setExpandedFinished((prev) => {
+      const next = new Set(prev);
+      if (next.has(groupId)) next.delete(groupId);
+      else next.add(groupId);
+      return next;
+    });
+  };
+
   if (!categories.length) {
     return <div className={styles.empty}>No categories in this wave.</div>;
   }
 
   return (
     <div className={styles.container}>
-      {countdown && <Countdown onDone={() => setCountdown(null)} />}
+      {startError && (
+        <div className={styles.modalOverlay} onClick={() => setStartError(null)}>
+          <div className={styles.errorModal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.errorModalHeader}>
+              <span>Cannot Start Race</span>
+              <button className={styles.errorClose} onClick={() => setStartError(null)}>✕</button>
+            </div>
+            <div className={styles.errorList}>
+              {startError.map((msg, i) => (
+                <div key={i} className={styles.errorItem}>
+                  <span className={styles.errorIcon}>⚠</span>
+                  {msg}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {countdown && (
+        <Countdown
+          seconds={countdown.seconds}
+          groupLabel={`Start ${startGroups.findIndex((g) => g.id === countdown.groupId) + 1}`}
+          onDone={() => {
+            const group = startGroups.find((g) => g.id === countdown.groupId);
+            if (group) startGroup(group);
+            setCountdown(null);
+          }}
+          onStart={() => {
+            const group = startGroups.find((g) => g.id === countdown.groupId);
+            if (group) startGroup(group);
+          }}
+          onCancel={() => setCountdown(null)}
+        />
+      )}
 
       {editingStartId && (
         <ManageCategoriesModal
@@ -650,14 +828,150 @@ const StartManager: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
         const cats = group.categoryIds
           .map((id) => categories.find((c) => c.id === id))
           .filter(Boolean) as CategoryProps[];
-        const allRunning = cats.every((c) => c.status !== "upcoming");
         const hasCategories = cats.length > 0;
+        // Derive finished from persisted category status — not local state that resets on navigation
+        const isFinished = cats.length > 0 && cats.every((c) => c.status === "finished");
+        const allStarted = cats.length > 0 && cats.every((c) => c.status !== "upcoming");
+        const isRunning = allStarted && !isFinished;
+        const firstStartTime = cats.find((c) => c.startTime)?.startTime;
+        const catIssuesMap = Object.fromEntries(cats.map((c) => [c.id, getCatIssues(c)]));
+        const totalIssues = Object.values(catIssuesMap).reduce((s, arr) => s + arr.length, 0);
 
+        /* ── FINISHED ── */
+        if (isFinished) {
+          return (
+            <div key={group.id} className={styles.startBlockFinished}>
+              <div className={styles.startHeader}>
+                <div className={styles.startInfo}>
+                  <span className={styles.finishedFlag}>🏁</span>
+                  <span className={styles.startLabel}>Start {si + 1}</span>
+                  <span className={styles.startTimeReadOnly}>{group.time || "--:--"}</span>
+                  <span className={styles.finishedBadge}>FINISHED</span>
+                </div>
+                <button
+                  className={styles.expandBtn}
+                  onClick={() => toggleExpandFinished(group.id)}
+                  title={expandedFinished.has(group.id) ? "Collapse" : "Expand"}
+                >
+                  {expandedFinished.has(group.id) ? "▲" : "▼"}
+                </button>
+              </div>
+              {expandedFinished.has(group.id) && (
+                <div className={styles.catList}>
+                  {cats.map((cat) => (
+                    <div key={cat.id} className={styles.catRow}>
+                      <div className={styles.colorDot} style={{ background: cat.color ?? "#ccc" }} />
+                      <span className={styles.catName}>
+                        {cat.name}
+                        {cat.subCategory && <span className={styles.subCategory}> · {cat.subCategory}</span>}
+                      </span>
+                      <span className={`${styles.statusTag} ${styles.finished}`}>finished</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        /* ── RUNNING ── */
+        if (isRunning) {
+          // Use rider timeStartRace for actual elapsed (cat.startTime is the scheduled time)
+          const runningRider = riders.find(
+            (r) => r.raceUuid === raceUuid && cats.some((c) => c.name === r.category) && r.raceStatus === "running" && r.timeStartRace
+          );
+          const actualStart = runningRider?.timeStartRace ?? group.time;
+
+          return (
+            <div key={group.id} className={`${styles.startBlock} ${styles.startBlockRunning}`}>
+              <div className={`${styles.startHeader} ${styles.startHeaderRunning}`}>
+                <div className={styles.startInfo}>
+                  <span className={styles.startLabel}>Start {si + 1}</span>
+                  <span className={styles.startTimeReadOnly}>{group.time || "--:--"}</span>
+                  <span className={styles.runningBadge}>● RUNNING</span>
+                </div>
+              </div>
+
+              <div className={styles.catList}>
+                {cats.map((cat) => {
+                  const catRider = riders.find(
+                    (r) => r.raceUuid === raceUuid && r.category === cat.name && r.raceStatus === "running" && r.timeStartRace
+                  );
+                  return (
+                    <div key={cat.id} className={styles.catRow}>
+                      <div className={styles.colorDot} style={{ background: cat.color ?? "#ccc" }} />
+                      <span className={styles.catName}>
+                        {cat.name}
+                        {cat.subCategory && <span className={styles.subCategory}> · {cat.subCategory}</span>}
+                      </span>
+                      <span className={`${styles.statusTag} ${styles.running}`}>running</span>
+                      {catRider?.timeStartRace && (
+                        <span className={styles.catElapsed}>
+                          {formatElapsed(currentTime, catRider.timeStartRace)}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className={styles.actions}>
+                <div className={styles.runningBar}>
+                  <span className={styles.startedLabel}>
+                    Started {actualStart?.substring(0, 5) ?? "--:--"}
+                  </span>
+                  <span className={styles.elapsedDisplay}>
+                    {formatElapsed(currentTime, actualStart)}
+                  </span>
+                </div>
+                <button
+                  className={styles.liveBtn}
+                  onClick={() => navigate(`/race/${raceUuid}/heat/${waveNum}`)}
+                >
+                  Go Live →
+                </button>
+                {confirmFinishId === group.id ? (
+                  <div className={styles.confirmInline}>
+                    <span className={styles.confirmText}>End race?</span>
+                    <button
+                      className={styles.confirmYes}
+                      onClick={() => { endRace(group); setConfirmFinishId(null); }}
+                    >
+                      Yes 🏁
+                    </button>
+                    <button
+                      className={styles.confirmNo}
+                      onClick={() => setConfirmFinishId(null)}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    className={styles.endRaceBtn}
+                    onClick={() => setConfirmFinishId(group.id)}
+                    title="Finish race"
+                  >
+                    🏁 Finish
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        }
+
+        /* ── UPCOMING ── */
         return (
           <div key={group.id} className={styles.startBlock}>
             <div className={styles.startHeader}>
               <div className={styles.startInfo}>
                 <span className={styles.startLabel}>Start {si + 1}</span>
+                {totalIssues > 0 && (
+                  <span className={styles.groupWarnBadge} title={`${totalIssues} issue${totalIssues > 1 ? "s" : ""} — not ready to start`}>
+                    <AlertTriangle size={13} />
+                    {totalIssues}
+                  </span>
+                )}
                 <div className={styles.timeControls}>
                   <button
                     className={styles.timeBtn}
@@ -707,79 +1021,61 @@ const StartManager: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
             {hasCategories ? (
               <>
                 <div className={styles.catList}>
-                  {cats.map((cat) => (
-                    <div key={cat.id} className={styles.catRow}>
-                      <div
-                        className={styles.colorDot}
-                        style={{ background: cat.color ?? "#ccc" }}
-                      />
-                      <span className={styles.catName}>
-                        {cat.name}
-                        {cat.subCategory && (
-                          <span className={styles.subCategory}>
-                            {" "}
-                            · {cat.subCategory}
+                  {cats.map((cat) => {
+                    const catRiders = riders.filter((r) => r.raceUuid === raceUuid && r.category === cat.name);
+                    const total = catRiders.length;
+                    const accounted = catRiders.filter((r) => r.checked || ["DNS", "DNF", "DSQ"].includes(r.status)).length;
+                    const allIn = total > 0 && accounted >= total;
+                    const issues = catIssuesMap[cat.id] ?? [];
+                    return (
+                      <div key={cat.id} className={`${styles.catRow} ${issues.length > 0 ? styles.catRowWarn : ""}`}>
+                        <div className={styles.colorDot} style={{ background: cat.color ?? "#ccc" }} />
+                        <span className={styles.catName}>
+                          {cat.name}
+                          {cat.subCategory && (
+                            <span className={styles.subCategory}> · {cat.subCategory}</span>
+                          )}
+                        </span>
+                        {total > 0 && (
+                          <span className={allIn ? styles.checkCountOk : styles.checkCountPending}>
+                            {accounted}/{total} ✓
                           </span>
                         )}
-                      </span>
-                      <span
-                        className={`${styles.statusTag} ${
-                          cat.status === "running"
-                            ? styles.running
-                            : cat.status === "finished"
-                              ? styles.finished
-                              : ""
-                        }`}
-                      >
-                        {cat.status ?? "upcoming"}
-                      </span>
-                    </div>
-                  ))}
+                        <span className={`${styles.statusTag}`}>{cat.status ?? "upcoming"}</span>
+                        {issues.length > 0 && (
+                          <span className={styles.catWarnIcon} title={issues.join(" · ")}>
+                            <AlertTriangle size={13} />
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
 
                 <div className={styles.actions}>
-                  {!allRunning && (
-                    <>
-                      <button
-                        className={styles.countdownBtn}
-                        onClick={() => setCountdown(group.id)}
-                      >
-                        ⏱ 1 Min
-                      </button>
-                      <button
-                        className={styles.startBtn}
-                        onClick={() => startGroup(group)}
-                      >
-                        <img
-                          src={Icons.buttonStart}
-                          alt=""
-                          width={14}
-                          height={14}
-                        />
-                        Start All
-                      </button>
-                    </>
-                  )}
-                  {allRunning && (
+                  {[30, 60, 120].map((sec) => (
                     <button
-                      className={styles.liveBtn}
-                      onClick={() =>
-                        navigate(`/race/${raceUuid}/heat/${waveNum}`)
-                      }
+                      key={sec}
+                      className={styles.countdownBtn}
+                      onClick={() => {
+                        const errors = validateGroup(group);
+                        if (errors.length > 0) { setStartError(errors); return; }
+                        setCountdown({ groupId: group.id, seconds: sec });
+                      }}
                     >
-                      Go Live →
+                      ⏱ {sec === 30 ? "30s" : sec === 60 ? "1 Min" : "2 Min"}
                     </button>
-                  )}
+                  ))}
+                  <button className={styles.startBtn} onClick={() => startGroup(group)}>
+                    <img src={Icons.buttonStart} alt="" width={14} height={14} />
+                    Start All
+                  </button>
                 </div>
               </>
             ) : (
               <div className={styles.emptyStart}>
                 <p>No categories assigned to this start</p>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setEditingStartId(group.id)}
-                >
+                <Button variant="secondary" size="sm" onClick={() => setEditingStartId(group.id)}>
                   Add Categories
                 </Button>
               </div>

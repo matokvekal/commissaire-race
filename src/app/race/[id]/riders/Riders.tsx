@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import styles from "./riders.module.css";
 import Button from "@/components/ui/Button";
 import useRiderStore from "@/stores/ridersStore";
@@ -16,8 +16,21 @@ interface ManageHeatProps {
   categories: CategoryProps[];
 }
 
-type SortKey = "name" | "bib" | "club";
+type SortKey = "name" | "bib" | "club" | "category";
 type WaveFilter = "all" | "now" | number;
+
+function formatElapsed(now: Date, startTimeStr: string | null | undefined): string {
+  if (!startTimeStr) return "--:--";
+  const [h, m, s = 0] = startTimeStr.split(":").map(Number);
+  const startMs = new Date(now);
+  startMs.setHours(h, m, s, 0);
+  const diffSec = Math.max(0, Math.floor((now.getTime() - startMs.getTime()) / 1000));
+  const hrs = Math.floor(diffSec / 3600);
+  const mins = Math.floor((diffSec % 3600) / 60);
+  const secs = diffSec % 60;
+  if (hrs > 0) return `${hrs}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+}
 
 function getNowWave(categories: CategoryProps[]): number | null {
   const now = new Date();
@@ -53,6 +66,12 @@ const Riders: React.FC<ManageHeatProps> = ({ raceUuid, categories }) => {
   const [showImportWizard, setShowImportWizard] = useState(false);
   const [showDeleteRiders, setShowDeleteRiders] = useState(false);
   const [selectedRider, setSelectedRider] = useState<RiderProps | null>(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const t = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
 
   const { getRiders, riders, deleteRidersByRace } = useRiderStore(
     (state) => ({
@@ -102,11 +121,14 @@ const Riders: React.FC<ManageHeatProps> = ({ raceUuid, categories }) => {
 
     return [...list].sort((a, b) => {
       if (sortBy === "name")
-        return `${a.lastName} ${a.firstName}`.localeCompare(
-          `${b.lastName} ${b.firstName}`
-        );
+        return `${a.lastName} ${a.firstName}`.localeCompare(`${b.lastName} ${b.firstName}`);
       if (sortBy === "bib") return a.bibNumber - b.bibNumber;
       if (sortBy === "club") return (a.team ?? "").localeCompare(b.team ?? "");
+      if (sortBy === "category") {
+        const catCmp = a.category.localeCompare(b.category);
+        if (catCmp !== 0) return catCmp;
+        return `${a.lastName} ${a.firstName}`.localeCompare(`${b.lastName} ${b.firstName}`);
+      }
       return 0;
     });
   }, [riders, raceUuid, waveFilter, sortBy, categories]);
@@ -124,7 +146,7 @@ const Riders: React.FC<ManageHeatProps> = ({ raceUuid, categories }) => {
   return (
     <div className={styles.riders}>
       <div className={styles.sortBar}>
-        {(["name", "bib", "club"] as SortKey[]).map((key) => (
+        {(["name", "bib", "club", "category"] as SortKey[]).map((key) => (
           <Button
             key={key}
             variant={sortBy === key ? "primary" : "secondary"}
@@ -132,7 +154,7 @@ const Riders: React.FC<ManageHeatProps> = ({ raceUuid, categories }) => {
             className={`${styles.sortBtn} ${sortBy === key ? styles.sortActive : ""}`}
             onClick={() => setSortBy(key)}
           >
-            {key === "name" ? "Name A–Z" : key === "bib" ? "Bib #" : "Club A–Z"}
+            {key === "name" ? "Name A–Z" : key === "bib" ? "Bib #" : key === "club" ? "Club A–Z" : "Category"}
           </Button>
         ))}
         <Button
@@ -228,41 +250,59 @@ const Riders: React.FC<ManageHeatProps> = ({ raceUuid, categories }) => {
                 <span className={styles.colName}>Name</span>
                 <span className={styles.colCat}>Category</span>
                 <span className={styles.colWave}>Wave</span>
-                <span className={styles.colClub}>Club</span>
+                <span className={styles.colStatus}>Status</span>
               </div>
-              {filteredAndSorted.map((rider, idx) => (
-                <div
-                  key={rider.id}
-                  className={styles.dataRow}
-                  onClick={() => setSelectedRider(rider)}
-                >
-                  <span className={styles.colRow}>{idx + 1}</span>
-                  <span
-                    className={styles.colDot}
-                    style={{ background: rider.color ?? "#ddd" }}
-                  />
-                  <span className={styles.colBib}>
-                    <strong>#{rider.bibNumber || "—"}</strong>
-                  </span>
-                  <span className={styles.colName} dir="auto">
-                    {rider.lastName || rider.firstName
-                      ? `${rider.lastName} ${rider.firstName}`.trim()
-                      : "—"}
-                  </span>
-                  <span className={styles.colCat} dir="auto">
-                    {rider.category || "—"}
-                    {rider.subCategory && (
-                      <span className={styles.subCatLabel}> · {rider.subCategory}</span>
-                    )}
-                  </span>
-                  <span className={styles.colWave}>
-                    {rider.heat || "—"}
-                  </span>
-                  <span className={styles.colClub} dir="auto">
-                    {rider.team || "—"}
-                  </span>
-                </div>
-              ))}
+              {(() => {
+                let lastCat = "";
+                let catIdx = 0;
+                return filteredAndSorted.map((rider, idx) => {
+                  const isOut = ["DNS","DNF","DSQ"].includes(rider.status);
+                  const isRunning = rider.raceStatus === "running" && !isOut;
+                  const isFinished = rider.raceStatus === "finished" && !isOut;
+                  const showCatHeader = sortBy === "category" && rider.category !== lastCat;
+                  if (showCatHeader) { lastCat = rider.category; catIdx = 0; } else { catIdx++; }
+                  const catColor = categories.find((c) => c.name === rider.category)?.color ?? rider.color ?? "#ddd";
+                  return (
+                    <React.Fragment key={rider.id}>
+                      {showCatHeader && (
+                        <div className={styles.catSeparator} style={{ borderLeftColor: catColor }}>
+                          <span className={styles.catSepDot} style={{ background: catColor }} />
+                          {rider.category}
+                        </div>
+                      )}
+                      <div
+                        className={`${styles.dataRow} ${isRunning ? styles.rowRunning : ""} ${isOut ? styles.rowOut : ""}`}
+                        onClick={() => setSelectedRider(rider)}
+                      >
+                        <span className={styles.colRow}>{idx + 1}</span>
+                        <span className={styles.colDot} style={{ background: rider.color ?? "#ddd" }} />
+                        <span className={styles.colBib}><strong>#{rider.bibNumber || "—"}</strong></span>
+                        <span className={styles.colName} dir="auto">
+                          {rider.lastName || rider.firstName
+                            ? `${rider.lastName} ${rider.firstName}`.trim()
+                            : "—"}
+                        </span>
+                        <span className={styles.colCat} dir="auto">
+                          {rider.category || "—"}
+                          {rider.subCategory && <span className={styles.subCatLabel}> · {rider.subCategory}</span>}
+                        </span>
+                        <span className={styles.colWave}>{rider.heat || "—"}</span>
+                        <span className={styles.colStatus}>
+                          {isOut ? (
+                            <span className={`${styles.statusTag} ${styles[rider.status.toLowerCase() + "Tag"]}`}>
+                              {rider.status}
+                            </span>
+                          ) : isRunning ? (
+                            <span className={styles.statusRunning}>▶ {formatElapsed(currentTime, rider.timeStartRace)}</span>
+                          ) : isFinished ? (
+                            <span className={styles.statusFinished}>🏁</span>
+                          ) : null}
+                        </span>
+                      </div>
+                    </React.Fragment>
+                  );
+                });
+              })()}
             </div>
           ) : groupByCategory && grouped ? (
             [...grouped.entries()].map(([catName, catRiders]) => (

@@ -68,6 +68,31 @@
   gap: 4px;
 }
 
+/* ── Category separator row in table view ── */
+.catSeparator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #1a304f;
+  padding: 6px 12px;
+  background: linear-gradient(180deg, #f2f7ff, #eef4ff);
+  border: 1px solid #d5e4fb;
+  border-left: 3px solid #ccc;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 6px;
+}
+
+.catSepDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
 .catGroupHeader {
   font-size: 11px;
   font-weight: 700;
@@ -212,6 +237,69 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 12px;
+}
+
+.colStatus {
+  width: 80px;
+  flex-shrink: 0;
+  text-align: right;
+  font-size: 11px;
+}
+
+/* Row state highlights */
+.rowRunning {
+  background: rgba(62, 221, 164, 0.05);
+  border-left: 3px solid #3edda4;
+}
+
+.rowRunning:hover {
+  background: rgba(62, 221, 164, 0.09) !important;
+}
+
+.rowOut {
+  opacity: 0.52;
+}
+
+/* Status tags */
+.statusTag {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.dnsTag {
+  background: rgba(220, 53, 100, 0.12);
+  color: #b8205c;
+  border: 1px solid rgba(220, 53, 100, 0.3);
+}
+
+.dnfTag {
+  background: rgba(255, 110, 30, 0.12);
+  color: #b84000;
+  border: 1px solid rgba(255, 110, 30, 0.3);
+}
+
+.dsqTag {
+  background: rgba(130, 80, 200, 0.12);
+  color: #6020a8;
+  border: 1px solid rgba(130, 80, 200, 0.3);
+}
+
+.statusRunning {
+  font-size: 11px;
+  font-weight: 700;
+  color: #2ab882;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.statusFinished {
+  font-size: 13px;
+  opacity: 0.65;
 }
 
 .goUp {

@@ -23,8 +23,9 @@ const CheckIn: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
 
   useEffect(() => { getRiders(raceUuid); }, [raceUuid, getRiders]);
 
+  const waveCatNames = new Set(categories.map((c) => c.name));
   const waveRiders = riders.filter(
-    (r) => r.raceUuid === raceUuid && r.heat === waveNum
+    (r) => r.raceUuid === raceUuid && waveCatNames.has(r.category)
   );
 
   const filtered = waveRiders.filter((r) => {
@@ -44,12 +45,30 @@ const CheckIn: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
     updateRider({ ...rider, checked: !rider.checked });
   };
 
+  const checkAll = () => {
+    const unchecked = filtered.filter((r) => !r.checked && !["DNS", "DNF", "DSQ"].includes(r.status));
+    unchecked.forEach((r) => updateRider({ ...r, checked: true }));
+  };
+
+  const allAccountedFor = filtered.length > 0 && filtered.every(
+    (r) => r.checked || ["DNS", "DNF", "DSQ"].includes(r.status)
+  );
+
+  const isRaceActive = categories.some(
+    (c) => c.status === "running" || c.status === "finished"
+  );
+
   const handleStatusChange = (status: any) => {
     if (selectedRider) updateRider({ ...selectedRider, status });
   };
 
   return (
     <div className={styles.container}>
+      {isRaceActive && (
+        <div className={styles.raceLockBanner}>
+          🏁 Race in progress — check-in locked. You can still change rider status.
+        </div>
+      )}
       <div className={styles.toolbar}>
         <div className={styles.searchWrap}>
           <img src={Icons.search} alt="" width={14} height={14} />
@@ -70,27 +89,68 @@ const CheckIn: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
         <span className={styles.countItem}>✓ {waveRiders.filter((r) => r.checked).length} checked</span>
         <span className={styles.countItem}>✗ {waveRiders.filter((r) => r.status === "DNS").length} DNS</span>
         <span className={styles.countItem}>Total {waveRiders.length}</span>
+        {!allAccountedFor && !isRaceActive && (
+          <button className={styles.checkAllBtn} onClick={checkAll}>
+            ✓ Check All
+          </button>
+        )}
       </div>
 
       <div className={styles.list}>
-        {filtered.map((rider) => (
-          <div key={rider.id} className={`${styles.row} ${rider.checked ? styles.checked : ""} ${["DNS","DNF","DSQ"].includes(rider.status) ? styles.out : ""}`}>
-            <button className={styles.checkBtn} onClick={() => toggleCheck(rider)}>
-              {rider.checked ? "✓" : "○"}
-            </button>
-            <span className={styles.bib}>#{rider.bibNumber}</span>
-            <span className={styles.name}>{rider.lastName} {rider.firstName}</span>
-            <span className={styles.cat}>{rider.category}</span>
-            <div className={styles.statusBtns}>
-              <button
-                className={`${styles.statusBtn} ${rider.status === "DNS" ? styles.dnsActive : ""}`}
-                onClick={() => { setSelectedRider(rider); openModal("modalStatus"); }}
-              >
-                {["DNS","DNF","DSQ"].includes(rider.status) ? rider.status : "Status"}
-              </button>
+        {filtered.map((rider) => {
+          const hasStatus = ["DNS", "DNF", "DSQ"].includes(rider.status);
+          const statusClass = rider.status === "DNS"
+            ? styles.dnsBadge
+            : rider.status === "DNF"
+            ? styles.dnfBadge
+            : rider.status === "DSQ"
+            ? styles.dsqBadge
+            : "";
+          return (
+            <div key={rider.id} className={`${styles.row} ${rider.checked ? styles.checked : ""} ${hasStatus ? styles.out : ""}`}>
+              {/* Left control: circle OR status badge */}
+              <div className={styles.leftArea}>
+                {hasStatus ? (
+                  <button
+                    className={`${styles.statusInlineBadge} ${statusClass}`}
+                    onClick={() => { setSelectedRider(rider); openModal("modalStatus"); }}
+                    title="Tap to change status"
+                  >
+                    {rider.status}
+                  </button>
+                ) : isRaceActive ? (
+                  /* Race running — show lock icon + status button only */
+                  <>
+                    <span className={`${styles.checkBtn} ${rider.checked ? styles.checkedBtn : styles.lockedBtn}`} title="Check-in locked" />
+                    <button
+                      className={styles.statusTrigger}
+                      onClick={() => { setSelectedRider(rider); openModal("modalStatus"); }}
+                    >
+                      Status
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      className={`${styles.checkBtn} ${rider.checked ? styles.checkedBtn : ""}`}
+                      onClick={() => toggleCheck(rider)}
+                      title={rider.checked ? "Uncheck" : "Check in"}
+                    />
+                    <button
+                      className={styles.statusTrigger}
+                      onClick={() => { setSelectedRider(rider); openModal("modalStatus"); }}
+                    >
+                      Status
+                    </button>
+                  </>
+                )}
+              </div>
+              <span className={styles.bib}>#{rider.bibNumber}</span>
+              <span className={styles.name}>{rider.lastName} {rider.firstName}</span>
+              <span className={styles.cat}>{rider.category}</span>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <button className={styles.addBtn} onClick={() => setShowAdd((v) => !v)}>

@@ -196,9 +196,13 @@ const useRiderStore = create<RiderState>()(
       },
 
       updateAllRiders: async (updatedRiders) => {
+        const updatedIds = new Set(updatedRiders.map((r) => r.id));
         set((state) => ({
           ...state,
-          riders: updatedRiders,
+          riders: [
+            ...state.riders.filter((r) => !updatedIds.has(r.id)),
+            ...updatedRiders,
+          ],
         }));
 
         try {

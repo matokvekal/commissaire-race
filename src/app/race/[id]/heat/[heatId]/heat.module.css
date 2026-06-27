@@ -12,16 +12,7 @@
   flex: 1;
   padding: 0 16px;
 }
-.timer {
-  font-size: 20px;
-  font-weight: bold;
-  height: 60px;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  letter-spacing: 10px;
-}
+/* .timer kept for reference but replaced by .timerRow + .timerText */
 .inputContainer {
   position: relative;
   width: 100%;
@@ -83,6 +74,293 @@
   height: 450px;
   overflow-y: auto;
 }
+/* ── Timer row + wave info button ── */
+.timerRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  height: 60px;
+}
+
+.timerText {
+  font-size: 20px;
+  font-weight: bold;
+  letter-spacing: 10px;
+  margin: 0;
+}
+
+.waveInfoBtn {
+  position: absolute;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.6);
+  border: none;
+  border-radius: 20px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.waveInfoBtn:hover { background: rgba(255, 255, 255, 0.9); }
+
+.miniDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* ── Wave info modal ── */
+.waveModal {
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px;
+  min-width: 220px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.22);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.waveModalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 15px;
+  font-weight: 800;
+  color: #1a1a2e;
+  margin-bottom: 4px;
+}
+
+.waveModalRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.catDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.waveModalName {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: #222;
+}
+
+.waveModalLaps {
+  font-size: 12px;
+  color: #888;
+  background: #f0f0f8;
+  padding: 2px 7px;
+  border-radius: 8px;
+}
+
+/* ── Context menu (double-click on rider) ── */
+.contextOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.contextMenu {
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px;
+  min-width: 240px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.22);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.contextHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.contextBib {
+  font-size: 18px;
+  font-weight: 800;
+  color: #1a1a2e;
+}
+
+.contextName {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contextClose {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  color: #888;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.contextClose:hover { background: #f0f0f0; }
+
+.contextLaps {
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+  padding: 4px 0;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 4px;
+}
+
+.contextBtn {
+  background: #f4f4fb;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  color: #1a1a2e;
+  transition: background 0.15s;
+}
+
+.contextBtn:hover { background: #e8e8f5; }
+
+.contextRevert {
+  color: #e05555;
+  background: #fff0f0;
+}
+
+.contextRevert:hover { background: #ffe0e0; }
+
+/* ── Filter icon button in info row ── */
+.filterIconBtn {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1.5px solid rgba(41, 48, 66, 0.3);
+  background: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  color: #333;
+}
+
+.filterIconBtn:hover { background: rgba(255, 255, 255, 0.9); }
+
+.filterIconActive {
+  background: #1a1a2e;
+  border-color: #1a1a2e;
+  color: #fff;
+}
+
+.filterActive {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+/* ── Filter panel (checkbox popup) ── */
+.filterPanelOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+}
+
+.filterPanel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px;
+  min-width: 220px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.22);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filterPanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 800;
+  color: #1a1a2e;
+  margin-bottom: 8px;
+}
+
+.filterPanelRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #222;
+  padding: 6px 4px;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.filterPanelRow:hover { background: #f4f4fb; }
+
+.filterPanelRow input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #1a1a2e;
+}
+
+.filterDivider {
+  height: 1px;
+  background: #eee;
+  margin: 4px 0;
+}
+
+.filterLapTag {
+  margin-left: auto;
+  font-size: 11px;
+  color: #888;
+  background: #f0f0f8;
+  padding: 1px 6px;
+  border-radius: 8px;
+}
+
+/* ── Search clear button ── */
+.clearSearch {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 13px;
+  color: #999;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.clearSearch:hover { color: #333; }
+
+/* ── end context menu ── */
+
 /* .manageHeat {
    padding: 16px;
    font-family: Arial, sans-serif;

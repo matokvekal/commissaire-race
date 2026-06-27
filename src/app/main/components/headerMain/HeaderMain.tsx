@@ -5,12 +5,14 @@ import Button from "@/components/ui/Button";
 import { useNavigate } from "react-router-dom";
 import { useDataStore } from "@/stores/appStore";
 import Cookies from "js-cookie";
-import { Bike, LogOut, Menu, MessageCircle, UserRound, X } from "lucide-react";
+import { Bike, LogOut, Menu, MessageCircle, Moon, Sun, UserRound, X } from "lucide-react";
+import { useTheme } from "@/hooks/useTheme";
 
 function HeaderMain() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const navigate = useNavigate();
   const { user, getUser } = useDataStore();
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     getUser();
@@ -38,6 +40,17 @@ function HeaderMain() {
         </Button>
         <div className={styles.head}>Simple MTB Race</div>
         <div className={styles.right}>
+          <button
+            className={styles.themeBtn}
+            onClick={toggleTheme}
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+          >
+            {theme === 'dark'
+              ? <Sun className={styles.themeIcon} aria-hidden="true" />
+              : <Moon className={styles.themeIcon} aria-hidden="true" />
+            }
+          </button>
           <Button
             variant="icon"
             size="md"

@@ -1,22 +1,46 @@
-import React from "react";
-import PropTypes from "prop-types";
+import React, { useRef } from "react";
 import styles from "./finishRider.module.css";
 import { RiderProps } from "@/types/types";
 
-interface GRacingRiderProps {
+interface Props {
   rider: RiderProps;
-  onClick: () => void;
+  color: string;
+  onDoubleClick: () => void;
 }
-const FinishRider: React.FC<GRacingRiderProps> = ({ rider, onClick }) => {
+
+const FinishRider: React.FC<Props> = ({ rider, color, onDoubleClick }) => {
+  const lastTapRef = useRef<number>(0);
+
+  const isOut = rider.status === "DNF" || rider.status === "DSQ" || rider.status === "DNS";
+  const label = isOut ? rider.status : "FIN";
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const now = Date.now();
+    if (now - lastTapRef.current < 300) {
+      e.preventDefault();
+      onDoubleClick();
+      lastTapRef.current = 0;
+    } else {
+      lastTapRef.current = now;
+    }
+  };
+
   return (
     <div
-      className={styles.rider}
-      style={{ borderColor: rider.color || "lightgray" }}
+      className={`${styles.rider} ${isOut ? styles.out : styles.fin}`}
+      style={{ borderTopColor: color }}
+      onDoubleClick={(e) => { e.preventDefault(); onDoubleClick(); }}
+      onTouchEnd={handleTouchEnd}
     >
       <div className={styles.bib}>{rider.bibNumber}</div>
-      <div className={styles.time}>Pos:{rider.position_category}</div>
-      <div className={styles.time}>{rider.elapsedLastLap}</div>
-      {/* <div className={styles.lap}>{rider.totalLaps - rider.lapsCounter}</div> */}
+      {!isOut && <div className={styles.flag}>🏁</div>}
+      <div className={`${styles.badge} ${isOut ? styles.badgeOut : styles.badgeFin}`}>
+        {label}
+      </div>
+      {!isOut && <div className={styles.pos}>P{rider.position_category ?? "—"}</div>}
+      <div className={styles.time}>
+        {rider.elapsedTimeFromStart || rider.elapsedLastLap || "—"}
+      </div>
     </div>
   );
 };
