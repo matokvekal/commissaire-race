@@ -79,8 +79,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 16px;
   position: relative;
   height: 60px;
+}
+
+.categoryColorBar {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.categoryColor {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  border: 1px solid rgba(0,0,0,0.1);
 }
 
 .timerText {
@@ -88,6 +104,7 @@
   font-weight: bold;
   letter-spacing: 10px;
   margin: 0;
+  white-space: nowrap;
 }
 
 .waveInfoBtn {
