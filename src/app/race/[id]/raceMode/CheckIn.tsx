@@ -41,13 +41,15 @@ const CheckIn: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
 
   const catNames = [...new Set(waveRiders.map((r) => r.category))].sort();
 
-  const toggleCheck = (rider: RiderProps) => {
-    updateRider({ ...rider, checked: !rider.checked });
+  const toggleCheck = async (rider: RiderProps) => {
+    await updateRider({ ...rider, checked: !rider.checked });
   };
 
   const checkAll = async () => {
     const unchecked = filtered.filter((r) => !r.checked && !["DNS", "DNF", "DSQ"].includes(r.status));
-    await Promise.all(unchecked.map((r) => updateRider({ ...r, checked: true })));
+    for (const rider of unchecked) {
+      await updateRider({ ...rider, checked: true });
+    }
   };
 
   const allAccountedFor = filtered.length > 0 && filtered.every(
@@ -58,8 +60,8 @@ const CheckIn: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
     (c) => c.status === "running" || c.status === "finished"
   );
 
-  const handleStatusChange = (status: any) => {
-    if (selectedRider) updateRider({ ...selectedRider, status });
+  const handleStatusChange = async (status: any) => {
+    if (selectedRider) await updateRider({ ...selectedRider, status });
   };
 
   return (
@@ -90,7 +92,7 @@ const CheckIn: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
         <span className={styles.countItem}>✗ {waveRiders.filter((r) => r.status === "DNS").length} DNS</span>
         <span className={styles.countItem}>Total {waveRiders.length}</span>
         {!allAccountedFor && !isRaceActive && (
-          <button className={styles.checkAllBtn} onClick={checkAll}>
+          <button className={styles.checkAllBtn} onClick={() => checkAll()}>
             ✓ Check All
           </button>
         )}
@@ -133,7 +135,7 @@ const CheckIn: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
                   <>
                     <button
                       className={`${styles.checkBtn} ${rider.checked ? styles.checkedBtn : ""}`}
-                      onClick={() => toggleCheck(rider)}
+                      onClick={() => void toggleCheck(rider)}
                       title={rider.checked ? "Uncheck" : "Check in"}
                     />
                     <button
