@@ -281,12 +281,13 @@ const Categories: React.FC<CategoriesProps> = ({ raceUuid }) => {
         }
       }
 
-      setQuickLapsMode(false);
-      setQuickLapsValues({});
-      getCategories(raceUuid);
+      await getCategories(raceUuid);
     } catch (error) {
       console.error("Error saving laps:", error);
       alert("Error saving laps. Check console for details.");
+    } finally {
+      setQuickLapsMode(false);
+      setQuickLapsValues({});
     }
   };
 
