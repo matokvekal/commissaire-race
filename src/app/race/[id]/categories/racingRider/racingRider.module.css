@@ -25,7 +25,7 @@
   box-shadow: 0 1px 3px rgba(0,0,0,0.15);
 }
 
-/* Penultimate lap — light diagonal lines overlay */
+/* Penultimate lap — bright elegant diagonal lines overlay */
 .penultimate {
   box-shadow:
     0 0 0 3px #fff,
@@ -34,9 +34,9 @@
     inset 0 0 0 100px repeating-linear-gradient(
       -45deg,
       transparent,
-      transparent 5px,
-      rgba(255,255,255,0.15) 5px,
-      rgba(255,255,255,0.15) 8px
+      transparent 4px,
+      rgba(255,255,255,0.35) 4px,
+      rgba(255,255,255,0.35) 7px
     );
 }
 
