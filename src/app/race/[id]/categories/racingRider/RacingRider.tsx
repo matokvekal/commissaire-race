@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useMemo } from "react";
 import styles from "./racingRider.module.css";
 import { RiderProps } from "@/types/types";
 
@@ -11,10 +11,32 @@ interface Props {
   onDoubleClick: () => void;
 }
 
+// Calculate luminance to determine if text should be light or dark
+const getLuminance = (hexColor: string): number => {
+  const hex = hexColor.replace("#", "");
+  const r = parseInt(hex.substring(0, 2), 16) / 255;
+  const g = parseInt(hex.substring(2, 4), 16) / 255;
+  const b = parseInt(hex.substring(4, 6), 16) / 255;
+
+  const lr = r <= 0.03928 ? r / 12.92 : Math.pow((r + 0.055) / 1.055, 2.4);
+  const lg = g <= 0.03928 ? g / 12.92 : Math.pow((g + 0.055) / 1.055, 2.4);
+  const lb = b <= 0.03928 ? b / 12.92 : Math.pow((b + 0.055) / 1.055, 2.4);
+
+  return 0.2126 * lr + 0.7152 * lg + 0.0722 * lb;
+};
+
 const RacingRider: React.FC<Props> = ({ rider, color, forceBell = false, isLeaderInCategory = false, onClick, onDoubleClick }) => {
   const lastTapRef = useRef<number>(0);
 
   const isPenultimate = forceBell || (rider.totalLaps > 0 && rider.lapsCounter === rider.totalLaps - 1);
+
+  const isDarkBg = useMemo(() => {
+    try {
+      return getLuminance(color) < 0.5;
+    } catch {
+      return false;
+    }
+  }, [color]);
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     const now = Date.now();
@@ -29,7 +51,7 @@ const RacingRider: React.FC<Props> = ({ rider, color, forceBell = false, isLeade
 
   return (
     <div
-      className={`${styles.rider} ${isPenultimate ? styles.penultimate : ""} ${isLeaderInCategory ? styles.leaderInCategory : ""}`}
+      className={`${styles.rider} ${isPenultimate ? styles.penultimate : ""} ${isLeaderInCategory ? styles.leaderInCategory : ""} ${isDarkBg ? styles.darkBg : ""}`}
       style={{ background: color }}
       onClick={onClick}
       onDoubleClick={(e) => { e.preventDefault(); onDoubleClick(); }}
