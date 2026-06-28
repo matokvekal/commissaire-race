@@ -1,17 +1,20 @@
 ﻿/**
- * IndexedDB Helper for RBAC
+ * IndexedDB Helper for RBAC and Data Persistence
  *
- * Handles all IndexedDB operations for roles and users persistence.
- * Database: commissireDb (v8)
- * Stores: roles, users
+ * Handles all IndexedDB operations for roles, users, races, riders, and categories.
+ * Database: commissireDb (v9)
+ * Stores: roles, users, races, riders, categories
  */
 
 import type { Role, User } from '@/types/rbac.types';
 
 const DB_NAME = 'commissireDb';
-const DB_VERSION = 8;
+const DB_VERSION = 9;
 const ROLES_STORE = 'roles';
 const USERS_STORE = 'users';
+const RACES_STORE = 'races';
+const RIDERS_STORE = 'riders';
+const CATEGORIES_STORE = 'categories';
 
 let db: IDBDatabase | null = null;
 
@@ -55,6 +58,24 @@ export const initializeDb = async (): Promise<any> => {
         usersStore.createIndex('token', 'token', { unique: true });
         usersStore.createIndex('email', 'email');
         console.log('Created users store');
+      }
+
+      // Create races store if it doesn't exist
+      if (!database.objectStoreNames.contains(RACES_STORE)) {
+        database.createObjectStore(RACES_STORE, { keyPath: 'id' });
+        console.log('Created races store');
+      }
+
+      // Create riders store if it doesn't exist
+      if (!database.objectStoreNames.contains(RIDERS_STORE)) {
+        database.createObjectStore(RIDERS_STORE, { keyPath: 'id' });
+        console.log('Created riders store');
+      }
+
+      // Create categories store if it doesn't exist
+      if (!database.objectStoreNames.contains(CATEGORIES_STORE)) {
+        database.createObjectStore(CATEGORIES_STORE, { keyPath: 'id' });
+        console.log('Created categories store');
       }
     };
   });
