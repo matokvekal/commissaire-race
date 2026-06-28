@@ -35,7 +35,6 @@ const useCategoryStore = create<CategoryState>()(
 
           if (categories.length > 0) {
             set({ categories });
-            db.close();
             return categories;
           }
 

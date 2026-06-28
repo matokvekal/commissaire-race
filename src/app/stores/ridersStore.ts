@@ -56,8 +56,7 @@ const useRiderStore = create<RiderState>()(
 
           if (storedRiders.length > 0) {
             set({ riders: storedRiders });
-            db.close();
-            return storedRiders;
+              return storedRiders;
           }
 
           const fetchedRiders = await fetchRidersFromAPI(raceUuid);
@@ -70,7 +69,6 @@ const useRiderStore = create<RiderState>()(
             await tx.done;
           }
 
-          db.close();
           return fetchedRiders;
         } catch (error) {
           console.error("Error in getRidersOld:", error);
@@ -98,8 +96,7 @@ const useRiderStore = create<RiderState>()(
               riders: storedRiders,
               lastFetchedRaceUuid: raceUuid,
             }));
-            db.close();
-            return storedRiders;
+              return storedRiders;
           }
 
           console.log("Fetching riders from API...");
@@ -117,7 +114,6 @@ const useRiderStore = create<RiderState>()(
             await tx.done;
           }
 
-          db.close();
           return fetchedRiders;
         } catch (error) {
           console.error("Error in getRiders:", error);
@@ -151,7 +147,6 @@ const useRiderStore = create<RiderState>()(
           const store = tx.objectStore("riders");
           await store.put(newRider);
           await tx.done;
-          db.close();
         } catch (error) {
           console.error("Error inserting rider:", error);
         }
@@ -169,7 +164,6 @@ const useRiderStore = create<RiderState>()(
           const store = tx.objectStore("riders");
           await Promise.all(newRiders.map((rider) => store.put(rider)));
           await tx.done;
-          db.close();
         } catch (error) {
           console.error("Error inserting riders:", error);
         }
@@ -189,7 +183,6 @@ const useRiderStore = create<RiderState>()(
           const store = tx.objectStore("riders");
           await store.put(updatedRider);
           await tx.done;
-          db.close();
         } catch (error) {
           console.error("Error updating rider in IDB:", error);
         }
@@ -211,7 +204,6 @@ const useRiderStore = create<RiderState>()(
           const store = tx.objectStore("riders");
           await Promise.all(updatedRiders.map((rider) => store.put(rider)));
           await tx.done;
-          db.close();
         } catch (error) {
           console.error("Error updating all riders in IDB:", error);
         }
@@ -227,7 +219,6 @@ const useRiderStore = create<RiderState>()(
           const tx = db.transaction("riders", "readwrite");
           await tx.objectStore("riders").delete(riderId);
           await tx.done;
-          db.close();
         } catch (error) {
           console.error("Error deleting rider:", error);
         }
@@ -244,7 +235,6 @@ const useRiderStore = create<RiderState>()(
             await Promise.all(toDelete.map((r: RiderProps) => store.delete(r.id)));
             await tx.done;
           }
-          db.close();
           set((state) => ({
             riders: state.riders.filter((r) => r.raceUuid !== raceUuid),
           }));

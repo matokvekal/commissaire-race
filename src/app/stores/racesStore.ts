@@ -31,24 +31,21 @@ const useRaceStore = create<RaceState>()(
 
                if (races.length > 0) {
                   set({ races }); 
-                  db.close();
-                  return races;
+                     return races;
                }
 
                races = await fetchRacesFromAPI();
                if (races.length > 0) {
                   set({ races }); //  Update Zustand store
 
-                  const tx = db.transaction("races", "readwrite");
+                  const tx = db.transaction(["races"], "readwrite");
                   const store = tx.objectStore("races");
 
                   for (const race of races) {
-                     await store.put(race);     
+                     await store.put(race);
                   }
                   await tx.done;
                }
-
-               db.close();
                return races;
             } catch (error) {
                console.error("Error in getRaces:", error);
@@ -65,7 +62,6 @@ const useRaceStore = create<RaceState>()(
 
                const db = await initIndexedDB();
                await db.add("races", newRace);
-               db.close();
             } catch (error) {
                console.error("Error inserting race:", error);
             }
@@ -82,11 +78,10 @@ const useRaceStore = create<RaceState>()(
                set({ races: updatedRaces });
 
                const db = await initIndexedDB();
-               const tx = db.transaction("races", "readwrite");
+               const tx = db.transaction(["races"], "readwrite");
                const store = tx.objectStore("races");
                await store.put(updatedRace);
                await tx.done;
-               db.close();
 
                console.log("Race updated successfully");
             } catch (error) {
@@ -125,7 +120,6 @@ const useRaceStore = create<RaceState>()(
                   await db.delete("races", raceRecord.id);
                }
 
-               db.close();
                set((state) => ({
                   races: state.races.filter((r) => r.uuid !== raceUuid),
                }));

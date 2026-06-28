@@ -20,14 +20,12 @@ const categoryStorageAdapter = (): PersistStorage<any> => ({
       }
       await tx.done;
     }
-    db.close();
   },
   removeItem: async (_name: string) => {
     const db = await initIndexedDB();
     const tx = db.transaction(["categories"], "readwrite");
     await tx.objectStore("categories").clear();
     await tx.done;
-    db.close();
   },
 });
 
