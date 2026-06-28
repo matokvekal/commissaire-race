@@ -1,5 +1,8 @@
 .progressStep {
   padding: 40px 32px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
 }
 
 /* ── Importing state ── */
@@ -110,7 +113,12 @@
 
 /* ── Error log ── */
 .logSection {
-  margin-bottom: 28px;
+  margin-bottom: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .toggleLog {
@@ -124,6 +132,7 @@
   width: 100%;
   text-align: left;
   transition: background 0.15s;
+  flex-shrink: 0;
 }
 
 .toggleLog:hover {
@@ -135,7 +144,9 @@
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   overflow: auto;
-  max-height: 280px;
+  max-height: 250px;
+  flex: 1;
+  min-height: 0;
 }
 
 .logTable table {
@@ -204,7 +215,10 @@
 /* ── Actions ── */
 .completedActions {
   text-align: center;
-  margin-top: 8px;
+  margin-top: 24px;
+  flex-shrink: 0;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
 }
 
 .closeButton {
@@ -217,8 +231,128 @@
   font-weight: 600;
   cursor: pointer;
   transition: transform 0.2s;
+  min-width: 140px;
 }
 
 .closeButton:hover {
   transform: translateY(-2px);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .progressStep {
+    padding: 24px 16px;
+  }
+
+  .header h3 {
+    font-size: 18px;
+  }
+
+  .header p {
+    font-size: 14px;
+  }
+
+  .progressContainer {
+    margin-bottom: 24px;
+  }
+
+  .completedHeader {
+    margin-bottom: 20px;
+  }
+
+  .successIcon {
+    font-size: 40px;
+    margin-bottom: 12px;
+  }
+
+  .headlineOk,
+  .headlineWarn {
+    font-size: 18px;
+  }
+
+  .completedStats {
+    gap: 24px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+  }
+
+  .completedValue {
+    font-size: 32px;
+  }
+
+  .logTable {
+    max-height: 200px;
+  }
+
+  .completedActions {
+    margin-top: 16px;
+    padding-top: 12px;
+  }
+
+  .closeButton {
+    padding: 10px 32px;
+    font-size: 14px;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .progressStep {
+    padding: 16px 12px;
+  }
+
+  .header h3 {
+    font-size: 16px;
+  }
+
+  .successIcon {
+    font-size: 32px;
+  }
+
+  .headlineOk,
+  .headlineWarn {
+    font-size: 16px;
+  }
+
+  .completedStats {
+    gap: 16px;
+    padding: 12px 14px;
+    flex-direction: column;
+  }
+
+  .completedValue {
+    font-size: 28px;
+  }
+
+  .logTable {
+    max-height: 150px;
+    font-size: 11px;
+  }
+
+  .logTable th,
+  .logRow td {
+    padding: 6px 8px;
+  }
+
+  .colRow {
+    width: 40px;
+  }
+
+  .colField {
+    width: 80px;
+  }
+
+  .colValue {
+    width: 90px;
+  }
+
+  .toggleLog {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+
+  .closeButton {
+    padding: 8px 24px;
+    font-size: 13px;
+  }
 }
