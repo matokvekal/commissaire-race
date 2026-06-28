@@ -45,9 +45,9 @@ const CheckIn: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
     updateRider({ ...rider, checked: !rider.checked });
   };
 
-  const checkAll = () => {
+  const checkAll = async () => {
     const unchecked = filtered.filter((r) => !r.checked && !["DNS", "DNF", "DSQ"].includes(r.status));
-    unchecked.forEach((r) => updateRider({ ...r, checked: true }));
+    await Promise.all(unchecked.map((r) => updateRider({ ...r, checked: true })));
   };
 
   const allAccountedFor = filtered.length > 0 && filtered.every(
