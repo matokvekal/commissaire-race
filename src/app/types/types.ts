@@ -119,4 +119,5 @@ export interface RiderProps {
   chipNumber?: string;
   points?: number | null;
   federation?: string | null;
+  lastLapClickTime?: number; // Timestamp of last lap click (ms) — used to push rider to end of list
 }

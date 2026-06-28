@@ -176,9 +176,11 @@ const Heat: React.FC = () => {
     const positionAtLap = sorted.find((r) => r.id === rider.id)?.position_category ?? rider.position_category;
 
     // Final rider: include position and speed in the new lap detail
+    const now_ms = Date.now();
     const updatedRider: RiderProps = {
       ...intermediateRider,
       position_category: positionAtLap,
+      lastLapClickTime: now_ms,
       lapsDetails: [
         ...(rider.lapsDetails ?? []),
         { lap: lapsCounter, startTime: lastLapStart, endTime: clickTime, lapTime, position: positionAtLap, speed_kph },
@@ -186,7 +188,7 @@ const Heat: React.FC = () => {
     };
 
     const finalSorted = sorted.map((r) => (r.id === updatedRider.id ? updatedRider : r));
-    lastClickRef.current = Date.now(); // marks this as a lap-click for delayed sort
+    lastClickRef.current = now_ms; // marks this as a lap-click for delayed sort
     updateRider(updatedRider);
     updateAllRiders(finalSorted);
     setSearchTerm(""); // clear search after registering a lap
@@ -247,6 +249,19 @@ const Heat: React.FC = () => {
         )
       : catFiltered;
     return [...searched].sort((a, b) => {
+      // Recently clicked riders go to the end (across ALL riders, not per-category)
+      const msSinceClickA = Date.now() - (a.lastLapClickTime ?? 0);
+      const msSinceClickB = Date.now() - (b.lastLapClickTime ?? 0);
+      const recentClickThreshold = 5000; // 5 seconds
+
+      const aRecent = msSinceClickA < recentClickThreshold;
+      const bRecent = msSinceClickB < recentClickThreshold;
+
+      if (aRecent && !bRecent) return 1; // a goes to end
+      if (!aRecent && bRecent) return -1; // b goes to end
+      if (aRecent && bRecent) return msSinceClickB - msSinceClickA; // both recent: more recent goes to end
+
+      // Normal sort by expected arrival for non-recent riders
       const expA = getExpectedArrival(a, catAvgLapMap.get(a.category) ?? 600000);
       const expB = getExpectedArrival(b, catAvgLapMap.get(b.category) ?? 600000);
       return expA - expB;
