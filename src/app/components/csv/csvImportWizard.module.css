@@ -104,8 +104,9 @@
 .content {
   padding: 32px;
   flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Mobile Responsive */
