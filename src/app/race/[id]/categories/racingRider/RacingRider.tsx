@@ -17,7 +17,7 @@ const RacingRider: React.FC<Props> = ({ rider, color, forceBell = false, isLeade
   const isPenultimate = forceBell || (rider.totalLaps > 0 && rider.lapsCounter === rider.totalLaps - 1);
 
   const bgStyle = isPenultimate
-    ? `repeating-linear-gradient(-45deg, ${color} 0px, ${color} 11px, rgba(255,255,255,0.32) 11px, rgba(255,255,255,0.32) 18px)`
+    ? `repeating-linear-gradient(-45deg, ${color} 0px, ${color} 6px, rgba(255,255,255,0.4) 6px, rgba(255,255,255,0.4) 10px)`
     : color;
 
   const handleTouchEnd = (e: React.TouchEvent) => {
