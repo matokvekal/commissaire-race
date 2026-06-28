@@ -501,6 +501,63 @@
   margin-top: 8px;
 }
 
+/* Quick Laps Mode */
+.categoryCardQuickLaps {
+  background: linear-gradient(135deg, #fffbf0, #fff8f0);
+  border: 2px solid #ffa500;
+  box-shadow: 0 4px 12px rgba(255, 165, 0, 0.15);
+}
+
+.quickLapsForm {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+}
+
+.quickLapsLabel {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a304f;
+  display: flex;
+  align-items: center;
+}
+
+.quickLapsInput {
+  width: 70px;
+  padding: 10px 8px;
+  border: 2px solid #ffa500;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+  background: #ffffff;
+  color: #1a304f;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.quickLapsInput:focus {
+  border-color: #ff8c00;
+  box-shadow: 0 0 0 3px rgba(255, 165, 0, 0.15);
+}
+
+.quickLapsInput::placeholder {
+  color: #b0c4de;
+}
+
+.quickLapsInput::-webkit-outer-spin-button,
+.quickLapsInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.quickLapsInput[type="number"] {
+  -moz-appearance: textfield;
+}
+
 @media (max-width: 600px) {
   .container {
     padding: 12px;
@@ -517,5 +574,11 @@
 
   .bankList {
     padding: 16px 20px;
+  }
+
+  .quickLapsInput {
+    width: 60px;
+    font-size: 14px;
+    padding: 10px;
   }
 }

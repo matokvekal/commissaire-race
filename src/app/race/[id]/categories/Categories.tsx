@@ -70,6 +70,8 @@ const Categories: React.FC<CategoriesProps> = ({ raceUuid }) => {
   const [editForm, setEditForm] = useState<Partial<CategoryProps>>({});
   const [showRidersFor, setShowRidersFor] = useState<CategoryProps | null>(null);
   const [riderFilter, setRiderFilter] = useState<"all" | "with" | "without">("with");
+  const [quickLapsMode, setQuickLapsMode] = useState(false);
+  const [quickLapsValues, setQuickLapsValues] = useState<Record<number, number>>({})
   const [newCategoryForm, setNewCategoryForm] = useState({
     name: "",
     subCategory: "",
@@ -255,6 +257,38 @@ const Categories: React.FC<CategoriesProps> = ({ raceUuid }) => {
     getCategories(raceUuid);
   };
 
+  const handleQuickLapsSaveAll = async () => {
+    try {
+      for (const cat of filteredCategories) {
+        const newLaps = quickLapsValues[cat.id];
+        if (newLaps === undefined || newLaps < 0) continue;
+
+        const updatedCategory = { ...cat, laps: newLaps } as CategoryProps;
+        await updateCategory(updatedCategory);
+
+        const categoryRiders = riders.filter(
+          (r) =>
+            r.raceUuid === raceUuid &&
+            r.category === updatedCategory.name &&
+            (r.subCategory ?? null) === (updatedCategory.subCategory ?? null)
+        );
+
+        for (const rider of categoryRiders) {
+          await updateRider({
+            ...rider,
+            totalLaps: newLaps
+          });
+        }
+      }
+
+      setQuickLapsMode(false);
+      setQuickLapsValues({});
+    } catch (error) {
+      console.error("Error saving laps:", error);
+      alert("Error saving laps. Check console for details.");
+    }
+  };
+
   const riderCounts = raceCategories.map((cat) => {
     const count = riders.filter(
       (r) =>
@@ -299,6 +333,43 @@ const Categories: React.FC<CategoriesProps> = ({ raceUuid }) => {
           )}
         </div>
         <div className={styles.headerActions}>
+          {quickLapsMode && (
+            <>
+              <Button
+                variant="success"
+                size="sm"
+                onClick={handleQuickLapsSaveAll}
+              >
+                ✓ Save All
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  setQuickLapsMode(false);
+                  setQuickLapsValues({});
+                }}
+              >
+                Cancel
+              </Button>
+            </>
+          )}
+          {filteredCategories.length > 0 && !quickLapsMode && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                setQuickLapsMode(true);
+                const initialValues: Record<number, number> = {};
+                filteredCategories.forEach(cat => {
+                  initialValues[cat.id] = cat.laps ?? 0;
+                });
+                setQuickLapsValues(initialValues);
+              }}
+            >
+              ⚡ Quick Laps
+            </Button>
+          )}
           <Button
             variant="primary"
             size="sm"
@@ -339,8 +410,25 @@ const Categories: React.FC<CategoriesProps> = ({ raceUuid }) => {
 
             const isDone = cat.status === "finished";
             return (
-              <div key={cat.id} className={`${styles.categoryCard} ${isDone ? styles.categoryCardDone : ""}`}>
-                {isEditing ? (
+              <div key={cat.id} className={`${styles.categoryCard} ${isDone ? styles.categoryCardDone : ""} ${quickLapsMode ? styles.categoryCardQuickLaps : ""}`}>
+                {quickLapsMode ? (
+                  <div className={styles.quickLapsForm}>
+                    <div className={styles.quickLapsLabel}>
+                      <span>{cat.name}{cat.subCategory ? ` · ${cat.subCategory}` : ""}</span>
+                    </div>
+                    <input
+                      type="number"
+                      className={styles.quickLapsInput}
+                      value={quickLapsValues[cat.id] === 0 ? "" : (quickLapsValues[cat.id] ?? "")}
+                      onChange={(e) => {
+                        const val = e.target.value === "" ? 0 : parseInt(e.target.value) || 0;
+                        setQuickLapsValues({ ...quickLapsValues, [cat.id]: val });
+                      }}
+                      min="0"
+                      placeholder="—"
+                    />
+                  </div>
+                ) : isEditing ? (
                   <div className={styles.editForm}>
                     <div className={styles.editRow}>
                       <div className={styles.colorPicker}>

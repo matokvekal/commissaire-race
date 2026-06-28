@@ -13,7 +13,7 @@ interface CategoryState {
   createCategoriesFromRiders: (raceUuid: string) => Promise<void>;
   rebuildCategoriesFromRiders: (raceUuid: string) => Promise<void>;
   updateRiderColor: (categoryName: string, color: string, raceUuid: string) => Promise<void>;
-  updateCategory: (updatedCategory: CategoryProps) => void;
+  updateCategory: (updatedCategory: CategoryProps) => Promise<void>;
 }
 
 const useCategoryStore = create<CategoryState>()(
