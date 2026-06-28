@@ -476,18 +476,24 @@ const Heat: React.FC = () => {
                 <span>All categories</span>
               </label>
               <div className={styles.filterDivider} />
-              {waveCategories.map((cat) => (
-                <label key={cat.id} className={styles.filterPanelRow}>
-                  <input
-                    type="checkbox"
-                    checked={filterCats.has(cat.name)}
-                    onChange={() => toggleCatFilter(cat.name)}
-                  />
-                  <span className={styles.catDot} style={{ background: cat.color ?? "#ccc" }} />
-                  <span>{cat.name}</span>
-                  {cat.laps && <span className={styles.filterLapTag}>{cat.laps}L</span>}
-                </label>
-              ))}
+              {waveCategories.map((cat) => {
+                const catRiderCount = filteredRiders.filter((r) => r.category === cat.name).length;
+                return (
+                  <label key={cat.id} className={styles.filterPanelRow}>
+                    <input
+                      type="checkbox"
+                      checked={filterCats.has(cat.name)}
+                      onChange={() => toggleCatFilter(cat.name)}
+                    />
+                    <span className={styles.catDot} style={{ background: cat.color ?? "#ccc" }} />
+                    <span>{cat.name}</span>
+                    <span className={styles.riderCount}>
+                      🚴 {catRiderCount}
+                    </span>
+                    {cat.laps && <span className={styles.filterLapTag}>{cat.laps}L</span>}
+                  </label>
+                );
+              })}
             </div>
           </div>
         )}

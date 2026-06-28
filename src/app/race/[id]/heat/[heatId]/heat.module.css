@@ -357,8 +357,20 @@
   margin: 4px 0;
 }
 
-.filterLapTag {
+.riderCount {
   margin-left: auto;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4a8ee7;
+  background: #f0f4ff;
+  padding: 2px 8px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.filterLapTag {
   font-size: 11px;
   color: #888;
   background: #f0f0f8;
