@@ -259,9 +259,9 @@ const Categories: React.FC<CategoriesProps> = ({ raceUuid }) => {
 
   const handleQuickLapsSaveAll = async () => {
     try {
-      for (const cat of filteredCategories) {
+      for (const cat of raceCategories) {
         const newLaps = quickLapsValues[cat.id];
-        if (newLaps === undefined || newLaps < 0) continue;
+        if (newLaps === undefined) continue;
 
         const updatedCategory = { ...cat, laps: newLaps } as CategoryProps;
         await updateCategory(updatedCategory);
@@ -283,6 +283,7 @@ const Categories: React.FC<CategoriesProps> = ({ raceUuid }) => {
 
       setQuickLapsMode(false);
       setQuickLapsValues({});
+      getCategories(raceUuid);
     } catch (error) {
       console.error("Error saving laps:", error);
       alert("Error saving laps. Check console for details.");
@@ -354,14 +355,14 @@ const Categories: React.FC<CategoriesProps> = ({ raceUuid }) => {
               </Button>
             </>
           )}
-          {filteredCategories.length > 0 && !quickLapsMode && (
+          {raceCategories.length > 0 && !quickLapsMode && (
             <Button
               variant="secondary"
               size="sm"
               onClick={() => {
                 setQuickLapsMode(true);
                 const initialValues: Record<number, number> = {};
-                filteredCategories.forEach(cat => {
+                raceCategories.forEach(cat => {
                   initialValues[cat.id] = cat.laps ?? 0;
                 });
                 setQuickLapsValues(initialValues);
