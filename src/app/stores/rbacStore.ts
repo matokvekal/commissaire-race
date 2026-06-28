@@ -1,6 +1,6 @@
 /**
  * RBAC Store
- * 
+ *
  * Manages roles and users for admin panel.
  * Handles CRUD operations for roles/users and token generation.
  */
@@ -17,12 +17,12 @@ import {
    addUserToDb,
    updateUserInDb,
    deleteUserFromDb
-} from '@/app/stores/indexDb/indexedDbHelper';
+} from '@/helpers/indexedDbHelper';
 
 /**
  * RBAC Store
  */
-export const useRBACStore = create<RBACState>((set, get) => ({
+export const useRBACStore = create<RBACState>((set: any, get: any) => ({
    // Initial state
    roles: [],
    users: [],
@@ -84,7 +84,7 @@ export const useRBACStore = create<RBACState>((set, get) => ({
    /**
     * Create a new role
     */
-   createRole: async (roleData) => {
+   createRole: async (roleData: Omit<Role, 'id' | 'createdAt' | 'updatedAt'>) => {
       try {
          set({ isLoading: true, error: null });
 
@@ -113,11 +113,11 @@ export const useRBACStore = create<RBACState>((set, get) => ({
    /**
     * Update an existing role
     */
-   updateRole: async (roleId, updates) => {
+   updateRole: async (roleId: string, updates: Partial<Role>) => {
       try {
          set({ isLoading: true, error: null });
 
-         const role = get().roles.find(r => r.id === roleId);
+         const role = get().roles.find((r: Role) => r.id === roleId);
 
          if (!role) {
             throw new Error('Role not found');
@@ -137,7 +137,7 @@ export const useRBACStore = create<RBACState>((set, get) => ({
          await updateRoleInDb(updatedRole);
 
          // Update state
-         const roles = get().roles.map(r =>
+         const roles = get().roles.map((r: Role) =>
             r.id === roleId ? updatedRole : r
          );
          set({ roles, isLoading: false });
@@ -153,11 +153,11 @@ export const useRBACStore = create<RBACState>((set, get) => ({
    /**
     * Delete a role
     */
-   deleteRole: async (roleId) => {
+   deleteRole: async (roleId: string) => {
       try {
          set({ isLoading: true, error: null });
 
-         const role = get().roles.find(r => r.id === roleId);
+         const role = get().roles.find((r: Role) => r.id === roleId);
 
          if (!role) {
             throw new Error('Role not found');
@@ -169,7 +169,7 @@ export const useRBACStore = create<RBACState>((set, get) => ({
          }
 
          // Check if any users have this role
-         const usersWithRole = get().users.filter(u => u.roleId === roleId);
+         const usersWithRole = get().users.filter((u: User) => u.roleId === roleId);
          if (usersWithRole.length > 0) {
             throw new Error(`Cannot delete role: ${usersWithRole.length} user(s) still assigned`);
          }
@@ -177,7 +177,7 @@ export const useRBACStore = create<RBACState>((set, get) => ({
          await deleteRoleFromDb(roleId);
 
          // Update state
-         const roles = get().roles.filter(r => r.id !== roleId);
+         const roles = get().roles.filter((r: Role) => r.id !== roleId);
          set({ roles, isLoading: false });
 
          console.log('Role deleted:', role.displayName);
@@ -191,7 +191,7 @@ export const useRBACStore = create<RBACState>((set, get) => ({
    /**
     * Create a new user/commissaire
     */
-   createUser: async (userData) => {
+   createUser: async (userData: Omit<User, 'id' | 'token' | 'createdAt'>) => {
       try {
          set({ isLoading: true, error: null });
 
@@ -226,9 +226,9 @@ export const useRBACStore = create<RBACState>((set, get) => ({
    /**
     * Generate authentication token for a user
     */
-   generateUserToken: async (userId, roleId, expiresIn?) => {
+   generateUserToken: async (userId: string, roleId: string, expiresIn?: number) => {
       try {
-         const role = get().roles.find(r => r.id === roleId);
+         const role = get().roles.find((r: Role) => r.id === roleId);
 
          if (!role) {
             throw new Error('Role not found');
@@ -265,11 +265,11 @@ export const useRBACStore = create<RBACState>((set, get) => ({
    /**
     * Revoke user access (mark as inactive)
     */
-   revokeUser: async (userId) => {
+   revokeUser: async (userId: string) => {
       try {
          set({ isLoading: true, error: null });
 
-         const user = get().users.find(u => u.id === userId);
+         const user = get().users.find((u: User) => u.id === userId);
 
          if (!user) {
             throw new Error('User not found');
@@ -283,7 +283,7 @@ export const useRBACStore = create<RBACState>((set, get) => ({
          await updateUserInDb(updatedUser);
 
          // Update state
-         const users = get().users.map(u =>
+         const users = get().users.map((u: User) =>
             u.id === userId ? updatedUser : u
          );
          set({ users, isLoading: false });
@@ -299,11 +299,11 @@ export const useRBACStore = create<RBACState>((set, get) => ({
    /**
     * Delete a user
     */
-   deleteUser: async (userId) => {
+   deleteUser: async (userId: string) => {
       try {
          set({ isLoading: true, error: null });
 
-         const user = get().users.find(u => u.id === userId);
+         const user = get().users.find((u: User) => u.id === userId);
 
          if (!user) {
             throw new Error('User not found');
@@ -312,7 +312,7 @@ export const useRBACStore = create<RBACState>((set, get) => ({
          await deleteUserFromDb(userId);
 
          // Update state
-         const users = get().users.filter(u => u.id !== userId);
+         const users = get().users.filter((u: User) => u.id !== userId);
          set({ users, isLoading: false });
 
          console.log('User deleted:', user.name);

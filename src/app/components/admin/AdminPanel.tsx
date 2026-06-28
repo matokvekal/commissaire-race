@@ -72,7 +72,7 @@ export const AdminPanel: React.FC = () => {
 
     try {
       // Create user and generate token
-      const role = roles.find((r) => r.id === selectedRoleId);
+      const role = roles.find((r: Role) => r.id === selectedRoleId);
       if (!role) {
         setError("Selected role not found");
         return;
@@ -132,7 +132,7 @@ export const AdminPanel: React.FC = () => {
         <div className={styles.section}>
           <h2 className={styles.sectionTitle}>Available Roles</h2>
           <div className={styles.rolesGrid}>
-            {roles.map((role) => (
+            {roles.map((role: Role) => (
               <div key={role.id} className={styles.roleCard}>
                 <div className={styles.roleHeader}>
                   <span className={styles.roleName}>{role.displayName}</span>
@@ -199,7 +199,7 @@ export const AdminPanel: React.FC = () => {
                   required
                 >
                   <option value="">Select a role...</option>
-                  {roles.map((role) => (
+                  {roles.map((role: Role) => (
                     <option key={role.id} value={role.id}>
                       {role.displayName}
                     </option>
@@ -291,8 +291,8 @@ export const AdminPanel: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((user) => {
-                    const role = roles.find((r) => r.id === user.roleId);
+                  {users.map((user: any) => {
+                    const role = roles.find((r: Role) => r.id === user.roleId);
                     return (
                       <tr key={user.id}>
                         <td>{user.name}</td>

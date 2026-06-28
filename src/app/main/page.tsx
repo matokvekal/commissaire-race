@@ -42,8 +42,8 @@ const MainPage = () => {
 
   useEffect(() => {
     if (!loaded || races.length === 0) return;
-    initIndexedDB().then((db) =>
-      db.getAll("riders").then((all) => {
+    initIndexedDB().then((db: any) =>
+      db.getAll("riders").then((all: any) => {
         const counts: Record<string, number> = {};
         for (const rider of all) {
           counts[rider.raceUuid] = (counts[rider.raceUuid] ?? 0) + 1;

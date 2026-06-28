@@ -52,7 +52,7 @@ const useRiderStore = create<RiderState>()(
 
           const db = await initIndexedDB();
           let storedRiders = await db.getAll("riders");
-          storedRiders = storedRiders.filter((r) => r.raceUuid === raceUuid);
+          storedRiders = storedRiders.filter((r: any) => r.raceUuid === raceUuid);
 
           if (storedRiders.length > 0) {
             set({ riders: storedRiders });
@@ -90,7 +90,7 @@ const useRiderStore = create<RiderState>()(
 
           const db = await initIndexedDB();
           let storedRiders = await db.getAll("riders");
-          storedRiders = storedRiders.filter((r) => r.raceUuid === raceUuid);
+          storedRiders = storedRiders.filter((r: any) => r.raceUuid === raceUuid);
 
           if (storedRiders.length > 0) {
             set((state) => ({

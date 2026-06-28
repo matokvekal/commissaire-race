@@ -21,6 +21,7 @@
       "@/utils/*": ["src/app/utils/*"],
       "@/constants/*": ["src/app/constants/*"],
       "@/types/*": ["src/app/types/*"],
+      "@/hooks/*": ["src/app/hooks/*"],
       "@/helpers/*": ["src/app/stores/indexDb/*"]
     },
     "target": "ES2017"

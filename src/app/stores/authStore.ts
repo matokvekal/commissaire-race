@@ -1,6 +1,6 @@
 /**
  * Authentication Store
- * 
+ *
  * Manages authentication state, user permissions, and view modes.
  * Uses Zustand for state management.
  */
@@ -83,6 +83,7 @@ export const useAuthStore = create<AuthState>()(
                const user: User = {
                   id: payload.userId,
                   name: payload.roleName, // Temporary - should be actual user name
+                  email: '', // Temporary - set from payload if available
                   roleId: payload.roleId,
                   token: token,
                   raceUuid: payload.raceUuid,
@@ -242,7 +243,7 @@ export const initializeAuth = () => {
 
    if (store.token) {
       // Re-login with stored token
-      store.login(store.token).then(success => {
+      store.login(store.token).then((success: boolean) => {
          if (!success) {
             console.warn('Stored token is invalid, logging out');
             store.logout();
