@@ -6,12 +6,12 @@ interface Props {
   rider: RiderProps;
   color: string;
   forceBell?: boolean;
-  isLeader?: boolean; // Top 5 position
+  isLeaderInCategory?: boolean; // Top 5 in category
   onClick: () => void;
   onDoubleClick: () => void;
 }
 
-const RacingRider: React.FC<Props> = ({ rider, color, forceBell = false, isLeader = false, onClick, onDoubleClick }) => {
+const RacingRider: React.FC<Props> = ({ rider, color, forceBell = false, isLeaderInCategory = false, onClick, onDoubleClick }) => {
   const lastTapRef = useRef<number>(0);
 
   const isPenultimate = forceBell || (rider.totalLaps > 0 && rider.lapsCounter === rider.totalLaps - 1);
@@ -33,13 +33,12 @@ const RacingRider: React.FC<Props> = ({ rider, color, forceBell = false, isLeade
 
   return (
     <div
-      className={`${styles.rider} ${isPenultimate ? styles.penultimate : ""} ${isLeader ? styles.leader : ""}`}
+      className={`${styles.rider} ${isPenultimate ? styles.penultimate : ""} ${isLeaderInCategory ? styles.leaderInCategory : ""}`}
       style={{ background: bgStyle }}
       onClick={onClick}
       onDoubleClick={(e) => { e.preventDefault(); onDoubleClick(); }}
       onTouchEnd={handleTouchEnd}
     >
-      {isLeader && <div className={styles.leaderBadge}>⭐</div>}
       {isPenultimate && <div className={styles.bellBadge}>🔔</div>}
       <div className={styles.bib}>{rider.bibNumber}</div>
       <div className={styles.laps}>
@@ -48,7 +47,10 @@ const RacingRider: React.FC<Props> = ({ rider, color, forceBell = false, isLeade
       {rider.elapsedLastLap && (
         <div className={styles.lapTime}>{rider.elapsedLastLap}</div>
       )}
-      <div className={styles.pos}>P{rider.position_category ?? "—"}</div>
+      <div className={styles.posContainer}>
+        <div className={styles.pos}>P{rider.position_category ?? "—"}</div>
+        {isLeaderInCategory && <span className={styles.leaderStar}>⭐</span>}
+      </div>
     </div>
   );
 };

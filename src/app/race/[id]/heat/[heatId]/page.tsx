@@ -453,13 +453,13 @@ const Heat: React.FC = () => {
 
           <div className={styles.ridersWrapper}>
             <div className={styles.riderGrid}>
-              {displayedRiders.map((rider, idx) => (
+              {displayedRiders.map((rider) => (
                 <RacingRider
                   key={rider.id}
                   rider={rider}
                   color={getCatColor(rider)}
                   forceBell={cascadeBellCats.has(rider.category)}
-                  isLeader={idx < 5}
+                  isLeaderInCategory={(rider.position_category ?? 999) <= 5}
                   onClick={() => handleRiderClick(rider)}
                   onDoubleClick={() => setContextRider(rider)}
                 />
