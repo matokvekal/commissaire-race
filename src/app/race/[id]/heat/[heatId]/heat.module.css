@@ -74,29 +74,14 @@
   height: 450px;
   overflow-y: auto;
 }
-/* ── Timer row + wave info button ── */
+/* ── Timer row ── */
 .timerRow {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: 20px;
   position: relative;
   height: 60px;
-}
-
-.categoryColorBar {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.categoryColor {
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-  border: 1px solid rgba(0,0,0,0.1);
 }
 
 .timerText {
@@ -473,19 +458,19 @@
 }
 
 .arrivalHistoryBtn {
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.7);
   border: none;
   border-radius: 20px;
-  padding: 6px 12px;
+  padding: 8px 14px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: #1a1a2e;
   transition: background 0.2s;
 }
 
 .arrivalHistoryBtn:hover {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95);
 }
 
 /* ── Arrival history modal ── */

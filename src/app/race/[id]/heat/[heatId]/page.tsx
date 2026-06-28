@@ -422,31 +422,16 @@ const Heat: React.FC = () => {
       )}
 
       <div className={styles.wrapper}>
-        {/* Timer row with wave-info icon and arrival history button */}
+        {/* Timer row with arrival history button */}
         <div className={styles.timerRow}>
-          <div className={styles.categoryColorBar}>
-            {waveCategories.map((cat) => (
-              <div
-                key={cat.id}
-                className={styles.categoryColor}
-                style={{ background: cat.color ?? "#ccc" }}
-                title={cat.name}
-              />
-            ))}
-          </div>
           <p className={styles.timerText}>{elapsedTime}</p>
-          <div className={styles.timerActions}>
-            <button
-              className={styles.arrivalHistoryBtn}
-              onClick={() => setShowArrivalHistory(true)}
-              title={`Last arrivals (${arrivalHistory.length})`}
-            >
-              🏁 {arrivalHistory.length}
-            </button>
-            <button className={styles.waveInfoBtn} onClick={() => setShowWaveInfo(true)} title="Wave categories">
-              ℹ️
-            </button>
-          </div>
+          <button
+            className={styles.arrivalHistoryBtn}
+            onClick={() => setShowArrivalHistory(true)}
+            title={`Last arrivals (${arrivalHistory.length})`}
+          >
+            🏁 {arrivalHistory.length}
+          </button>
         </div>
 
         <div className={styles.searchWrapper}>
