@@ -16,7 +16,7 @@ import rider1 from '../assets/icons/rider1.png';
 import calander from '../assets/icons/calander.png';
 import buttonStart from '../assets/icons/buttonStart.png';
 // import threeDots from '../assets/icons/threeDots.png'; // File not found
-import arrowBackBlack from '../assets/icons/arrowBackBlack.png';
+import arrowBackBlack from '../assets/icons/arrowbackBlack.png';
 import search from '../assets/icons/search.png';
 import filter from '../assets/icons/filter.png';
 import mainNav from '../assets/icons/mainNav.png';
