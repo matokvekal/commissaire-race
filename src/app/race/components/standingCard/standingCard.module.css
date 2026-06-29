@@ -10,9 +10,9 @@
 
 .imageRider {
   font-weight: bold;
-  border-radius: 50%;
+  border-radius: 5px;
   border: 1px solid #63a6fc;
-  border-radius: 50%;
+  border-radius: 5px;
   padding: 3px;
   display: inline-block;
   box-sizing: border-box;

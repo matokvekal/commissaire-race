@@ -90,7 +90,7 @@
 .checkBtn {
   width: 30px;
   height: 30px;
-  border-radius: 50%;
+  border-radius: 5px;
   border: 2.5px solid #333a52;
   background: #fff;
   cursor: pointer;

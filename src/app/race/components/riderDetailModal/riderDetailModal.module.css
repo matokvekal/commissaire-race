@@ -38,7 +38,7 @@
 .closeBtn {
   width: 32px;
   height: 32px;
-  border-radius: 50%;
+  border-radius: 5px;
   border: none;
   background: #f0f4fa;
   color: #7a9ac0;
@@ -116,7 +116,7 @@
 .avatar {
   width: 80px;
   height: 80px;
-  border-radius: 50%;
+  border-radius: 5px;
   object-fit: cover;
   border: 3px solid #e0eaf8;
 }
@@ -124,7 +124,7 @@
 .avatarPlaceholder {
   width: 80px;
   height: 80px;
-  border-radius: 50%;
+  border-radius: 5px;
   background: #eef4ff;
   border: 3px solid #e0eaf8;
   display: flex;
@@ -178,7 +178,7 @@
 .dot {
   width: 6px;
   height: 6px;
-  border-radius: 50%;
+  border-radius: 5px;
   background: currentColor;
   animation: pulse 1.4s infinite;
 }
