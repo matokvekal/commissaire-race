@@ -637,5 +637,3 @@ When making changes:
 3. Validate both UI state and persisted IDB state.
 4. Prefer small safe refactors over broad rewrites during race logic changes.
 5. Always verify with npm run build after changes.
-
-This file intentionally prioritizes operational correctness and rebuildability over shortness.
