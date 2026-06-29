@@ -55,18 +55,18 @@
   background: var(--bg-card);
 }
 
-/* ── Bright yellow race-flag start header — better text color ── */
+/* ── Light yellow race-flag start header ── */
 .startHeader {
   padding: 12px 14px;
   font-size: 16px;
   font-weight: 900;
-  color: #664400;
-  background: linear-gradient(135deg, #ffeb3b, #ffc107);
+  color: #1f3558;
+  background: linear-gradient(135deg, #ffd95c, #ffca42);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  border-bottom: 3px solid #f57c00;
-  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.15);
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+  border-bottom: 3px solid #e6b840;
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.1);
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.4);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -631,20 +631,20 @@
   overflow: hidden;
 }
 
-/* Bright yellow race-flag slot header: better text color */
+/* Light yellow race-flag slot header */
 .slotHeader {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background: linear-gradient(135deg, #ffeb3b, #ffc107);
-  border-bottom: 2px solid #f57c00;
+  background: linear-gradient(135deg, #ffd95c, #ffca42);
+  border-bottom: 2px solid #e6b840;
 }
 
 .slotLabel {
   font-size: 12px;
   font-weight: 900;
-  color: #664400;
+  color: #1f3558;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   flex: 1;
