@@ -1,0 +1,185 @@
+.riderCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid #e4eaf4;
+  border-left-width: 4px;
+  box-shadow: 0 2px 6px rgba(99, 166, 252, 0.07);
+}
+
+.cardOut {
+  opacity: 0.55;
+}
+
+/* ── Top row: bib | info | status ── */
+.topRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+}
+
+.bibBlock {
+  flex-shrink: 0;
+  width: 44px;
+  text-align: center;
+}
+
+.bib {
+  font-size: 15px;
+  font-weight: 800;
+  color: #3a5080;
+}
+
+.middle {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a304f;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.catBadge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.subCat {
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+.infoRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.infoChip {
+  font-size: 11px;
+  color: #6b7fa8;
+  background: #f2f6ff;
+  padding: 2px 7px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+.right {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.statusBadge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: rgba(99, 166, 252, 0.12);
+  color: #63a6fc;
+}
+
+.statusOut {
+  background: rgba(224, 85, 133, 0.12);
+  color: #e05585;
+}
+
+.pos {
+  font-size: 13px;
+  font-weight: 800;
+  color: #1a304f;
+}
+
+.genderChip {
+  font-size: 11px;
+  color: #8aa0c4;
+  background: #f2f6ff;
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+
+/* ── Per-lap table ── */
+.lapTable {
+  margin-top: 8px;
+  border-top: 1px solid #edf1fb;
+  padding-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.lapTableHead {
+  display: grid;
+  grid-template-columns: 32px 1fr 40px 50px;
+  gap: 4px;
+  padding: 2px 4px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #a0aec0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.lapRow {
+  display: grid;
+  grid-template-columns: 32px 1fr 40px 50px;
+  gap: 4px;
+  padding: 3px 4px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #3a5080;
+}
+
+.lapRow:nth-child(odd) {
+  background: #f8faff;
+}
+
+.lapNum {
+  font-weight: 700;
+  color: #6b7fa8;
+}
+
+.lapTime {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.lapPos {
+  font-weight: 700;
+  color: #1a304f;
+}
+
+.lapSpeed {
+  color: #6b7fa8;
+  font-variant-numeric: tabular-nums;
+}

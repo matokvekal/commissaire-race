@@ -1,0 +1,100 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 60vh;
+}
+
+.waveBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0 6px;
+}
+
+.waveBarLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.wavePills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.wavePill {
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border-card);
+  background: var(--bg-card);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+/* Active pill: inverts fg/bg for maximum contrast across all themes */
+.wavePillActive {
+  background: var(--text-primary);
+  border-color: var(--text-primary);
+  color: var(--bg-card);
+}
+
+.wavePillRunning {
+  border-color: var(--ok);
+  color: var(--ok-strong);
+  background: rgba(62, 221, 164, 0.08);
+  font-weight: 700;
+}
+
+.wavePillRunning.wavePillActive {
+  background: var(--ok-strong);
+  border-color: var(--ok-strong);
+  color: var(--bg-card);
+}
+
+.wavePillFinished {
+  border-color: var(--border-card);
+  color: var(--text-muted);
+  background: var(--bg-surface);
+}
+
+.wavePillFinished.wavePillActive {
+  background: var(--text-secondary);
+  border-color: var(--text-secondary);
+  color: var(--bg-card);
+}
+
+.subTabs {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-card);
+  border-radius: 10px;
+  padding: 3px;
+  box-shadow: 0 1px 4px var(--shadow-sm);
+  margin-bottom: 10px;
+}
+
+.subTab {
+  flex: 1;
+  padding: 8px 4px;
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.subTabActive {
+  background: var(--ok);
+  color: var(--text-primary);
+}
+
+.content {
+  flex: 1;
+}

@@ -1,0 +1,865 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 12px 12px 32px;
+}
+
+.empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+/* Wave block */
+.wave {
+  background: linear-gradient(160deg, var(--bg-card), var(--bg-card-2));
+  border-radius: 16px;
+  border: 1px solid var(--border-card);
+  overflow: hidden;
+  box-shadow: 0 12px 20px var(--shadow-sm);
+}
+
+/* ── Dark navy wave header — intentional race-official design, kept hardcoded ── */
+.waveHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: linear-gradient(140deg, #1f3558, #162640);
+  color: #fff;
+}
+
+.waveLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ok);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.waveTime {
+  font-size: 12px;
+  color: #bfd1ea;
+  flex: 1;
+}
+
+.liveBtn {
+  min-height: 32px;
+}
+
+/* Start group */
+.startGroup {
+  border-top: 3px solid var(--text-primary);
+  background: var(--bg-card);
+}
+
+/* ── Yellow race-flag start header — intentional timing UX, kept hardcoded ── */
+.startHeader {
+  padding: 12px 14px;
+  font-size: 16px;
+  font-weight: 900;
+  color: #000000;
+  background: linear-gradient(135deg, #ffeb3b, #ffc107);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 3px solid #f57c00;
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.startInfo {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.startActions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Start time in yellow header: deep orange contrast color, kept */
+.startTime {
+  font-weight: 900;
+  text-transform: none;
+  letter-spacing: 0.05em;
+  font-size: 18px;
+  color: #d84315;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+/* Category row */
+.categoryRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* Category color dot: injected via inline style from data model */
+.colorDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.catInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.catName {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.catMeta {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.statusBadge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.catBlock {
+  border-top: 1px solid var(--border-subtle);
+}
+
+.catActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.standingsBtn {
+  min-height: 32px;
+}
+
+/* Wave/start stats */
+.waveStat {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ok);
+  background: rgba(62, 221, 164, 0.14);
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: auto;
+  margin-right: 8px;
+}
+
+/* Start stat: intentional orange timing accent, kept */
+.startStat {
+  font-size: 11px;
+  font-weight: 700;
+  color: #f57c00;
+  background: rgba(255, 193, 7, 0.18);
+  padding: 2px 7px;
+  border-radius: 8px;
+  margin-left: 8px;
+}
+
+/* Lap progress bar */
+.lapBar {
+  display: flex;
+  gap: 3px;
+  padding: 0 10px 6px;
+}
+
+.lapSegment {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border-soft);
+}
+
+.lapSegmentDone {
+  background: var(--brand-strong);
+}
+
+/* Inline standings */
+.standingsList {
+  border-top: 1px dashed var(--border-subtle);
+  background: var(--bg-surface);
+}
+
+.standingRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border-inner);
+  font-size: 12px;
+}
+
+.standingRowOut {
+  opacity: 0.45;
+}
+
+.standingPos {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-muted);
+  min-width: 18px;
+  text-align: right;
+}
+
+.standingBib {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--brand);
+  min-width: 32px;
+}
+
+.standingName {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.standingLaps {
+  font-size: 11px;
+  color: var(--text-muted);
+  min-width: 36px;
+  text-align: right;
+}
+
+.standingActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* V (finish) button */
+.vBtn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--border-card);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.vBtn:active {
+  transform: scale(0.9);
+}
+
+.vBtnOn {
+  border-color: var(--brand);
+  background: var(--brand);
+  color: #fff;
+}
+
+/* DNS / DSQ text buttons */
+.statusBtn {
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: 1.5px solid var(--border-soft);
+  background: var(--bg-card);
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--text-muted);
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.statusBtn:hover {
+  border-color: var(--border-card);
+  color: var(--text-secondary);
+}
+
+/* Status badges: intentional semantic colors, kept hardcoded */
+.dnsOn {
+  border-color: #ef9a9a;
+  background: #ffebee;
+  color: #c62828;
+}
+
+.dsqOn {
+  border-color: #ffe082;
+  background: #fff8e1;
+  color: #e65100;
+}
+
+.dnfOn {
+  border-color: #ffcc80;
+  background: #fff3e0;
+  color: #bf360c;
+}
+
+/* Checked-in row highlight */
+.standingRowChecked {
+  background: rgba(62, 221, 164, 0.06);
+  border-left: 3px solid var(--ok);
+}
+
+/* Scroll-to-top button: purple accent, intentional design */
+.scrollTopBtn {
+  position: fixed;
+  bottom: 22px;
+  right: 20px;
+  z-index: 50;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border: none;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(102, 126, 234, 0.45);
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.scrollTopBtn:active {
+  transform: scale(0.92);
+}
+
+/* Wave gap control */
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.gapLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.gapSelect {
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--border-card);
+  border-radius: 8px;
+  padding: 4px 6px;
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  cursor: pointer;
+}
+
+/* Edit Mode */
+.viewHeader,
+.editHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background: linear-gradient(135deg, var(--bg-card), var(--bg-card-2));
+  border-radius: 12px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border-card);
+}
+
+.viewHeader h3,
+.editHeader h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.editActions {
+  display: flex;
+  gap: 8px;
+}
+
+.editorLayout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 16px;
+  min-height: 500px;
+}
+
+.unassignedPanel,
+.wavesPanel {
+  background: var(--bg-card);
+  border: 2px solid var(--border-card);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Blue panel header — uses brand tokens */
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, var(--brand), var(--brand-strong));
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.badge {
+  background: rgba(255, 255, 255, 0.3);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.unassignedList {
+  flex: 1;
+  padding: 12px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 200px;
+  background: var(--bg-surface);
+}
+
+.draggableCategory {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--bg-card);
+  border: 2px solid var(--border-card);
+  border-radius: 8px;
+  cursor: move;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.draggableCategory:hover {
+  border-color: var(--brand);
+  box-shadow: 0 4px 12px var(--shadow-sm);
+  transform: translateY(-1px);
+}
+
+.draggableCategory:active {
+  opacity: 0.7;
+  transform: scale(0.98);
+}
+
+.draggableCategory[style*="opacity: 0.5"] {
+  opacity: 0.5 !important;
+  cursor: grabbing !important;
+}
+
+.dragHandle {
+  color: var(--text-muted);
+  flex-shrink: 0;
+  cursor: grab;
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+.subCategory {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.riderCount {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--bg-surface-3);
+  padding: 2px 8px;
+  border-radius: 8px;
+}
+
+.emptyMessage {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+  padding: 32px 16px;
+}
+
+.wavesList {
+  flex: 1;
+  padding: 12px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.waveEditor {
+  background: linear-gradient(160deg, var(--bg-card), var(--bg-card-2));
+  border: 2px solid var(--border-card);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Dark navy wave editor header — intentional design */
+.waveEditorHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: linear-gradient(140deg, #1f3558, #162640);
+  color: #fff;
+  gap: 12px;
+}
+
+.waveControls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.dragButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.iconBtn {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  width: 24px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  transition: all 0.2s;
+}
+
+.iconBtn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.iconBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.waveActions {
+  display: flex;
+  gap: 8px;
+}
+
+.timeInput {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 6px;
+  padding: 4px 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  width: 105px;
+}
+
+.timeInput:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(99, 166, 252, 0.15);
+}
+
+/* Time display inside dark header: white text on dark bg */
+.timeDisplay {
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 13px;
+  font-weight: 900;
+  color: #ffffff;
+  white-space: nowrap;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+}
+
+.startSlotsList {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.startSlotEditor {
+  background: var(--bg-card);
+  border: 2px solid var(--border-card);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Yellow race-flag slot header: intentional design */
+.slotHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #ffeb3b, #ffc107);
+  border-bottom: 2px solid #f57c00;
+}
+
+.slotLabel {
+  font-size: 12px;
+  font-weight: 900;
+  color: #000000;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex: 1;
+}
+
+.dropZone {
+  min-height: 80px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--bg-surface);
+  border-top: 2px dashed var(--border-card);
+  transition: all 0.2s;
+}
+
+.dropZone:hover {
+  background: var(--bg-surface-3);
+  border-color: var(--brand);
+}
+
+.dropZone:has(+ *) {
+  position: relative;
+}
+
+.dropZone::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(99, 166, 252, 0.05);
+  border: 2px solid transparent;
+  border-radius: 4px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.dropZone:hover::before {
+  opacity: 1;
+  border-color: rgba(99, 166, 252, 0.3);
+}
+
+.dropZoneActive {
+  background: var(--bg-surface-3) !important;
+  border-color: var(--brand) !important;
+  border-style: solid !important;
+  box-shadow: 0 0 0 3px rgba(99, 166, 252, 0.2);
+}
+
+.dropPlaceholder {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 12px;
+  padding: 24px 16px;
+  border: 2px dashed var(--border-card);
+  border-radius: 6px;
+  background: var(--bg-card);
+}
+
+.emptySlots,
+.emptyWaves {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+  padding: 32px 16px;
+  background: var(--bg-surface);
+  border-radius: 8px;
+  border: 2px dashed var(--border-card);
+}
+
+@media (max-width: 900px) {
+  .editorLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .unassignedPanel {
+    max-height: 300px;
+  }
+}
+
+/* ── Expand all button ── */
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.expandAllBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid var(--border-card);
+  background: var(--bg-surface-3);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.expandAllBtn:hover {
+  background: var(--bg-surface);
+  color: var(--brand-strong);
+}
+
+/* ── Category expand toggle ── */
+.expandIcon {
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* ── Standing color bar — injected via inline style from data model ── */
+.standingColorBar {
+  width: 4px;
+  align-self: stretch;
+  border-radius: 2px;
+  flex-shrink: 0;
+  margin-right: 2px;
+}
+
+/* ── Simplified edit mode ── */
+/* Dark navy section header — intentional design */
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: linear-gradient(140deg, #1f3558, #162640);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.assignHint {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.65);
+  font-weight: 400;
+}
+
+.waveTimeSection {
+  background: var(--bg-card);
+  border: 2px solid var(--border-card);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Dark navy time row — intentional design */
+.waveTimeRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(135deg, #1f3558, #162640);
+}
+
+.waveTimeRow:last-child {
+  border-bottom: none;
+}
+
+.categoryAssignSection {
+  background: var(--bg-card);
+  border: 2px solid var(--border-card);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.categoryAssignRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.categoryAssignRow:last-child {
+  border-bottom: none;
+}
+
+.catAssignInfo {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.waveSelect {
+  padding: 6px 10px;
+  border: 1px solid var(--border-card);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  cursor: pointer;
+  flex-shrink: 0;
+  min-width: 150px;
+}
+
+.waveSelect:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(99, 166, 252, 0.15);
+}
+
+.emptyMessage {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+  padding: 24px 16px;
+}

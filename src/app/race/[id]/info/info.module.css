@@ -1,0 +1,385 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 12px 32px;
+}
+
+.section {
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.sectionTitle {
+  padding: 10px 14px;
+  background: #f8f8fe;
+  font-size: 11px;
+  font-weight: 700;
+  color: #7a7a9a;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid #f0f0f8;
+}
+
+.sectionTitleRow {
+  padding: 8px 14px;
+  background: #f8f8fe;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #f0f0f8;
+}
+
+.sectionTitleText {
+  font-size: 11px;
+  font-weight: 700;
+  color: #7a7a9a;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.editIconBtn {
+  background: none;
+  border: none;
+  color: #7a9ac0;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  transition: background 0.15s;
+}
+
+.editIconBtn:hover { background: #eef3fb; color: #4a8ee7; }
+
+.saveIconBtn {
+  background: #4a8ee7;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  transition: background 0.15s;
+}
+
+.saveIconBtn:hover { background: #2a6cc4; }
+
+.editIconRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.takanonEdit {
+  padding: 10px 14px;
+}
+
+.takanonInput {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #c6d9fb;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #1a304f;
+  background: #f5f9ff;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.takanonInput:focus {
+  border-color: #4a8ee7;
+  background: #fff;
+}
+
+.takanonLink {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 12px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #4a8ee7;
+  text-decoration: none;
+}
+
+.takanonLink:hover { text-decoration: underline; }
+
+.takanonEmpty {
+  padding: 10px 14px;
+  font-size: 12px;
+  color: #aab8cc;
+  font-style: italic;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  border-top: 1px solid #f4f4fb;
+}
+
+.rowIcon {
+  opacity: 0.45;
+  flex-shrink: 0;
+}
+
+.rowLabel {
+  font-size: 13px;
+  color: #7a7a9a;
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.rowValue {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1a1a2e;
+  flex: 1;
+}
+
+.rulesText {
+  padding: 12px 14px;
+  font-size: 13px;
+  color: #1a1a2e;
+  line-height: 1.6;
+}
+
+.statusBadge {
+  margin: 10px 14px;
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.upcoming { background: rgba(99,166,252,0.15); color: #2a5aaa; }
+.running  { background: rgba(62,221,164,0.15); color: #1a8a5a; }
+.finished { background: rgba(0,0,0,0.06);      color: #7a7a9a; }
+
+/* ── Edit bar ── */
+.editBar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.editBarBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #4a8ee7;
+  background: #f0f6ff;
+  border: 1.5px solid #c6ddfc;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.editBarBtn:hover { background: #dbeafe; border-color: #4a8ee7; }
+
+.cancelBarBtn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7fa8;
+  background: #f5f7fa;
+  border: 1.5px solid #d8e2f0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.cancelBarBtn:hover { background: #edf0f5; }
+
+.saveBarBtn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  background: #4a8ee7;
+  border: 1.5px solid #4a8ee7;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.saveBarBtn:hover { background: #2a6cc4; }
+
+/* ── Edit form rows ── */
+.formRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  border-top: 1px solid #f4f4fb;
+}
+
+.formLabel {
+  font-size: 12px;
+  color: #7a7a9a;
+  width: 100px;
+  flex-shrink: 0;
+}
+
+.formField {
+  flex: 1;
+}
+
+.formInput {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid #c6d9fb;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #1a304f;
+  background: #f5f9ff;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.formInput:focus {
+  border-color: #4a8ee7;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(74, 142, 231, 0.1);
+}
+
+/* ── Danger zone ── */
+/* ── Data Transfer section ── */
+.dataSection {
+  border: 1px solid #c6ddfc;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.dataSectionTitle {
+  padding: 10px 14px;
+  background: #f0f6ff;
+  font-size: 11px;
+  font-weight: 700;
+  color: #2a5aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid #c6ddfc;
+}
+
+.dataBody {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dataText {
+  font-size: 13px;
+  color: #555;
+  line-height: 1.5;
+}
+
+.dataButtons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.exportBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  background: #1a304f;
+  color: #fff;
+  border: none;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.exportBtn:hover { background: #2a4a6e; }
+
+.importBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  background: #fff;
+  color: #2a5aaa;
+  border: 1.5px solid #c6ddfc;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.importBtn:hover { background: #eef4ff; border-color: #4a8ee7; }
+.importBtn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.dangerZone {
+  border: 1px solid #ffcdd2;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.dangerTitle {
+  padding: 10px 14px;
+  background: #fff8f8;
+  font-size: 11px;
+  font-weight: 700;
+  color: #c62828;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid #ffcdd2;
+}
+
+.dangerBody {
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.dangerText {
+  font-size: 13px;
+  color: #555;
+  line-height: 1.5;
+}
+
+.deleteRaceBtn {
+  flex-shrink: 0;
+  padding: 8px 20px;
+  background: white;
+  color: #c62828;
+  border: 1.5px solid #ffcdd2;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.deleteRaceBtn:hover {
+  background: #ffebee;
+  border-color: #c62828;
+}

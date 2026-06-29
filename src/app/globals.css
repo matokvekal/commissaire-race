@@ -1,0 +1,365 @@
+:root {
+  --max-width: 24.875rem;
+  --border-radius: 1rem;
+  --font-mono: ui-monospace, "Roboto", "Cascadia Mono", "Segoe UI Mono", "Roboto Mono",
+    "Oxygen Mono", "Ubuntu Monospace", "Source Code Pro", "Fira Mono",
+    "Droid Sans Mono", "Courier New", monospace;
+  --font-sans: "Assistant", "Roboto", Arial, sans-serif;
+
+  /* Brand / accent — same in both themes */
+  --brand: #63a6fc;
+  --brand-strong: #3f86e7;
+  --ok: #3edda4;
+  --ok-strong: #2fcf95;
+  --danger: #df4b7b;
+
+  /* Light theme */
+  --foreground-rgb: 12, 18, 28;
+  --background-start-rgb: 242, 246, 252;
+  --background-end-rgb: 252, 254, 255;
+
+  --bg-body: #f5f8fc;
+  --bg-card: #ffffff;
+  --bg-card-2: #f7fbff;
+  --bg-surface: #f5f8ff;
+  --bg-surface-3: #edf4ff;
+
+  --text-primary: #14243c;
+  --text-secondary: #7b95b8;
+  --text-muted: #8498ba;
+
+  --border-card: #d9e7fb;
+  --border-subtle: rgba(99, 166, 252, 0.2);
+  --border-soft: #d8e3f6;
+
+  --shadow-sm: rgba(17, 62, 126, 0.10);
+  --shadow-md: rgba(22, 64, 126, 0.12);
+  --shadow-soft: 0 8px 28px rgba(26, 61, 116, 0.12);
+  --shadow-glow: 0 2px 0 rgba(255, 255, 255, 0.6) inset;
+
+  --header-bg: rgba(255, 255, 255, 0.96);
+  --header-bg-2: rgba(248, 252, 255, 0.92);
+  --drawer-bg: #ffffff;
+  --drawer-bg-2: #f4f8ff;
+  --drawer-border: #dee9fb;
+
+  --surface-1: #ffffff;
+  --surface-2: #f5f8ff;
+  --surface-3: #edf3ff;
+  --main-background: #f5f8fc;
+
+  --surface-subtle: #f8f8fc;
+  --border-inner: #f0f0fa;
+}
+
+[data-theme="dark"] {
+  --foreground-rgb: 228, 233, 240;
+  --background-start-rgb: 13, 17, 23;
+  --background-end-rgb: 15, 20, 30;
+
+  --bg-body: #0d1117;
+  --bg-card: #161b22;
+  --bg-card-2: #1a2030;
+  --bg-surface: #1c2230;
+  --bg-surface-3: #1e2740;
+
+  --text-primary: #e4e9f0;
+  --text-secondary: #8b949e;
+  --text-muted: #6e7b90;
+
+  --border-card: rgba(255, 255, 255, 0.1);
+  --border-subtle: rgba(99, 166, 252, 0.18);
+  --border-soft: rgba(255, 255, 255, 0.1);
+
+  --shadow-sm: rgba(0, 0, 0, 0.35);
+  --shadow-md: rgba(0, 0, 0, 0.4);
+  --shadow-soft: 0 8px 28px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 2px 0 rgba(255, 255, 255, 0.04) inset;
+
+  --header-bg: rgba(22, 27, 38, 0.97);
+  --header-bg-2: rgba(18, 22, 32, 0.97);
+  --drawer-bg: #1a1f2e;
+  --drawer-bg-2: #161b28;
+  --drawer-border: rgba(255, 255, 255, 0.08);
+
+  --surface-1: #161b22;
+  --surface-2: #1c2230;
+  --surface-3: #1e2740;
+  --main-background: #0d1117;
+
+  --surface-subtle: #1a1f2e;
+  --border-inner: rgba(255, 255, 255, 0.06);
+
+  color-scheme: dark;
+}
+
+/* ─── High Contrast (bright outdoor sunlight) ─────────────────────────────── */
+[data-theme="contrast"] {
+  --brand: #0057ff;
+  --brand-strong: #0040cc;
+  --ok: #007a33;
+  --ok-strong: #005c26;
+  --danger: #cc0022;
+
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 255, 255, 255;
+  --background-end-rgb: 245, 245, 245;
+
+  --bg-body: #f5f5f5;
+  --bg-card: #ffffff;
+  --bg-card-2: #f0f0f0;
+  --bg-surface: #e8e8e8;
+  --bg-surface-3: #dcdcdc;
+
+  --text-primary: #000000;
+  --text-secondary: #333333;
+  --text-muted: #555555;
+
+  --border-card: #888888;
+  --border-subtle: rgba(0, 0, 0, 0.35);
+  --border-soft: #aaaaaa;
+
+  --shadow-sm: rgba(0, 0, 0, 0.25);
+  --shadow-md: rgba(0, 0, 0, 0.35);
+  --shadow-soft: 0 8px 28px rgba(0, 0, 0, 0.25);
+  --shadow-glow: 0 2px 0 rgba(255, 255, 255, 0.9) inset;
+
+  --header-bg: rgba(255, 255, 255, 0.99);
+  --header-bg-2: rgba(240, 240, 240, 0.99);
+  --drawer-bg: #ffffff;
+  --drawer-bg-2: #f0f0f0;
+  --drawer-border: #999999;
+
+  --surface-1: #ffffff;
+  --surface-2: #f0f0f0;
+  --surface-3: #e0e0e0;
+  --main-background: #f5f5f5;
+
+  --surface-subtle: #eeeeee;
+  --border-inner: #dddddd;
+}
+
+/* ─── Warm Sand (partial shade / mixed outdoor light) ──────────────────────── */
+[data-theme="warm"] {
+  --brand: #c87400;
+  --brand-strong: #a05c00;
+  --ok: #2e7d32;
+  --ok-strong: #1b5e20;
+  --danger: #b71c1c;
+
+  --foreground-rgb: 45, 24, 16;
+  --background-start-rgb: 251, 243, 224;
+  --background-end-rgb: 255, 249, 238;
+
+  --bg-body: #fbf3e0;
+  --bg-card: #fff9ee;
+  --bg-card-2: #fff4dc;
+  --bg-surface: #f5ead0;
+  --bg-surface-3: #ecdec0;
+
+  --text-primary: #2d1810;
+  --text-secondary: #5c3d2e;
+  --text-muted: #7a5c4a;
+
+  --border-card: #d4b896;
+  --border-subtle: rgba(160, 100, 40, 0.28);
+  --border-soft: #c8a878;
+
+  --shadow-sm: rgba(100, 60, 20, 0.15);
+  --shadow-md: rgba(100, 60, 20, 0.22);
+  --shadow-soft: 0 8px 28px rgba(100, 60, 20, 0.18);
+  --shadow-glow: 0 2px 0 rgba(255, 240, 200, 0.7) inset;
+
+  --header-bg: rgba(251, 243, 224, 0.96);
+  --header-bg-2: rgba(245, 234, 208, 0.94);
+  --drawer-bg: #fff9ee;
+  --drawer-bg-2: #f5ead0;
+  --drawer-border: #d4b896;
+
+  --surface-1: #fff9ee;
+  --surface-2: #f5ead0;
+  --surface-3: #ecdec0;
+  --main-background: #fbf3e0;
+
+  --surface-subtle: #f0e8d8;
+  --border-inner: #e0d0b0;
+}
+
+/* ─── Night Race (low-light / night events) ────────────────────────────────── */
+[data-theme="night"] {
+  --brand: #00c8ff;
+  --brand-strong: #00a0d8;
+  --ok: #00e676;
+  --ok-strong: #00c853;
+  --danger: #ff5252;
+
+  --foreground-rgb: 210, 235, 255;
+  --background-start-rgb: 4, 8, 18;
+  --background-end-rgb: 6, 10, 22;
+
+  --bg-body: #040812;
+  --bg-card: #080f1e;
+  --bg-card-2: #0a1224;
+  --bg-surface: #0c1528;
+  --bg-surface-3: #0e1830;
+
+  --text-primary: #d2ebff;
+  --text-secondary: #6a94be;
+  --text-muted: #3e5f80;
+
+  --border-card: rgba(0, 200, 255, 0.16);
+  --border-subtle: rgba(0, 200, 255, 0.12);
+  --border-soft: rgba(0, 200, 255, 0.10);
+
+  --shadow-sm: rgba(0, 0, 0, 0.5);
+  --shadow-md: rgba(0, 0, 0, 0.65);
+  --shadow-soft: 0 8px 28px rgba(0, 0, 0, 0.65);
+  --shadow-glow: 0 2px 0 rgba(0, 200, 255, 0.1) inset;
+
+  --header-bg: rgba(8, 15, 30, 0.98);
+  --header-bg-2: rgba(4, 8, 18, 0.98);
+  --drawer-bg: #080f1e;
+  --drawer-bg-2: #060c18;
+  --drawer-border: rgba(0, 200, 255, 0.14);
+
+  --surface-1: #080f1e;
+  --surface-2: #0c1528;
+  --surface-3: #0e1830;
+  --main-background: #040812;
+
+  --surface-subtle: #0a1224;
+  --border-inner: rgba(0, 200, 255, 0.07);
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-size: 16px;
+  font-family: var(--font-sans);
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background:
+    radial-gradient(
+      120% 90% at 5% -20%,
+      rgba(99, 166, 252, 0.14),
+      transparent 58%
+    ),
+    radial-gradient(
+      120% 90% at 100% 0%,
+      rgba(62, 221, 164, 0.1),
+      transparent 58%
+    ),
+    linear-gradient(
+      180deg,
+      rgb(var(--background-start-rgb)) 0%,
+      rgb(var(--background-end-rgb)) 100%
+    );
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  transition:
+    transform 140ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid rgba(99, 166, 252, 0.62);
+  outline-offset: 2px;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Dark mode input overrides */
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  border-color: var(--border-card);
+}
+
+[data-theme="dark"] input::placeholder {
+  color: var(--text-muted);
+}
+
+[data-theme="contrast"] input,
+[data-theme="contrast"] select,
+[data-theme="contrast"] textarea {
+  background-color: #ffffff;
+  color: #000000;
+  border-color: #888888;
+}
+
+[data-theme="warm"] input,
+[data-theme="warm"] select,
+[data-theme="warm"] textarea {
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+  border-color: var(--border-card);
+}
+
+[data-theme="warm"] input::placeholder {
+  color: var(--text-muted);
+}
+
+[data-theme="night"] input,
+[data-theme="night"] select,
+[data-theme="night"] textarea {
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  border-color: var(--border-card);
+}
+
+[data-theme="night"] input::placeholder {
+  color: var(--text-muted);
+}
+
+[data-theme="night"] button:focus-visible,
+[data-theme="night"] input:focus-visible,
+[data-theme="night"] textarea:focus-visible,
+[data-theme="night"] select:focus-visible {
+  outline: 2px solid rgba(0, 200, 255, 0.7);
+}
+
+[data-theme="contrast"] button:focus-visible,
+[data-theme="contrast"] input:focus-visible,
+[data-theme="contrast"] textarea:focus-visible,
+[data-theme="contrast"] select:focus-visible {
+  outline: 3px solid #0057ff;
+}

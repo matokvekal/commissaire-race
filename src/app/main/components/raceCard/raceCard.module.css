@@ -1,0 +1,200 @@
+/* ── Card shell ── */
+.card {
+  display: flex;
+  align-items: stretch;
+  background: linear-gradient(165deg, var(--bg-card), var(--bg-card-2));
+  border-radius: 18px;
+  border: 1px solid var(--border-card);
+  box-shadow: 0 10px 22px var(--shadow-sm), 0 1px 0 rgba(255, 255, 255, 0.08) inset;
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    border-color 0.16s ease,
+    background 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 96px;
+}
+.card:active {
+  transform: translateY(1px) scale(0.988);
+  box-shadow: 0 8px 16px rgba(17, 62, 126, 0.12);
+}
+
+/* Status color accent bar on left */
+.accent {
+  width: 5px;
+  flex-shrink: 0;
+  border-radius: 18px 0 0 18px;
+}
+.running .accent {
+  background: linear-gradient(180deg, #3edda4, #2bcf94);
+}
+.upcoming .accent {
+  background: linear-gradient(180deg, #63a6fc, #4a8ee7);
+}
+.finished .accent {
+  background: linear-gradient(180deg, #cfd9ea, #b6c2d9);
+}
+
+/* Thumbnail */
+.thumb {
+  flex-shrink: 0;
+  width: 74px;
+  height: 74px;
+  margin: auto 0 auto 12px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 5px 12px rgba(14, 57, 122, 0.14);
+}
+.thumbImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Body */
+.body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 0 14px 12px;
+}
+
+.topRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.name {
+  font-size: 15px;
+  font-weight: 800;
+  color: #1a304f;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Status badge */
+.badge {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+.badge_running {
+  background: rgba(62, 221, 164, 0.2);
+  color: #068d5b;
+}
+.badge_upcoming {
+  background: rgba(99, 166, 252, 0.2);
+  color: #3f7fda;
+}
+.badge_finished {
+  background: rgba(56, 87, 132, 0.1);
+  color: #5f7596;
+}
+
+/* Live pulse dot */
+.dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #0a8857;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.5;
+  }
+}
+
+/* Meta row */
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+}
+.metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #5f7698;
+  white-space: nowrap;
+}
+
+.metaIcon {
+  width: 13px;
+  height: 13px;
+  color: #6697d9;
+}
+
+/* Right side */
+.right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 10px 10px 8px;
+  flex-shrink: 0;
+}
+
+.favBtn {
+  background: linear-gradient(180deg, #ffffff, #ecf4ff);
+  border: 1px solid #c6ddfc;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #7fa5dc;
+  line-height: 1;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.favBtn:active {
+  transform: translateY(1px);
+}
+
+.favIcon {
+  width: 15px;
+  height: 15px;
+}
+
+.favBtnActive {
+  color: #df4b7b;
+  border-color: rgba(223, 75, 123, 0.4);
+  background: linear-gradient(180deg, #fff6f9, #ffedf4);
+}
+
+.chevron {
+  width: 18px;
+  height: 18px;
+  color: #86aee5;
+}

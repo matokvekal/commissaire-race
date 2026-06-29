@@ -1,0 +1,69 @@
+.rider {
+  width: 76px;
+  min-height: 72px;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid #e4ecf5;
+  border-top: 4px solid #ccc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 5px;
+  gap: 2px;
+  cursor: pointer;
+  user-select: none;
+  transition: opacity 0.15s;
+}
+
+/* Finished legitimately — normal opacity */
+.fin {
+  opacity: 0.88;
+}
+
+/* Out of race (DNF/DSQ/DNS) — very muted, pushed visually to back */
+.out {
+  opacity: 0.42;
+  filter: grayscale(0.4);
+}
+
+.flag {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.bib {
+  font-size: 16px;
+  font-weight: 800;
+  color: #2a3a55;
+}
+
+.badge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.badgeFin {
+  color: #2a8a55;
+  background: rgba(40, 180, 100, 0.12);
+}
+
+.badgeOut {
+  color: #aa3333;
+  background: rgba(200, 60, 60, 0.1);
+}
+
+.pos {
+  font-size: 10px;
+  font-weight: 700;
+  color: #4a6080;
+}
+
+.time {
+  font-size: 9px;
+  color: #9aa8bc;
+  font-variant-numeric: tabular-nums;
+}

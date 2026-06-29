@@ -1,0 +1,224 @@
+.progressStep {
+  padding: 40px 32px;
+}
+
+/* ── Importing state ── */
+.header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.header h3 {
+  margin: 0 0 12px;
+  font-size: 24px;
+}
+
+.header p {
+  color: #666;
+  margin: 0;
+}
+
+.progressContainer {
+  margin: 0 auto 32px;
+  max-width: 500px;
+}
+
+.progressBar {
+  width: 100%;
+  height: 24px;
+  background: #f0f0f0;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #4caf50 0%, #66bb6a 100%);
+  transition: width 0.3s ease;
+}
+
+.progressText {
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* ── Completed state ── */
+.completedHeader {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.successIcon {
+  font-size: 56px;
+  margin-bottom: 16px;
+}
+
+.headlineOk {
+  margin: 0;
+  font-size: 26px;
+  color: #2e7d32;
+}
+
+.headlineWarn {
+  margin: 0;
+  font-size: 26px;
+  color: #e65100;
+}
+
+.completedStats {
+  display: flex;
+  justify-content: center;
+  gap: 48px;
+  padding: 24px 32px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  margin-bottom: 28px;
+}
+
+.completedStat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.completedLabel {
+  font-size: 13px;
+  color: #888;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.completedValue {
+  font-size: 40px;
+  font-weight: 700;
+  color: #333;
+  line-height: 1;
+}
+
+.completedValue.success {
+  color: #2e7d32;
+}
+
+.completedValue.error {
+  color: #c62828;
+}
+
+/* ── Error log ── */
+.logSection {
+  margin-bottom: 28px;
+}
+
+.toggleLog {
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  color: #555;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.toggleLog:hover {
+  background: #f5f5f5;
+}
+
+.logTable {
+  margin-top: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: auto;
+  max-height: 280px;
+}
+
+.logTable table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.logTable thead {
+  position: sticky;
+  top: 0;
+  background: #fff3e0;
+  z-index: 1;
+}
+
+.logTable th {
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #bf360c;
+  border-bottom: 2px solid #ffcc80;
+  white-space: nowrap;
+}
+
+.logRow td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #fafafa;
+  vertical-align: top;
+}
+
+.logRow:hover td {
+  background: #fff8f5;
+}
+
+.colRow {
+  width: 56px;
+  font-weight: 700;
+  color: #c62828;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.colField {
+  width: 110px;
+  color: #555;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.colValue {
+  width: 130px;
+  color: #333;
+  word-break: break-all;
+}
+
+.colMsg {
+  color: #c62828;
+}
+
+.empty {
+  color: #bbb;
+  font-style: italic;
+}
+
+/* ── Actions ── */
+.completedActions {
+  text-align: center;
+  margin-top: 8px;
+}
+
+.closeButton {
+  padding: 12px 48px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.closeButton:hover {
+  transform: translateY(-2px);
+}

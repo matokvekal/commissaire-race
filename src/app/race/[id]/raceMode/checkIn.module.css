@@ -1,0 +1,410 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 32px;
+}
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+}
+
+.searchWrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  border: 1.5px solid #e0e0ef;
+  border-radius: 8px;
+  padding: 7px 10px;
+}
+
+.searchWrap img { opacity: 0.4; flex-shrink: 0; }
+
+.search {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 13px;
+  background: transparent;
+}
+
+.catSelect {
+  padding: 7px 8px;
+  border: 1.5px solid #e0e0ef;
+  border-radius: 8px;
+  font-size: 12px;
+  background: #fff;
+  color: #1a1a2e;
+}
+
+.counts {
+  display: flex;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.countItem {
+  font-size: 12px;
+  color: #7a7a9a;
+  font-weight: 600;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+.row.checked {
+  background: rgba(62, 221, 164, 0.07);
+  border-left: 3px solid #3edda4;
+}
+
+.row.out {
+  opacity: 0.55;
+  background: #fafafa;
+}
+
+/* ── Left area: check circle + status trigger (OR status badge) ── */
+.leftArea {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* Check circle — high contrast for sunlight */
+.checkBtn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2.5px solid #333a52;
+  background: #fff;
+  cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.08);
+}
+
+.checkBtn:hover {
+  border-color: #3edda4;
+  box-shadow: 0 0 0 3px rgba(62, 221, 164, 0.2);
+}
+
+/* Checked state — solid green with ✓ */
+.checkedBtn {
+  background: #3edda4;
+  border-color: #2fcf95;
+  box-shadow: 0 2px 6px rgba(62, 221, 164, 0.4);
+}
+
+.checkedBtn::after {
+  content: "✓";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 14px;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1;
+}
+
+/* Locked state during race */
+.lockedBtn {
+  background: #f0f2f6;
+  border-color: #d0d5e0;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.lockedBtn::after {
+  content: "🔒";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 11px;
+  line-height: 1;
+}
+
+/* Race-lock banner */
+.raceLockBanner {
+  background: #fff8e8;
+  border: 1px solid #f5c860;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #7a5000;
+}
+
+/* Status trigger — small button next to circle */
+.statusTrigger {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border: 1.5px solid #d0d0e0;
+  border-radius: 6px;
+  background: #fff;
+  color: #7a7a9a;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.statusTrigger:hover {
+  border-color: #e05585;
+  color: #e05585;
+}
+
+/* Status inline badge — replaces circle when DNS/DNF/DSQ set */
+.statusInlineBadge {
+  padding: 5px 11px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: opacity 0.15s;
+}
+
+.statusInlineBadge:hover { opacity: 0.8; }
+
+.dnsBadge {
+  background: rgba(224, 85, 133, 0.12);
+  color: #b8205c;
+  border-color: rgba(224, 85, 133, 0.45);
+}
+
+.dnfBadge {
+  background: rgba(255, 120, 60, 0.12);
+  color: #b84500;
+  border-color: rgba(255, 120, 60, 0.4);
+}
+
+.dsqBadge {
+  background: rgba(140, 90, 210, 0.12);
+  color: #6620b0;
+  border-color: rgba(140, 90, 210, 0.4);
+}
+
+.bib {
+  font-size: 11px;
+  color: #7a7a9a;
+  width: 34px;
+  flex-shrink: 0;
+}
+
+.name {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1a1a2e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cat {
+  font-size: 10px;
+  color: #b0b0c8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 70px;
+}
+
+
+.checkAllBtn {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border: 1.5px solid #3edda4;
+  border-radius: 6px;
+  background: rgba(62, 221, 164, 0.08);
+  color: #2ab882;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.checkAllBtn:hover {
+  background: rgba(62, 221, 164, 0.18);
+}
+
+/* ── View toggle ── */
+.viewToggle {
+  display: flex;
+  border: 1.5px solid #e0e0ef;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.viewBtn {
+  padding: 6px 10px;
+  border: none;
+  background: #fff;
+  font-size: 15px;
+  color: #b0b0c8;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  line-height: 1;
+}
+
+.viewBtn + .viewBtn { border-left: 1.5px solid #e0e0ef; }
+
+.viewBtnActive {
+  background: #1a1a2e;
+  color: #fff;
+}
+
+/* ── Card grid view ── */
+.cardGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.checkTile {
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  width: 76px;
+}
+
+.checkTileOut {
+  opacity: 0.55;
+}
+
+.checkTileInner {
+  width: 76px;
+  min-height: 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  position: relative;
+  padding: 8px 4px 4px;
+}
+
+.tileStatusTrigger {
+  position: absolute;
+  top: 3px;
+  left: 4px;
+  font-size: 13px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.45);
+  background: rgba(255,255,255,0.35);
+  border: none;
+  border-radius: 5px;
+  width: 20px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+}
+
+.tileStatusTrigger:hover {
+  background: rgba(255,255,255,0.6);
+  color: rgba(0,0,0,0.8);
+}
+
+.tileStatusBadge {
+  font-size: 10px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.7);
+  letter-spacing: 0.04em;
+}
+
+.checkMark {
+  position: absolute;
+  top: 4px;
+  right: 5px;
+  font-size: 11px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.7);
+  line-height: 1;
+}
+
+.checkTileBib {
+  font-size: 22px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.85);
+  line-height: 1;
+}
+
+.checkTileBtn {
+  width: 100%;
+  padding: 10px 4px;
+  border: none;
+  background: #63a6fc;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.12s;
+  white-space: nowrap;
+}
+
+.checkTileBtn:hover { background: #4a8ee7; }
+
+.checkTileBtn:disabled {
+  background: #b0c8f0;
+  cursor: not-allowed;
+}
+
+.goLiveBtn {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  background: #63a6fc;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s;
+  text-align: center;
+}
+
+.goLiveBtn:hover { background: #4a8ee7; }
+
+.addBtn {
+  margin-top: 8px;
+  padding: 12px;
+  border: 1.5px dashed #e0e0ef;
+  border-radius: 10px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: #63a6fc;
+  cursor: pointer;
+  text-align: center;
+}
