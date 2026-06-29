@@ -93,7 +93,7 @@ const Heat: React.FC = () => {
   const [voiceAudioLevel, setVoiceAudioLevel] = useState(0);
   const [voiceIsListening, setVoiceIsListening] = useState(false);
   const [detectedNumbers, setDetectedNumbers] = useState<Array<{ bib: string; categoryColor?: string; timestamp: number }>>([]);
-  const [riderActions, setRiderActions] = useState<Array<{ id: string; rider: RiderProps; timestamp: number; source: 'click' | 'voice'; categoryColor: string }>>([]);
+  const [riderActions, setRiderActions] = useState<Array<{ id: string; rider: RiderProps; timestamp: number; source: 'click' | 'voice'; categoryColor: string; statusChange?: 'DNF' | 'DSQ' | 'DNS' }>>([]);
   const [showActionLog, setShowActionLog] = useState(false);
   const lastClickRef = useRef<number>(0);
   const sortTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -163,6 +163,14 @@ const Heat: React.FC = () => {
 
     const clickTime = new Date();
 
+    // Prevent duplicate actions within 500ms (debounce rapid clicks/voice detections)
+    if (lastActionRef.current && lastActionRef.current.riderId === rider.id) {
+      const timeSinceLastAction = clickTime.getTime() - lastActionRef.current.timestamp;
+      if (timeSinceLastAction < 500) {
+        return; // Ignore duplicate action
+      }
+    }
+
     // Enforce 1-minute minimum between laps
     if (rider.timeArrive) {
       const msSinceLast = clickTime.getTime() - new Date(rider.timeArrive).getTime();
@@ -209,20 +217,22 @@ const Heat: React.FC = () => {
 
     const finalSorted = sorted.map((r) => (r.id === updatedRider.id ? updatedRider : r));
     lastClickRef.current = Date.now(); // marks this as a lap-click for delayed sort
+    lastActionRef.current = { riderId: rider.id, timestamp: clickTime.getTime() }; // track last action for debouncing
     updateRider(updatedRider);
     updateAllRiders(finalSorted);
     setSearchTerm(""); // clear search after registering a lap
 
     // Add to detected numbers display
     const catColor = getCatColor(rider);
+    const actionTimestamp = Date.now();
     setDetectedNumbers((prev) => [
       ...prev,
-      { bib: String(rider.bibNumber), categoryColor: catColor, timestamp: Date.now() },
+      { bib: String(rider.bibNumber), categoryColor: catColor, timestamp: actionTimestamp },
     ]);
 
-    // Add to action log
+    // Add to action log with unique ID (rider + lap + timestamp)
     setRiderActions((prev) => [
-      { id: String(rider.id), rider: updatedRider, timestamp: Date.now(), source, categoryColor: catColor },
+      { id: `${rider.id}-${lapsCounter}-${actionTimestamp}`, rider: updatedRider, timestamp: actionTimestamp, source, categoryColor: catColor },
       ...prev,
     ]);
   };
@@ -246,11 +256,30 @@ const Heat: React.FC = () => {
 
   const handleStatusChange = (rider: RiderProps, status: RiderProps["status"]) => {
     const isOut = ["DNF", "DSQ", "DNS"].includes(status);
-    updateRider({
+    const updatedRider: RiderProps = {
       ...rider,
       status,
       raceStatus: isOut ? "finished" : "running",
-    });
+    };
+    updateRider(updatedRider);
+
+    // Add status change to action log for DNF/DSQ/DNS
+    if (isOut) {
+      const catColor = getCatColor(rider);
+      const statusTimestamp = Date.now();
+      setRiderActions((prev) => [
+        {
+          id: `${rider.id}-status-${status}-${statusTimestamp}`,
+          rider: updatedRider,
+          timestamp: statusTimestamp,
+          source: 'click',
+          categoryColor: catColor,
+          statusChange: status as 'DNF' | 'DSQ' | 'DNS'
+        },
+        ...prev,
+      ]);
+    }
+
     setContextRider(null);
   };
 
@@ -259,6 +288,7 @@ const Heat: React.FC = () => {
   };
 
   const [showFilterPanel, setShowFilterPanel] = useState(false);
+  const lastActionRef = useRef<{ riderId: number; timestamp: number } | null>(null);
 
   const toggleCatFilter = (catName: string) => {
     setFilterCats((prev) => {
@@ -594,7 +624,9 @@ const Heat: React.FC = () => {
           const action = riderActions.find((a) => a.id === actionId);
           if (!action) return;
 
-          const rider = riders.find((r) => r.id === Number(actionId));
+          // Extract rider ID from action ID (format: ${rider.id}-${lapsCounter}-${timestamp})
+          const riderIdStr = actionId.split('-')[0];
+          const rider = riders.find((r) => r.id === Number(riderIdStr));
           if (!rider || rider.lapsCounter <= 0) return;
 
           // Revert the last lap

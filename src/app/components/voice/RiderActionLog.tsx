@@ -8,6 +8,7 @@ interface RiderAction {
   timestamp: number;
   source: 'click' | 'voice';
   categoryColor: string;
+  statusChange?: 'DNF' | 'DSQ' | 'DNS';
 }
 
 interface RiderActionLogProps {
@@ -80,9 +81,9 @@ export function RiderActionLog({ actions, isOpen, onToggle, onCancel }: RiderAct
       grouped.get(bib)!.push(action);
     });
 
-    // Sort each group by lapsCounter descending (newest/highest lap first)
+    // Sort each group by lapsCounter ascending (oldest/lowest lap first - chronological order)
     grouped.forEach((actions) => {
-      actions.sort((a, b) => (b.rider.lapsCounter || 0) - (a.rider.lapsCounter || 0));
+      actions.sort((a, b) => (a.rider.lapsCounter || 0) - (b.rider.lapsCounter || 0));
     });
 
     // Sort groups by bib ascending
@@ -159,8 +160,16 @@ export function RiderActionLog({ actions, isOpen, onToggle, onCancel }: RiderAct
                           </span>
                         </div>
                       </div>
-                      <div className={styles.laps}>
-                        {action.rider.lapsCounter}/{action.rider.totalLaps}
+                      <div className={styles.lapsInfo}>
+                        {action.statusChange ? (
+                          <div className={`${styles.statusBadge} ${styles[action.statusChange.toLowerCase()]}`}>
+                            {action.statusChange} @ {action.rider.lapsCounter}/{action.rider.totalLaps}
+                          </div>
+                        ) : (
+                          <div className={styles.laps}>
+                            {action.rider.lapsCounter}/{action.rider.totalLaps}
+                          </div>
+                        )}
                       </div>
 
                       {/* Cancel button */}

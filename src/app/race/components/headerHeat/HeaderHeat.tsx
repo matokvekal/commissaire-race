@@ -1,11 +1,21 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useMemo } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import Icons from "@/constants/Icons";
 import styles from "./headerHeat.module.css";
+import useRaceStore from "@/stores/racesStore";
+import { Settings } from "lucide-react";
 
 function HeaderHeat({ raceId, onSettingsClick }: { raceId: string; onSettingsClick?: () => void }) {
   const navigate = useNavigate();
+  const params = useParams();
+  const heatId = params?.heatId ? parseInt(params.heatId as string, 10) : null;
   const [currentTime, setCurrentTime] = useState<string>("");
+  const races = useRaceStore((s) => s.races);
+
+  const race = useMemo(
+    () => races.find((r) => r.uuid === raceId),
+    [races, raceId]
+  );
 
   useEffect(() => {
     const updateClock = () => {
@@ -14,25 +24,40 @@ function HeaderHeat({ raceId, onSettingsClick }: { raceId: string; onSettingsCli
       setCurrentTime(formattedTime);
     };
 
-    updateClock(); // Initialize immediately
-    const interval = setInterval(updateClock, 1000); // Update every second
+    updateClock();
+    const interval = setInterval(updateClock, 1000);
 
-    return () => clearInterval(interval); // Cleanup on unmount
+    return () => clearInterval(interval);
   }, []);
 
   const handleBack = () => {
-    navigate(`/race/${raceId}`); // Navigate back to the race page
+    navigate(`/race/${raceId}`);
   };
 
   return (
     <div className={styles.headerRace}>
-      <div className={styles.left} onClick={handleBack}>
-        <img src={Icons.arrowBackBlack} alt="back" width={14} height={14} />
+      <div className={styles.leftSection}>
+        <button className={styles.backBtn} onClick={handleBack} title="Back to race">
+          <img src={Icons.arrowBackBlack} alt="back" width={16} height={16} />
+        </button>
+        <div className={styles.raceInfo}>
+          <div className={styles.raceLiveLabel}>
+            <span className={styles.liveDot}>●</span>
+            RACE LIVE
+          </div>
+          <div className={styles.raceName}>{race?.name || "Race"}</div>
+          {heatId && <div className={styles.waveLabel}>Wave {heatId}</div>}
+        </div>
       </div>
-      <div>Manage heat</div>
-      <div className={styles.time}>{currentTime}</div>
-      <div className={styles.menu} onClick={onSettingsClick}>
-        <img src={Icons.threedotsBlack} alt="menu" width={20} height={20} />
+
+      <div className={styles.rightSection}>
+        <div className={styles.timeDisplay}>
+          <div className={styles.timeLabel}>Clock</div>
+          <div className={styles.time}>{currentTime}</div>
+        </div>
+        <button className={styles.settingsBtn} onClick={onSettingsClick} title="Voice settings">
+          <Settings size={18} />
+        </button>
       </div>
     </div>
   );

@@ -10,10 +10,10 @@ interface RaceMapProps {
   title?: string;
 }
 
-// Default location: Nes Hareem, Israel
-const DEFAULT_LAT = 31.9325;
-const DEFAULT_LNG = 35.1825;
-const DEFAULT_LOCATION = 'Nes Hareem, Israel';
+// Default location: Tel Aviv, Israel
+const DEFAULT_LAT = 32.0853;
+const DEFAULT_LNG = 34.7818;
+const DEFAULT_LOCATION = 'Tel Aviv, Israel';
 
 const RaceMap: React.FC<RaceMapProps> = ({
   latitude = DEFAULT_LAT,

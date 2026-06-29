@@ -14,13 +14,18 @@ const RacingRider: React.FC<Props> = ({ rider, color, forceBell = false, onClick
   const lastTapRef = useRef<number>(0);
   const tapTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isDoubleTapRef = useRef<boolean>(false);
+  const clickCountRef = useRef<number>(0);
+  const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const lapsRemaining = rider.totalLaps - rider.lapsCounter;
   const showBell = forceBell || (lapsRemaining === 2);
   const showStripes = forceBell || (lapsRemaining === 1);
 
+  // Create a lighter version of the color by adding transparency
+  const lighterColor = color + '40'; // Add 40% opacity (hex: 40 = ~25% alpha)
+
   const bgStyle = showStripes
-    ? `repeating-linear-gradient(-45deg, ${color} 0px, ${color} 9px, rgba(255,255,255,0.4) 9px, rgba(255,255,255,0.4) 10px)`
+    ? `repeating-linear-gradient(-45deg, ${color} 0px, ${color} 9px, ${lighterColor} 9px, ${lighterColor} 10px)`
     : color;
 
   const handleTouchEnd = (e: React.TouchEvent) => {
@@ -47,7 +52,25 @@ const RacingRider: React.FC<Props> = ({ rider, color, forceBell = false, onClick
   const handleClick = (e: React.MouseEvent) => {
     // Only fire on desktop (no touch)
     if ((e as any).clientX === 0 && (e as any).clientY === 0) return; // Skip synthetic clicks
-    onClick();
+
+    // Desktop double-click detection
+    clickCountRef.current++;
+
+    if (clickCountRef.current === 1) {
+      // Wait to see if a second click comes within 300ms
+      if (clickTimeoutRef.current) clearTimeout(clickTimeoutRef.current);
+      clickTimeoutRef.current = setTimeout(() => {
+        if (clickCountRef.current === 1) {
+          onClick(); // Single click
+        }
+        clickCountRef.current = 0;
+      }, 300);
+    } else if (clickCountRef.current === 2) {
+      // Double click detected
+      if (clickTimeoutRef.current) clearTimeout(clickTimeoutRef.current);
+      onDoubleClick();
+      clickCountRef.current = 0;
+    }
   };
 
   return (
@@ -55,7 +78,7 @@ const RacingRider: React.FC<Props> = ({ rider, color, forceBell = false, onClick
       className={`${styles.rider} ${showStripes ? styles.penultimate : ""}`}
       style={{ background: bgStyle }}
       onClick={handleClick}
-      onDoubleClick={(e) => { e.preventDefault(); onDoubleClick(); isDoubleTapRef.current = true; }}
+      onDoubleClick={(e) => { e.preventDefault(); }}
       onTouchEnd={handleTouchEnd}
     >
       {showBell && (

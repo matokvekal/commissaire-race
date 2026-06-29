@@ -120,12 +120,19 @@
   letter-spacing: 0.01em;
 }
 
-/* ── Wave filter bar ── */
-.waveFilterBar {
+/* ── Filter bar (wave + delete) ── */
+.filterBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.waveFilterSection {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 0;
 }
 
 .waveLabel {
@@ -159,9 +166,9 @@
 }
 
 .tabCount {
-  font-weight: 600;
+  font-weight: 700;
   font-size: 14px;
-  color: #fff;
+  color: #1a304f;
 }
 
 .catGroup {

@@ -207,41 +207,45 @@ const Riders: React.FC<ManageHeatProps> = ({ raceUuid, categories }) => {
             Import CSV
           </Button>
         </div>
-
-        {/* Delete All button - right side */}
-        {riders.some((r) => r.raceUuid === raceUuid) && (
-          <Button
-            variant="secondary"
-            size="sm"
-            className={`${styles.deleteBtn}`}
-            onClick={() => setShowDeleteRiders(true)}
-          >
-            🗑️ Delete All
-          </Button>
-        )}
       </div>
 
-      {waves.length > 1 && (
-        <div className={styles.waveFilterBar}>
-          <label className={styles.waveLabel}>Wave:</label>
-          <select
-            value={typeof waveFilter === "number" ? waveFilter : waveFilter === "now" ? "now" : "all"}
-            onChange={(e) => {
-              const val = e.target.value;
-              if (val === "all") setWaveFilter("all");
-              else if (val === "now") setWaveFilter("now");
-              else setWaveFilter(parseInt(val, 10));
-            }}
-            className={styles.waveDropdown}
-          >
-            <option value="all">All Waves</option>
-            {waves.map((w) => (
-              <option key={w} value={w}>
-                Wave {w}
-              </option>
-            ))}
-            <option value="now">NOW (Active)</option>
-          </select>
+      {(waves.length > 1 || riders.some((r) => r.raceUuid === raceUuid)) && (
+        <div className={styles.filterBar}>
+          {waves.length > 1 && (
+            <div className={styles.waveFilterSection}>
+              <label className={styles.waveLabel}>Wave:</label>
+              <select
+                value={typeof waveFilter === "number" ? waveFilter : waveFilter === "now" ? "now" : "all"}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === "all") setWaveFilter("all");
+                  else if (val === "now") setWaveFilter("now");
+                  else setWaveFilter(parseInt(val, 10));
+                }}
+                className={styles.waveDropdown}
+              >
+                <option value="all">All Waves</option>
+                {waves.map((w) => (
+                  <option key={w} value={w}>
+                    Wave {w}
+                  </option>
+                ))}
+                <option value="now">NOW (Active)</option>
+              </select>
+            </div>
+          )}
+
+          {/* Delete All button - right side */}
+          {riders.some((r) => r.raceUuid === raceUuid) && (
+            <Button
+              variant="secondary"
+              size="sm"
+              className={`${styles.deleteBtn}`}
+              onClick={() => setShowDeleteRiders(true)}
+            >
+              🗑️ Delete All
+            </Button>
+          )}
         </div>
       )}
 

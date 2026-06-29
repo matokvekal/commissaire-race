@@ -1,21 +1,178 @@
 .headerRace {
-  height: 48px;
+  height: 64px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: white;
-  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 0 8px;
+  background: linear-gradient(135deg, #1f3558 0%, #162640 100%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 0 16px;
+  gap: 16px;
 }
-.time {
-  font-size: 13px;
-  /* color: lightblue; */
-  font-weight: 500;
+
+/* Left section: back button + race info */
+.leftSection {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
 }
-.left {
-  height: 48px;
+
+.backBtn {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: white;
+  flex-shrink: 0;
+}
+
+.backBtn:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.backBtn:active {
+  transform: scale(0.95);
+}
+
+/* Race info section */
+.raceInfo {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+}
+
+.raceLiveLabel {
+  display: flex;
   align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #3edda4;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.liveDot {
+  font-size: 8px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.raceName {
+  font-size: 18px;
+  font-weight: 800;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.waveLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #bfd1ea;
+}
+
+/* Right section: time + settings */
+.rightSection {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.timeDisplay {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.timeLabel {
+  font-size: 10px;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.time {
+  font-size: 16px;
+  font-weight: 900;
+  color: #3edda4;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 1px;
+}
+
+.settingsBtn {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: white;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.settingsBtn:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.settingsBtn:active {
+  transform: scale(0.95);
+}
+
+@media (max-width: 640px) {
+  .headerRace {
+    height: 56px;
+    padding: 0 12px;
+    gap: 8px;
+  }
+
+  .backBtn,
+  .settingsBtn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .raceName {
+    font-size: 14px;
+  }
+
+  .waveLabel {
+    font-size: 10px;
+  }
+
+  .time {
+    font-size: 14px;
+  }
+
+  .timeDisplay {
+    padding: 6px 10px;
+  }
 }
