@@ -206,8 +206,14 @@ const Heat: React.FC = () => {
     updateAllRiders(finalSorted);
     setSearchTerm(""); // clear search after registering a lap
 
-    // Add to action log
+    // Add to detected numbers display
     const catColor = getCatColor(rider);
+    setDetectedNumbers((prev) => [
+      ...prev,
+      { bib: String(rider.bibNumber), categoryColor: catColor, timestamp: Date.now() },
+    ]);
+
+    // Add to action log
     setRiderActions((prev) => [
       { id: rider.id, rider: updatedRider, timestamp: Date.now(), source, categoryColor: catColor },
       ...prev,
