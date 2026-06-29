@@ -550,11 +550,9 @@ const Heat: React.FC = () => {
         {voiceActive && <VoiceIndicator />}
 
         <div className={styles.controlRow}>
-          {detectedNumbers.length > 0 && (
-            <div className={styles.numbersContainer}>
-              <DetectedNumbers numbers={detectedNumbers} />
-            </div>
-          )}
+          <div className={styles.numbersContainer}>
+            {detectedNumbers.length > 0 && <DetectedNumbers numbers={detectedNumbers} />}
+          </div>
 
           <button
             className={styles.micButtonRadar}

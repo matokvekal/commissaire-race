@@ -400,9 +400,11 @@
 }
 
 .numbersContainer {
-  flex: 1;
-  min-width: 0;
-  max-width: 300px;
+  width: 280px;
+  height: 56px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-end;
 }
 
 .micButtonRadar {
@@ -444,7 +446,7 @@
 
   .numbersContainer {
     width: 240px;
-    max-width: 100%;
+    height: auto;
   }
 
   .micButtonRadar {
