@@ -387,6 +387,16 @@ const Heat: React.FC = () => {
     setVoiceIsListening(isListening);
   }, [isListening]);
 
+  // Auto-clear detected numbers after 3 seconds
+  useEffect(() => {
+    if (detectedNumbers.length > 0) {
+      const timer = setTimeout(() => {
+        setDetectedNumbers([]);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [detectedNumbers.length]);
+
   const elapsedTime = useMemo(() => {
     const startRider = filteredRiders.find((r) => r.raceStatus === "running" && r.timeStartRace);
     const startDate = parseTimeStr(startRider?.timeStartRace);
