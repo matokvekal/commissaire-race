@@ -545,25 +545,29 @@ const Heat: React.FC = () => {
         </div>
       </div>
 
-      {/* Floating mic button and voice indicator */}
+      {/* Floating mic button and detected numbers */}
       <div className={styles.voiceContainer}>
-        {voiceActive && (
-          <>
-            <VoiceIndicator />
-            <DetectedNumbers numbers={detectedNumbers} />
-          </>
-        )}
-        <button
-          className={styles.micButtonRadar}
-          onClick={() => setVoiceActive(!voiceActive)}
-          title={voiceActive ? "Disable voice input" : "Enable voice input"}
-        >
-          <VoiceRadarIcon
-            isActive={voiceActive}
-            audioLevel={voiceAudioLevel}
-            isListening={voiceIsListening}
-          />
-        </button>
+        {voiceActive && <VoiceIndicator />}
+
+        <div className={styles.voicePanel}>
+          {detectedNumbers.length > 0 && (
+            <div className={styles.numberPanel}>
+              <DetectedNumbers numbers={detectedNumbers} />
+            </div>
+          )}
+
+          <button
+            className={styles.micButtonRadar}
+            onClick={() => setVoiceActive(!voiceActive)}
+            title={voiceActive ? "Disable voice input" : "Enable voice input"}
+          >
+            <VoiceRadarIcon
+              isActive={voiceActive}
+              audioLevel={voiceAudioLevel}
+              isListening={voiceIsListening}
+            />
+          </button>
+        </div>
       </div>
 
       {/* Rider action log */}

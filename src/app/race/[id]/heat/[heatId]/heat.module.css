@@ -389,10 +389,31 @@
   right: 20px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  align-items: flex-end;
+  gap: 12px;
   z-index: 100;
-  max-width: 280px;
+}
+
+.voicePanel {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.numberPanel {
+  width: 280px;
+  flex-shrink: 0;
+  animation: slideInLeft 0.3s ease-out;
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .micButtonRadar {
@@ -408,6 +429,7 @@
   box-shadow: var(--shadow-soft);
   transition: all 0.2s ease;
   padding: 0;
+  flex-shrink: 0;
 }
 
 .micButtonRadar:hover {
@@ -425,9 +447,18 @@
     right: 16px;
   }
 
-  .micButton {
+  .voicePanel {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .numberPanel {
+    width: 100%;
+    max-width: 240px;
+  }
+
+  .micButtonRadar {
     width: 48px;
     height: 48px;
-    font-size: 24px;
   }
 }
