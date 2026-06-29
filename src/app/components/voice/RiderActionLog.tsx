@@ -23,6 +23,7 @@ const CANCEL_DEADLINE_MS = 30000; // 30 seconds - no more cancelling
 export function RiderActionLog({ actions, isOpen, onToggle, onCancel }: RiderActionLogProps) {
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<Record<string, number>>({});
+  const [sortBy, setSortBy] = useState<'arrival' | 'bib'>('arrival');
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -66,6 +67,32 @@ export function RiderActionLog({ actions, isOpen, onToggle, onCancel }: RiderAct
   const riderName = (rider: RiderProps) =>
     `#${rider.bibNumber} ${rider.firstName} ${rider.lastName}`;
 
+  const getOrganizedActions = () => {
+    if (sortBy === 'arrival') {
+      return actions;
+    }
+
+    // Group by bib number, then sort within each group by lap descending
+    const grouped = new Map<number, RiderAction[]>();
+    [...actions].forEach((action) => {
+      const bib = action.rider.bibNumber;
+      if (!grouped.has(bib)) grouped.set(bib, []);
+      grouped.get(bib)!.push(action);
+    });
+
+    // Sort each group by lapsCounter descending (newest/highest lap first)
+    grouped.forEach((actions) => {
+      actions.sort((a, b) => (b.rider.lapsCounter || 0) - (a.rider.lapsCounter || 0));
+    });
+
+    // Sort groups by bib ascending
+    const sorted = Array.from(grouped.entries())
+      .sort((a, b) => a[0] - b[0])
+      .flatMap(([_, acts]) => acts);
+
+    return sorted;
+  };
+
   return (
     <>
       {/* Toggle button */}
@@ -84,6 +111,20 @@ export function RiderActionLog({ actions, isOpen, onToggle, onCancel }: RiderAct
           <div className={styles.panel} onClick={(e) => e.stopPropagation()}>
             <div className={styles.header}>
               <h3>Rider Log</h3>
+              <div className={styles.sortControls}>
+                <button
+                  className={`${styles.sortBtn} ${sortBy === 'arrival' ? styles.active : ''}`}
+                  onClick={() => setSortBy('arrival')}
+                >
+                  Arrival
+                </button>
+                <button
+                  className={`${styles.sortBtn} ${sortBy === 'bib' ? styles.active : ''}`}
+                  onClick={() => setSortBy('bib')}
+                >
+                  Bib
+                </button>
+              </div>
               <button className={styles.closeBtn} onClick={onToggle}>✕</button>
             </div>
 
@@ -91,7 +132,7 @@ export function RiderActionLog({ actions, isOpen, onToggle, onCancel }: RiderAct
               <div className={styles.empty}>No riders recorded yet</div>
             ) : (
               <div className={styles.list}>
-                {actions.map((action, idx) => {
+                {getOrganizedActions().map((action, idx) => {
                   const isConfirming = confirmingId === action.id;
                   const showCancel = showCancelButton(action);
                   const canCancelAction = canCancel(action);

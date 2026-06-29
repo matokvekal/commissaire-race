@@ -84,6 +84,7 @@
   padding: 16px;
   border-bottom: 1px solid #e5e7eb;
   flex-shrink: 0;
+  gap: 12px;
 }
 
 .header h3 {
@@ -91,6 +92,35 @@
   font-size: 18px;
   font-weight: 700;
   color: #1f2937;
+}
+
+.sortControls {
+  display: flex;
+  gap: 6px;
+}
+
+.sortBtn {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #f3f4f6;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.sortBtn:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+.sortBtn.active {
+  background: #0ea5e9;
+  border-color: #0284c7;
+  color: white;
 }
 
 .closeBtn {
