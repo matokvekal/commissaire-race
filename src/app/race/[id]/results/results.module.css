@@ -239,14 +239,16 @@
 }
 
 .laps {
-  font-size: 11px;
-  color: #7a7a9a;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
   flex-shrink: 0;
 }
 
 .time {
-  font-size: 11px;
-  color: #7a7a9a;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
   width: 60px;
   text-align: right;
   flex-shrink: 0;
