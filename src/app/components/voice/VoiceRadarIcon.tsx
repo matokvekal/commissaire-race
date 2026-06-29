@@ -7,180 +7,110 @@ interface VoiceRadarIconProps {
 }
 
 export function VoiceRadarIcon({ isActive, audioLevel, isListening }: VoiceRadarIconProps) {
-  const waveIntensity = Math.min(100, audioLevel);
+  const intensity = isListening ? Math.min(100, audioLevel) : 0;
 
   return (
-    <div className={`${styles.radarContainer} ${isActive ? styles.active : ''}`}>
+    <div className={`${styles.container} ${isActive ? styles.active : ''}`}>
       <svg
         width="56"
         height="56"
         viewBox="0 0 56 56"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        className={styles.radarSvg}
+        className={styles.svg}
       >
-        {/* Outer wave circle */}
+        {/* Center point */}
         <circle
           cx="28"
           cy="28"
-          r={isActive ? 24 - (waveIntensity * 0.1) : 20}
-          fill="none"
-          stroke={isActive ? '#10b981' : '#d0d0d0'}
-          strokeWidth="1.5"
-          opacity={isActive ? 0.3 : 0.2}
-          style={{
-            transition: 'r 0.1s ease, stroke 0.2s ease, opacity 0.2s ease',
-          }}
+          r="2.5"
+          fill={isActive ? '#10b981' : '#9ca3af'}
+          style={{ transition: 'fill 0.2s ease' }}
         />
 
-        {/* Middle wave circle */}
-        <circle
-          cx="28"
-          cy="28"
-          r={isActive ? 16 - (waveIntensity * 0.08) : 14}
-          fill="none"
-          stroke={isActive ? '#10b981' : '#d0d0d0'}
-          strokeWidth="1.5"
-          opacity={isActive ? 0.5 : 0.3}
-          style={{
-            transition: 'r 0.1s ease, stroke 0.2s ease, opacity 0.2s ease',
-          }}
-        />
-
-        {/* Inner wave circle */}
-        <circle
-          cx="28"
-          cy="28"
-          r={isActive ? 10 - (waveIntensity * 0.05) : 8}
-          fill="none"
-          stroke={isActive ? '#059669' : '#a0a0a0'}
-          strokeWidth="2"
-          opacity={isActive ? 1 : 0.5}
-          style={{
-            transition: 'r 0.1s ease, stroke 0.2s ease, opacity 0.2s ease',
-          }}
-        />
-
-        {/* Center dot (microphone) */}
-        <circle
-          cx="28"
-          cy="28"
-          r="3"
-          fill={isActive ? '#10b981' : '#666'}
-          style={{
-            transition: 'fill 0.2s ease',
-          }}
-        />
-
-        {/* Animated wave rays when listening */}
-        {isListening && waveIntensity > 10 && (
+        {/* Expanding waves - only show when listening */}
+        {isActive && isListening && intensity > 15 && (
           <>
-            {/* Ray 1 - Top */}
-            <line
-              x1="28"
-              y1="8"
-              x2="28"
-              y2="12"
+            {/* Wave 1 - closest to center */}
+            <circle
+              cx="28"
+              cy="28"
+              r="8"
+              fill="none"
               stroke="#10b981"
-              strokeWidth="2"
-              strokeLinecap="round"
-              opacity={Math.min(1, waveIntensity / 100)}
-              className={styles.ray}
+              strokeWidth="1.5"
+              opacity={Math.max(0, 1 - (intensity / 100) * 0.5)}
+              className={styles.wave}
+              style={{
+                animation: `expandWave 0.8s ease-out infinite`,
+              }}
             />
-            {/* Ray 2 - Top Right */}
-            <line
-              x1="38.6"
-              y1="17.4"
-              x2="40.6"
-              y2="15.4"
+            {/* Wave 2 */}
+            <circle
+              cx="28"
+              cy="28"
+              r="12"
+              fill="none"
               stroke="#10b981"
-              strokeWidth="2"
-              strokeLinecap="round"
-              opacity={Math.min(1, waveIntensity / 100)}
-              className={styles.ray}
+              strokeWidth="1.5"
+              opacity={Math.max(0, 0.8 - (intensity / 100) * 0.4)}
+              className={styles.wave}
+              style={{
+                animation: `expandWave 0.8s ease-out 0.2s infinite`,
+              }}
             />
-            {/* Ray 3 - Right */}
-            <line
-              x1="48"
-              y1="28"
-              x2="44"
-              y2="28"
+            {/* Wave 3 */}
+            <circle
+              cx="28"
+              cy="28"
+              r="16"
+              fill="none"
               stroke="#10b981"
-              strokeWidth="2"
-              strokeLinecap="round"
-              opacity={Math.min(1, waveIntensity / 100)}
-              className={styles.ray}
+              strokeWidth="1.5"
+              opacity={Math.max(0, 0.6 - (intensity / 100) * 0.3)}
+              className={styles.wave}
+              style={{
+                animation: `expandWave 0.8s ease-out 0.4s infinite`,
+              }}
             />
-            {/* Ray 4 - Bottom Right */}
-            <line
-              x1="38.6"
-              y1="38.6"
-              x2="40.6"
-              y2="40.6"
+            {/* Wave 4 - outer */}
+            <circle
+              cx="28"
+              cy="28"
+              r="20"
+              fill="none"
               stroke="#10b981"
-              strokeWidth="2"
-              strokeLinecap="round"
-              opacity={Math.min(1, waveIntensity / 100)}
-              className={styles.ray}
-            />
-            {/* Ray 5 - Bottom */}
-            <line
-              x1="28"
-              y1="48"
-              x2="28"
-              y2="44"
-              stroke="#10b981"
-              strokeWidth="2"
-              strokeLinecap="round"
-              opacity={Math.min(1, waveIntensity / 100)}
-              className={styles.ray}
-            />
-            {/* Ray 6 - Bottom Left */}
-            <line
-              x1="17.4"
-              y1="38.6"
-              x2="15.4"
-              y2="40.6"
-              stroke="#10b981"
-              strokeWidth="2"
-              strokeLinecap="round"
-              opacity={Math.min(1, waveIntensity / 100)}
-              className={styles.ray}
-            />
-            {/* Ray 7 - Left */}
-            <line
-              x1="8"
-              y1="28"
-              x2="12"
-              y2="28"
-              stroke="#10b981"
-              strokeWidth="2"
-              strokeLinecap="round"
-              opacity={Math.min(1, waveIntensity / 100)}
-              className={styles.ray}
-            />
-            {/* Ray 8 - Top Left */}
-            <line
-              x1="17.4"
-              y1="17.4"
-              x2="15.4"
-              y2="15.4"
-              stroke="#10b981"
-              strokeWidth="2"
-              strokeLinecap="round"
-              opacity={Math.min(1, waveIntensity / 100)}
-              className={styles.ray}
+              strokeWidth="1.5"
+              opacity={Math.max(0, 0.4 - (intensity / 100) * 0.2)}
+              className={styles.wave}
+              style={{
+                animation: `expandWave 0.8s ease-out 0.6s infinite`,
+              }}
             />
           </>
         )}
+
+        {/* Idle state - slow pulse when active but no voice */}
+        {isActive && (!isListening || intensity <= 15) && (
+          <circle
+            cx="28"
+            cy="28"
+            r="12"
+            fill="none"
+            stroke="#10b981"
+            strokeWidth="1"
+            opacity="0.3"
+            className={styles.idlePulse}
+          />
+        )}
       </svg>
 
-      {/* Glow effect when listening */}
-      {isActive && (
+      {/* Outer glow when listening */}
+      {isActive && isListening && (
         <div
           className={styles.glow}
           style={{
-            opacity: Math.min(0.6, waveIntensity / 100),
+            opacity: Math.min(0.8, intensity / 100),
           }}
         />
       )}
