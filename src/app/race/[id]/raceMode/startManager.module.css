@@ -258,7 +258,7 @@
 .colorDot {
   width: 8px;
   height: 8px;
-  border-radius: 50%;
+  border-radius: 5px;
   flex-shrink: 0;
 }
 

@@ -1,7 +1,7 @@
 {
-  "name": "Commissaire race app",
-  "short_name": "Commissaire",
-  "description": "manage bike race application",
+  "name": "Commissire - Bike Race",
+  "short_name": "Commissire - Bike Race",
+  "description": "Simple bike race management",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

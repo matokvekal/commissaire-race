@@ -210,7 +210,7 @@
 .colorDot {
   width: 12px;
   height: 12px;
-  border-radius: 50%;
+  border-radius: 5px;
   flex-shrink: 0;
   border: 2px solid rgba(255, 255, 255, 0.3);
 }

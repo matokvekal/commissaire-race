@@ -1,6 +1,6 @@
 {
-  "name": "Simple MTB Race",
-  "short_name": "Simple MTB Race",
+  "name": "Commissire - Bike Race",
+  "short_name": "Commissire - Bike Race",
   "description": "Simple bike race management",
   "start_url": "/",
   "display": "standalone",
