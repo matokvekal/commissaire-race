@@ -18,6 +18,7 @@ import RiderLiveModal from "./RiderLiveModal";
 import { VoiceIndicator } from "@/components/voice/VoiceIndicator";
 import { useVoiceRecognition } from "@/components/voice/useVoiceRecognition";
 import { VoiceSettingsModal } from "./VoiceSettingsModal";
+import { VoiceRadarIcon } from "@/components/voice/VoiceRadarIcon";
 
 function parseTimeStr(t: string | null | undefined): Date | null {
   if (!t) return null;
@@ -87,6 +88,8 @@ const Heat: React.FC = () => {
   const [displayOrder, setDisplayOrder] = useState<number[]>([]);
   const [voiceActive, setVoiceActive] = useState(false);
   const [showVoiceSettings, setShowVoiceSettings] = useState(false);
+  const [voiceAudioLevel, setVoiceAudioLevel] = useState(0);
+  const [voiceIsListening, setVoiceIsListening] = useState(false);
   const lastClickRef = useRef<number>(0);
   const sortTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -333,7 +336,7 @@ const Heat: React.FC = () => {
     return set;
   }, [filteredRiders]);
 
-  useVoiceRecognition({
+  const { isListening } = useVoiceRecognition({
     language: voiceSettings.language,
     validBibs,
     commands: [],
@@ -353,6 +356,10 @@ const Heat: React.FC = () => {
     },
     enabled: voiceActive && voiceSettings.enabled,
   });
+
+  useEffect(() => {
+    setVoiceIsListening(isListening);
+  }, [isListening]);
 
   const elapsedTime = useMemo(() => {
     const startRider = filteredRiders.find((r) => r.raceStatus === "running" && r.timeStartRace);
@@ -516,11 +523,15 @@ const Heat: React.FC = () => {
       <div className={styles.voiceContainer}>
         {voiceActive && <VoiceIndicator />}
         <button
-          className={`${styles.micButton} ${voiceActive ? styles.micButtonActive : ""}`}
+          className={styles.micButtonRadar}
           onClick={() => setVoiceActive(!voiceActive)}
           title={voiceActive ? "Disable voice input" : "Enable voice input"}
         >
-          🎤
+          <VoiceRadarIcon
+            isActive={voiceActive}
+            audioLevel={voiceAudioLevel}
+            isListening={voiceIsListening}
+          />
         </button>
       </div>
     </div>
