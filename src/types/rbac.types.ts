@@ -136,6 +136,7 @@ export interface TokenPayload {
    userId: string;
    roleId: string;
    roleName: string;
+   email?: string;
    permissions: PermissionString[];
    raceUuid?: string;
    iat: number; // Issued at (timestamp)
