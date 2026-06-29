@@ -565,6 +565,32 @@ const Heat: React.FC = () => {
         actions={riderActions}
         isOpen={showActionLog}
         onToggle={() => setShowActionLog(!showActionLog)}
+        onCancel={(actionId, riderName) => {
+          const action = riderActions.find((a) => a.id === actionId);
+          if (!action) return;
+
+          const rider = riders.find((r) => r.id === actionId);
+          if (!rider || rider.lapsCounter <= 0) return;
+
+          // Revert the last lap
+          const newDetails = (rider.lapsDetails ?? []).slice(0, -1);
+          const prevArrive = newDetails.length > 0
+            ? new Date(newDetails[newDetails.length - 1].endTime).toISOString()
+            : null;
+
+          updateRider({
+            ...rider,
+            lapsCounter: rider.lapsCounter - 1,
+            lapsDetails: newDetails,
+            timeArrive: prevArrive,
+            raceStatus: "running",
+            elapsedLastLap: newDetails.length > 0 ? newDetails[newDetails.length - 1].lapTime : null,
+          });
+
+          // Remove from action log
+          setRiderActions((prev) => prev.filter((a) => a.id !== actionId));
+          toast.success(`Cancelled: ${riderName}`);
+        }}
       />
     </div>
   );

@@ -244,6 +244,128 @@
   border-radius: 2px;
 }
 
+.cancelBtn {
+  flex-shrink: 0;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+}
+
+.cancelBtn:hover {
+  background: #dc2626;
+  transform: scale(1.05);
+}
+
+.cancelBtn:active {
+  transform: scale(0.95);
+}
+
+.cancelTime {
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 14px;
+  text-align: center;
+}
+
+.confirmOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: fadeIn 0.2s ease;
+}
+
+.confirmModal {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: slideUp 0.2s ease;
+}
+
+.confirmText {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  text-align: center;
+}
+
+.confirmButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.confirmYes,
+.confirmNo {
+  flex: 1;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.confirmYes {
+  background: #ef4444;
+  color: white;
+}
+
+.confirmYes:hover {
+  background: #dc2626;
+  transform: scale(1.02);
+}
+
+.confirmNo {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.confirmNo:hover {
+  background: #d1d5db;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (max-width: 640px) {
   .toggleBtn {
     bottom: 72px;
@@ -252,5 +374,10 @@
 
   .panel {
     max-height: 80vh;
+  }
+
+  .cancelBtn {
+    padding: 4px 8px;
+    font-size: 11px;
   }
 }
