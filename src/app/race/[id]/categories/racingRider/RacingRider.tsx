@@ -12,6 +12,8 @@ interface Props {
 
 const RacingRider: React.FC<Props> = ({ rider, color, forceBell = false, onClick, onDoubleClick }) => {
   const lastTapRef = useRef<number>(0);
+  const tapTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isDoubleTapRef = useRef<boolean>(false);
 
   const lapsRemaining = rider.totalLaps - rider.lapsCounter;
   const showBell = forceBell || (lapsRemaining === 2);
@@ -24,20 +26,36 @@ const RacingRider: React.FC<Props> = ({ rider, color, forceBell = false, onClick
   const handleTouchEnd = (e: React.TouchEvent) => {
     const now = Date.now();
     if (now - lastTapRef.current < 300) {
-      e.preventDefault(); // block the click that would record a lap
+      // Double tap detected
+      isDoubleTapRef.current = true;
+      if (tapTimeoutRef.current) clearTimeout(tapTimeoutRef.current);
       onDoubleClick();
       lastTapRef.current = 0;
     } else {
+      // First tap - wait to see if second tap comes
       lastTapRef.current = now;
+      isDoubleTapRef.current = false;
+      if (tapTimeoutRef.current) clearTimeout(tapTimeoutRef.current);
+      tapTimeoutRef.current = setTimeout(() => {
+        if (!isDoubleTapRef.current) {
+          onClick();
+        }
+      }, 300);
     }
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    // Only fire on desktop (no touch)
+    if ((e as any).clientX === 0 && (e as any).clientY === 0) return; // Skip synthetic clicks
+    onClick();
   };
 
   return (
     <div
       className={`${styles.rider} ${showStripes ? styles.penultimate : ""}`}
       style={{ background: bgStyle }}
-      onClick={onClick}
-      onDoubleClick={(e) => { e.preventDefault(); onDoubleClick(); }}
+      onClick={handleClick}
+      onDoubleClick={(e) => { e.preventDefault(); onDoubleClick(); isDoubleTapRef.current = true; }}
       onTouchEnd={handleTouchEnd}
     >
       {showBell && (
