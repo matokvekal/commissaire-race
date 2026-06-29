@@ -5,55 +5,157 @@
   padding-bottom: 32px;
 }
 
-.sortBar {
+/* ── Top control bar ── */
+.topBar {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   background: linear-gradient(180deg, #ffffff, #f2f7ff);
   border: 1px solid #c9defc;
   border-radius: 14px;
-  padding: 10px 12px;
+  padding: 12px 16px;
   box-shadow: 0 10px 18px rgba(99, 166, 252, 0.14);
 }
 
-.sortBtn {
-  font-size: 11px;
+.leftControls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-.dangerBtn {
+/* Sort dropdown */
+.sortDropdownWrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sortLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #3a5080;
+  margin: 0;
+}
+
+.sortDropdown {
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid #d5e4fb;
+  border-radius: 8px;
+  background: white;
+  color: #1a304f;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.sortDropdown:hover {
+  border-color: #a8c5f8;
+  background: #f8fbff;
+}
+
+.sortDropdown:focus {
+  outline: none;
+  border-color: #63a6fc;
+  box-shadow: 0 0 0 2px rgba(99, 166, 252, 0.2);
+}
+
+/* View mode buttons */
+.viewModeGroup {
+  display: flex;
+  gap: 2px;
+  border: 1px solid #d5e4fb;
+  border-radius: 8px;
+  padding: 2px;
+  background: white;
+}
+
+.viewModeBtn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  color: #6b7fa8;
+}
+
+.viewModeBtn:hover {
+  background: rgba(99, 166, 252, 0.08);
+  color: #3a5080;
+}
+
+.viewModeBtn.active {
+  background: #63a6fc;
+  color: white;
+}
+
+/* Import button */
+.importBtn {
+  font-size: 12px;
+}
+
+/* Delete button */
+.deleteBtn {
   color: #c62828 !important;
   border-color: #ffcdd2 !important;
+  background: #ffebee !important;
+  white-space: nowrap;
+  font-weight: 600;
+  font-size: 12px;
 }
 
-.dangerBtn:hover {
-  background: #ffebee !important;
+.deleteBtn:hover {
+  background: #ffcdd2 !important;
 }
 
 .sortActive {
   letter-spacing: 0.01em;
 }
 
-.wavePills {
+/* ── Wave filter bar ── */
+.waveFilterBar {
   display: flex;
+  align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
-  padding: 4px 0;
+  padding: 8px 0;
 }
 
-.pill {
-  font-size: 11px;
+.waveLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #3a5080;
+  margin: 0;
 }
 
-.pillActive {
-  letter-spacing: 0.01em;
+.waveDropdown {
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid #d5e4fb;
+  border-radius: 8px;
+  background: white;
+  color: #1a304f;
+  cursor: pointer;
+  transition: all 0.15s;
 }
 
-.pillNow {
-  /* styled via variant="success" */
+.waveDropdown:hover {
+  border-color: #a8c5f8;
+  background: #f8fbff;
 }
 
-.pillNow.pillActive {
-  /* styled via variant="success" */
+.waveDropdown:focus {
+  outline: none;
+  border-color: #63a6fc;
+  box-shadow: 0 0 0 2px rgba(99, 166, 252, 0.2);
 }
 
 .tabCount {

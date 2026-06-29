@@ -145,93 +145,103 @@ const Riders: React.FC<ManageHeatProps> = ({ raceUuid, categories }) => {
     return map;
   }, [filteredAndSorted, groupByCategory]);
 
+  const sortOptions = [
+    { key: "name" as SortKey, label: "Name A–Z" },
+    { key: "bib" as SortKey, label: "Bib #" },
+    { key: "club" as SortKey, label: "Club A–Z" },
+    { key: "category" as SortKey, label: "Category" },
+  ];
+
   return (
     <div className={styles.riders}>
-      <div className={styles.sortBar}>
-        {(["name", "bib", "club", "category"] as SortKey[]).map((key) => (
+      <div className={styles.topBar}>
+        <div className={styles.leftControls}>
+          {/* Sort dropdown */}
+          <div className={styles.sortDropdownWrapper}>
+            <label className={styles.sortLabel}>Sort:</label>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortKey)}
+              className={styles.sortDropdown}
+            >
+              {sortOptions.map((opt) => (
+                <option key={opt.key} value={opt.key}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* View mode buttons */}
+          <div className={styles.viewModeGroup}>
+            <button
+              className={`${styles.viewModeBtn} ${viewMode === "table" ? styles.active : ""}`}
+              onClick={() => setViewMode("table")}
+              title="Table view"
+            >
+              📊
+            </button>
+            <button
+              className={`${styles.viewModeBtn} ${viewMode === "cards" && !groupByCategory ? styles.active : ""}`}
+              onClick={() => { setViewMode("cards"); setGroupByCategory(false); }}
+              title="Cards view"
+            >
+              📇
+            </button>
+            <button
+              className={`${styles.viewModeBtn} ${groupByCategory && viewMode === "cards" ? styles.active : ""}`}
+              onClick={() => { setViewMode("cards"); setGroupByCategory((v) => !v); }}
+              title="Group by category"
+            >
+              📁
+            </button>
+          </div>
+
+          {/* Import button */}
           <Button
-            key={key}
-            variant={sortBy === key ? "primary" : "secondary"}
+            variant="secondary"
             size="sm"
-            className={`${styles.sortBtn} ${sortBy === key ? styles.sortActive : ""}`}
-            onClick={() => setSortBy(key)}
+            className={styles.importBtn}
+            onClick={() => setShowImportWizard(true)}
           >
-            {key === "name" ? "Name A–Z" : key === "bib" ? "Bib #" : key === "club" ? "Club A–Z" : "Category"}
+            Import CSV
           </Button>
-        ))}
-        <Button
-          variant={groupByCategory && viewMode === "cards" ? "primary" : "secondary"}
-          size="sm"
-          className={`${styles.sortBtn} ${groupByCategory && viewMode === "cards" ? styles.sortActive : ""}`}
-          onClick={() => { setViewMode("cards"); setGroupByCategory((v) => !v); }}
-        >
-          Group
-        </Button>
-        <Button
-          variant={viewMode === "table" ? "primary" : "secondary"}
-          size="sm"
-          className={`${styles.sortBtn} ${viewMode === "table" ? styles.sortActive : ""}`}
-          onClick={() => setViewMode("table")}
-        >
-          Data
-        </Button>
-        <Button
-          variant={viewMode === "cards" && !groupByCategory ? "primary" : "secondary"}
-          size="sm"
-          className={`${styles.sortBtn} ${viewMode === "cards" && !groupByCategory ? styles.sortActive : ""}`}
-          onClick={() => { setViewMode("cards"); setGroupByCategory(false); }}
-        >
-          Cards
-        </Button>
-        <Button
-          variant="secondary"
-          size="sm"
-          className={styles.sortBtn}
-          onClick={() => setShowImportWizard(true)}
-        >
-          Import CSV
-        </Button>
+        </div>
+
+        {/* Delete All button - right side */}
         {riders.some((r) => r.raceUuid === raceUuid) && (
           <Button
             variant="secondary"
             size="sm"
-            className={`${styles.sortBtn} ${styles.dangerBtn}`}
+            className={`${styles.deleteBtn}`}
             onClick={() => setShowDeleteRiders(true)}
           >
-            Delete All
+            🗑️ Delete All
           </Button>
         )}
       </div>
 
       {waves.length > 1 && (
-        <div className={styles.wavePills}>
-          <Button
-            variant={waveFilter === "all" ? "primary" : "secondary"}
-            size="sm"
-            className={`${styles.pill} ${waveFilter === "all" ? styles.pillActive : ""}`}
-            onClick={() => setWaveFilter("all")}
+        <div className={styles.waveFilterBar}>
+          <label className={styles.waveLabel}>Wave:</label>
+          <select
+            value={typeof waveFilter === "number" ? waveFilter : waveFilter === "now" ? "now" : "all"}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === "all") setWaveFilter("all");
+              else if (val === "now") setWaveFilter("now");
+              else setWaveFilter(parseInt(val, 10));
+            }}
+            className={styles.waveDropdown}
           >
-            All
-          </Button>
-          {waves.map((w) => (
-            <Button
-              key={w}
-              variant={waveFilter === w ? "primary" : "secondary"}
-              size="sm"
-              className={`${styles.pill} ${waveFilter === w ? styles.pillActive : ""}`}
-              onClick={() => setWaveFilter(w)}
-            >
-              Wave {w}
-            </Button>
-          ))}
-          <Button
-            variant={waveFilter === "now" ? "success" : "secondary"}
-            size="sm"
-            className={`${styles.pill} ${styles.pillNow} ${waveFilter === "now" ? styles.pillActive : ""}`}
-            onClick={() => setWaveFilter("now")}
-          >
-            NOW
-          </Button>
+            <option value="all">All Waves</option>
+            {waves.map((w) => (
+              <option key={w} value={w}>
+                Wave {w}
+              </option>
+            ))}
+            <option value="now">NOW (Active)</option>
+          </select>
         </div>
       )}
 

@@ -70,40 +70,44 @@ export function useVoiceRecognition(options: VoiceRecognitionOptions): VoiceReco
     };
 
     recognition.onresult = (event: any) => {
-      let interimTranscript = '';
-      let finalTranscript = '';
+      try {
+        let interimTranscript = '';
 
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          finalTranscript += transcript;
-        } else {
-          interimTranscript += transcript;
-        }
-      }
+        // Process only the last result (most recent)
+        for (let i = event.results.length - 1; i < event.results.length; i++) {
+          const result = event.results[i];
+          if (!result || !result[0]) continue;
 
-      const fullTranscript = finalTranscript || interimTranscript;
-      setLastTranscript(fullTranscript);
+          const transcript = result[0].transcript || '';
+          if (!transcript.trim()) continue;
 
-      if (finalTranscript) {
-        const lowerTranscript = finalTranscript.toLowerCase().trim();
+          if (result.isFinal) {
+            const lowerTranscript = transcript.toLowerCase().trim();
+            setLastTranscript(transcript);
 
-        // Check for commands first
-        for (const cmd of commands) {
-          if (cmd.trigger.some(t => lowerTranscript.includes(t.toLowerCase()))) {
-            onCommand(cmd.action);
-            return;
+            // Check for commands first
+            for (const cmd of commands) {
+              if (cmd.trigger.some(t => lowerTranscript.includes(t.toLowerCase()))) {
+                onCommand(cmd.action);
+                return;
+              }
+            }
+
+            // Extract numbers
+            const numbers = extractNumbers(transcript, language);
+            if (numbers.length > 0) {
+              const bibNumber = String(numbers[0]);
+              if (validBibs.has(bibNumber)) {
+                onBibDetected(bibNumber);
+              }
+            }
+          } else {
+            interimTranscript += transcript;
+            setLastTranscript(interimTranscript);
           }
         }
-
-        // Extract numbers
-        const numbers = extractNumbers(finalTranscript, language);
-        if (numbers.length > 0) {
-          const bibNumber = String(numbers[0]);
-          if (validBibs.has(bibNumber)) {
-            onBibDetected(bibNumber);
-          }
-        }
+      } catch (error) {
+        console.error('Error processing speech result:', error);
       }
     };
 
