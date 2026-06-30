@@ -34,6 +34,16 @@
   color: #3a5080;
 }
 
+.cardFlag {
+  width: 24px;
+  height: 16px;
+  border-radius: 2px;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12);
+  display: block;
+  margin: 3px auto 0;
+}
+
 .middle {
   flex: 1;
   display: flex;

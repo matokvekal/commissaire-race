@@ -20,7 +20,7 @@ const RACE: RaceProps = {
   location: "Yarkon Park / פארק הירקון, Tel Aviv",
   time: "08:00",
   date: TODAY,
-  image: "",
+  image: "images/2.jpg",
   heat: "2",
   status: "upcoming",
   type: "MTB",

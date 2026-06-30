@@ -1,6 +1,7 @@
 import React, { useRef } from "react";
 import styles from "./racingRider.module.css";
 import { RiderProps } from "@/types/types";
+import { Bell } from "lucide-react";
 
 interface Props {
   rider: RiderProps;
@@ -86,7 +87,7 @@ const RacingRider: React.FC<Props> = ({ rider, color, forceBell = false, isFlash
     >
       {showBell && (
         <div className={styles.bellBadge} title={`2 laps left! (${rider.lapsCounter}/${rider.totalLaps})`}>
-          🔔
+          <Bell size={16} />
         </div>
       )}
       <div className={styles.bib}>{rider.bibNumber}</div>

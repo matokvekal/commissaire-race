@@ -27,6 +27,11 @@ const RiderCard: React.FC<RiderProps> = (rider) => {
       <div className={styles.topRow}>
         <div className={styles.bibBlock}>
           <span className={styles.bib}>#{rider.bibNumber || "—"}</span>
+          <img
+            src={`/international/${rider.flag || "il"}.svg`}
+            alt={rider.flag || "il"}
+            className={styles.cardFlag}
+          />
         </div>
 
         <div className={styles.middle}>

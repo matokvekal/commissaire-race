@@ -6,6 +6,7 @@ import useCategoryStore from "@/stores/categoryStore";
 import { RiderProps } from "@/types/types";
 import RiderDetailModal from "../../components/riderDetailModal/RiderDetailModal";
 import { buildSchedule, DEFAULT_WAVE_GAP_MINUTES } from "../schedule/Schedule";
+import { Trophy } from "lucide-react";
 
 interface Props {
   raceUuid: string;
@@ -15,7 +16,7 @@ type SortKey = "place" | "name" | "bib" | "time";
 type GroupBy = "category" | "wave";
 
 const STATUS_ICON: Record<string, string> = {
-  finished: "✓", running: "⚡", DNS: "✗", DNF: "✗", DSQ: "✗", standing: "·"
+  finished: "✓", running: "↻", DNS: "✗", DNF: "✗", DSQ: "✗", standing: "·"
 };
 const MEDAL = ["🥇", "🥈", "🥉"];
 
@@ -220,7 +221,7 @@ const Results: React.FC<Props> = ({ raceUuid }) => {
             className={`${styles.podiumToggle} ${podiumMode ? styles.podiumToggleOn : ""}`}
             onClick={() => setPodiumMode((v) => !v)}
           >
-            🏆 Podium
+            <Trophy size={15} /> Podium
           </button>
         </div>
       </div>

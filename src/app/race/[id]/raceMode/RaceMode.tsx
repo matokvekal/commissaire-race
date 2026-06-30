@@ -6,6 +6,7 @@ import CheckIn from "./CheckIn";
 import LiveBoard from "./LiveBoard";
 import LiveCards from "./LiveCards";
 import { buildSchedule, DEFAULT_WAVE_GAP_MINUTES } from "../schedule/Schedule";
+import { Flag, Circle } from "lucide-react";
 
 interface Props {
   raceUuid: string;
@@ -64,7 +65,7 @@ const RaceMode: React.FC<Props> = ({ raceUuid, categories }) => {
                 ].join(" ")}
                 onClick={() => setSelectedWave(w)}
               >
-                {waveStatus === "finished" ? "🏁 " : waveStatus === "running" ? "● " : ""}
+                {waveStatus === "finished" ? <Flag size={11} style={{ marginRight: 3, verticalAlign: "middle" }} /> : waveStatus === "running" ? <Circle size={8} fill="currentColor" style={{ marginRight: 3, verticalAlign: "middle" }} /> : null}
                 {w}{firstTime && firstTime !== "TBD" ? ` · ${firstTime}` : ""}
               </button>
             );

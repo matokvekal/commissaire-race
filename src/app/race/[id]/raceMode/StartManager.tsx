@@ -7,7 +7,7 @@ import useRaceStore from "@/stores/racesStore";
 import { useNavigate } from "react-router-dom";
 import Icons from "@/constants/Icons";
 import Button from "@/components/ui/Button";
-import { Plus, Edit2, GripVertical, X, Trash2, AlertTriangle } from "lucide-react";
+import { Plus, Edit2, GripVertical, X, Trash2, AlertTriangle, Play, Pause, Flag, ChevronUp, ChevronDown } from "lucide-react";
 
 interface Props {
   raceUuid: string;
@@ -95,13 +95,13 @@ const Countdown: React.FC<CountdownProps> = ({ seconds: initial, groupLabel, onD
         <span className={styles.countdownGroup}>{groupLabel}</span>
         <div className={styles.countdownBtns}>
           <button className={styles.countdownStartNow} onClick={() => { onStart(); onCancel(); }}>
-            ▶ Start Now
+            <Play size={14} fill="currentColor" /> Start Now
           </button>
           <button className={styles.countdownPauseBtn} onClick={() => setPaused((p) => !p)}>
-            {paused ? "▶ Resume" : "⏸ Pause"}
+            {paused ? <><Play size={14} fill="currentColor" /> Resume</> : <><Pause size={14} fill="currentColor" /> Pause</>}
           </button>
           <button className={styles.countdownCancelBtn} onClick={onCancel}>
-            ✕ Cancel
+            <X size={14} /> Cancel
           </button>
         </div>
       </div>
@@ -843,7 +843,7 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
             <div key={group.id} className={styles.startBlockFinished}>
               <div className={styles.startHeader}>
                 <div className={styles.startInfo}>
-                  <span className={styles.finishedFlag}>🏁</span>
+                  <span className={styles.finishedFlag}><Flag size={16} /></span>
                   <span className={styles.startLabel}>Start {si + 1}</span>
                   <span className={styles.startTimeReadOnly}>{group.time || "--:--"}</span>
                   <span className={styles.finishedBadge}>FINISHED</span>
@@ -853,7 +853,7 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
                   onClick={() => toggleExpandFinished(group.id)}
                   title={expandedFinished.has(group.id) ? "Collapse" : "Expand"}
                 >
-                  {expandedFinished.has(group.id) ? "▲" : "▼"}
+                  {expandedFinished.has(group.id) ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                 </button>
               </div>
               {expandedFinished.has(group.id) && (
@@ -937,7 +937,7 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
                       className={styles.confirmYes}
                       onClick={() => { endRace(group); setConfirmFinishId(null); }}
                     >
-                      Yes 🏁
+                      Yes <Flag size={14} />
                     </button>
                     <button
                       className={styles.confirmNo}
@@ -952,7 +952,7 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
                     onClick={() => setConfirmFinishId(group.id)}
                     title="Finish race"
                   >
-                    🏁 Finish
+                    <Flag size={15} /> Finish
                   </button>
                 )}
               </div>

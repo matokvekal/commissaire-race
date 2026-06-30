@@ -32,12 +32,12 @@ const RaceCard: React.FC<RaceCardProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  const resolvedImage =
-    image?.startsWith("data:") ||
-    image?.startsWith("/") ||
-    image?.startsWith("http")
-      ? image
-      : (Images[image as keyof typeof Images] ?? Images.defaultRaceBike);
+  const resolvedImage = (() => {
+    if (!image) return Images.defaultRaceBike;
+    if (image.startsWith("data:") || image.startsWith("http") || image.startsWith("/")) return image;
+    if (image.startsWith("images/")) return import.meta.env.BASE_URL + image;
+    return Images[image as keyof typeof Images] ?? Images.defaultRaceBike;
+  })();
 
   const statusKey = status ?? "upcoming";
 

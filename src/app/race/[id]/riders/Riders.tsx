@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { LayoutList, LayoutGrid, Layers, Play, Flag, Trash2 } from "lucide-react";
 import styles from "./riders.module.css";
 import Button from "@/components/ui/Button";
 import useRiderStore from "@/stores/ridersStore";
@@ -179,21 +180,21 @@ const Riders: React.FC<ManageHeatProps> = ({ raceUuid, categories }) => {
               onClick={() => setViewMode("table")}
               title="Table view"
             >
-              📊
+              <LayoutList size={16} />
             </button>
             <button
               className={`${styles.viewModeBtn} ${viewMode === "cards" && !groupByCategory ? styles.active : ""}`}
               onClick={() => { setViewMode("cards"); setGroupByCategory(false); }}
               title="Cards view"
             >
-              📇
+              <LayoutGrid size={16} />
             </button>
             <button
               className={`${styles.viewModeBtn} ${groupByCategory && viewMode === "cards" ? styles.active : ""}`}
               onClick={() => { setViewMode("cards"); setGroupByCategory((v) => !v); }}
               title="Group by category"
             >
-              📁
+              <Layers size={16} />
             </button>
           </div>
 
@@ -243,7 +244,7 @@ const Riders: React.FC<ManageHeatProps> = ({ raceUuid, categories }) => {
               className={`${styles.deleteBtn}`}
               onClick={() => setShowDeleteRiders(true)}
             >
-              🗑️ Delete All
+              <Trash2 size={14} /> Delete All
             </Button>
           )}
         </div>
@@ -262,6 +263,7 @@ const Riders: React.FC<ManageHeatProps> = ({ raceUuid, categories }) => {
               <div className={styles.dataTableHeader}>
                 <span className={styles.colRow}>#</span>
                 <span className={styles.colDot} />
+                <span className={styles.colFlag} />
                 <span className={styles.colBib}>Bib</span>
                 <span className={styles.colName}>Name</span>
                 <span className={styles.colCat}>Category</span>
@@ -292,6 +294,13 @@ const Riders: React.FC<ManageHeatProps> = ({ raceUuid, categories }) => {
                       >
                         <span className={styles.colRow}>{idx + 1}</span>
                         <span className={styles.colDot} style={{ background: rider.color ?? "#ddd" }} />
+                        <span className={styles.colFlag}>
+                          <img
+                            src={`/international/${rider.flag || "il"}.svg`}
+                            alt={rider.flag || "il"}
+                            className={styles.flagIcon}
+                          />
+                        </span>
                         <span className={styles.colBib}><strong>#{rider.bibNumber || "—"}</strong></span>
                         <span className={styles.colName} dir="auto">
                           {rider.lastName || rider.firstName
@@ -309,9 +318,9 @@ const Riders: React.FC<ManageHeatProps> = ({ raceUuid, categories }) => {
                               {rider.status}
                             </span>
                           ) : isRunning ? (
-                            <span className={styles.statusRunning}>▶ {formatElapsed(currentTime, rider.timeStartRace)}</span>
+                            <span className={styles.statusRunning}><Play size={11} fill="currentColor" /> {formatElapsed(currentTime, rider.timeStartRace)}</span>
                           ) : isFinished ? (
-                            <span className={styles.statusFinished}>🏁</span>
+                            <span className={styles.statusFinished}><Flag size={14} /></span>
                           ) : null}
                         </span>
                       </div>

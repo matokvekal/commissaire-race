@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import styles from "./categories.module.css";
 import Button from "@/components/ui/Button";
-import { Plus, Trash2, Edit2, Check, X, Users } from "lucide-react";
+import { Plus, Trash2, Edit2, Check, X, Users, Bell, Flag } from "lucide-react";
 import { CategoryProps, CategoryTemplate, RiderProps } from "@/types/types";
 import { COLORS } from "@/constants/index";
 import useCategoryStore from "@/stores/categoryStore";
@@ -473,7 +473,7 @@ const Categories: React.FC<CategoriesProps> = ({ raceUuid }) => {
                         onChange={(e) => setEditForm({ ...editForm, linkedFinish: e.target.checked })}
                       />
                       <span className={styles.linkedFinishLabel}>
-                        🔔 First finishes = all finish
+                        <Bell size={14} /> First finishes = all finish
                         <span className={styles.linkedFinishHint}>When the leader completes their last lap, show the bell for all other riders</span>
                       </span>
                     </label>
@@ -503,7 +503,7 @@ const Categories: React.FC<CategoriesProps> = ({ raceUuid }) => {
                       />
                       <div className={styles.categoryDetails}>
                         <div className={styles.categoryName}>
-                          {isDone && <span className={styles.finishedFlag}>🏁</span>}
+                          {isDone && <span className={styles.finishedFlag}><Flag size={12} /></span>}
                           {cat.name}
                           {cat.subCategory && (
                             <span className={styles.subCategory}>
@@ -525,7 +525,7 @@ const Categories: React.FC<CategoriesProps> = ({ raceUuid }) => {
                             >+</button>
                           </span>
                           {" · "}Wave {catWaveMap.get(cat.name) ?? cat.heat ?? 1} · {riderCount} riders
-                          {cat.linkedFinish && <span className={styles.linkedBadge}>🔔 linked</span>}
+                          {cat.linkedFinish && <span className={styles.linkedBadge}><Bell size={11} /> linked</span>}
                         </div>
                       </div>
                     </div>

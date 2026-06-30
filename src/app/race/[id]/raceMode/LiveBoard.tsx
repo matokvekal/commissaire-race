@@ -4,6 +4,7 @@ import styles from "./liveBoard.module.css";
 import { CategoryProps, RiderProps } from "@/types/types";
 import useRiderStore from "@/stores/ridersStore";
 import calculatePositions from "@/utils/calculatePosition";
+import { Trophy, Flag, Zap } from "lucide-react";
 
 interface Props {
   raceUuid: string;
@@ -90,7 +91,7 @@ const LiveBoard: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
           className={`${styles.podiumToggle} ${podiumMode ? styles.podiumToggleOn : ""}`}
           onClick={() => setPodiumMode((v) => !v)}
         >
-          🏆 Podium
+          <Trophy size={15} /> Podium
         </button>
       </div>
 
@@ -114,7 +115,7 @@ const LiveBoard: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
             <div className={`${styles.catHeader} ${allDone ? styles.catHeaderDone : ""}`}>
               <span className={styles.catDot} style={{ background: cat.color ?? "#ccc" }} />
               <span className={styles.catName}>
-                {allDone && <span className={styles.flagIcon}>🏁</span>}
+                {allDone && <span className={styles.flagIcon}><Flag size={13} /></span>}
                 {cat.name}
               </span>
               {podiumMode && (
@@ -127,8 +128,8 @@ const LiveBoard: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
                 </button>
               )}
               <div className={styles.catStats}>
-                {finished > 0 && <span className={styles.stat}>{allDone ? `${finished} fin` : `🏁 ${finished}`}</span>}
-                {onTrack  > 0 && <span className={styles.stat}>⚡ {onTrack}</span>}
+                {finished > 0 && <span className={styles.stat}>{allDone ? `${finished} fin` : <><Flag size={12} /> {finished}</>}</span>}
+                {onTrack  > 0 && <span className={styles.stat}><Zap size={12} /> {onTrack}</span>}
               </div>
             </div>
 

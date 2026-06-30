@@ -1,50 +1,74 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./addRace.module.css";
-import Icons from "@/constants/Icons";
 import Images from "@/constants/Images";
 import Button from "@/components/ui/Button";
 import { saveRace } from "@/utils/saveRace";
 import useRaceStore from "@/stores/racesStore";
-import { ArrowLeft } from "lucide-react";
-// import Papa from "papaparse";
+import { ArrowLeft, ImagePlus } from "lucide-react";
 
 interface Props {
   setAddNewwRace: (value: boolean) => void;
 }
 
-const today = new Date().toISOString().split("T")[0];
-
-const DEFAULT_IMAGES = [
+const FALLBACK_IMAGES = [
   Images.bikeMountainSplash,
   Images.bikeSplash,
   Images.peloton1,
   Images.racebefore,
-  Images.defaultRaceBike
+  Images.defaultRaceBike,
 ];
+
+const today = new Date().toISOString().split("T")[0];
+const BASE = import.meta.env.BASE_URL; // "/commissire-race/" in prod, "/" in dev
 
 const AddRace: React.FC<Props> = ({ setAddNewwRace }) => {
   const { races } = useRaceStore();
-  const defaultCover = useMemo(
-    () => DEFAULT_IMAGES[Math.floor(Math.random() * DEFAULT_IMAGES.length)],
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const defaultFallback = useMemo(
+    () => FALLBACK_IMAGES[Math.floor(Math.random() * FALLBACK_IMAGES.length)],
     []
   );
-  const [raceName, setRaceName] = useState(`Race ${races.length + 1}`);
-  const [startDate, setStartDate] = useState(today);
-  const [location, setLocation] = useState("TBD");
-  const [status, setStatus] = useState("");
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [ridersFile, setRidersFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false);
 
-  const handleBack = () => {
-    setAddNewwRace(false);
-  };
+  const [raceName,    setRaceName]    = useState(`Race ${races.length + 1}`);
+  const [startDate,   setStartDate]   = useState(today);
+  const [location,    setLocation]    = useState("TBD");
+  const [status,      setStatus]      = useState("");
+  const [ridersFile,  setRidersFile]  = useState<File | null>(null);
+  const [loading,     setLoading]     = useState(false);
+
+  // Selected image: either an "images/filename" gallery path or a base64 data: URL
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  // Gallery filenames fetched from manifest
+  const [gallery, setGallery] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetch(`${BASE}images/manifest.json`)
+      .then(r => r.json())
+      .then((data: { images: string[] }) => {
+        setGallery(data.images);
+        // Pick first gallery image as default if nothing is selected yet
+        if (!selectedImage && data.images.length > 0) {
+          setSelectedImage(`images/${data.images[0]}`);
+        }
+      })
+      .catch(() => { /* no manifest — fall through to asset fallback */ });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Resolved URL to show in the preview
+  const previewSrc = (() => {
+    if (!selectedImage) return defaultFallback;
+    if (selectedImage.startsWith("data:") || selectedImage.startsWith("http")) return selectedImage;
+    if (selectedImage.startsWith("images/")) return BASE + selectedImage;
+    return defaultFallback;
+  })();
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (e) => setImageUrl(e.target?.result as string);
+    reader.onload = (e) => setSelectedImage(e.target?.result as string);
     reader.readAsDataURL(file);
   };
 
@@ -56,7 +80,6 @@ const AddRace: React.FC<Props> = ({ setAddNewwRace }) => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
-
     try {
       await saveRace(
         event,
@@ -64,7 +87,7 @@ const AddRace: React.FC<Props> = ({ setAddNewwRace }) => {
         startDate,
         location,
         status,
-        imageUrl,
+        selectedImage,
         ridersFile,
         setAddNewwRace
       );
@@ -84,7 +107,7 @@ const AddRace: React.FC<Props> = ({ setAddNewwRace }) => {
             size="md"
             iconOnly
             className={styles.backButton}
-            onClick={handleBack}
+            onClick={() => setAddNewwRace(false)}
             aria-label="Go back"
             type="button"
           >
@@ -96,23 +119,48 @@ const AddRace: React.FC<Props> = ({ setAddNewwRace }) => {
       </header>
 
       <form onSubmit={handleSubmit} className={styles.form}>
+
+        {/* ── Cover preview ── */}
         <div className={styles.imageUpload}>
-          <label htmlFor="coverUpload">
-            <img
-              src={imageUrl ?? defaultCover}
-              alt="Cover"
-              className={styles.coverImage}
-            />
-            <div className={styles.coverOverlay}>Change Cover</div>
-          </label>
-          <input
-            id="coverUpload"
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-            style={{ display: "none" }}
-          />
+          <img src={previewSrc} alt="Cover" className={styles.coverImage} />
         </div>
+
+        {/* ── Gallery strip ── */}
+        {gallery.length > 0 && (
+          <div className={styles.galleryStrip}>
+            {gallery.map((filename) => {
+              const path = `images/${filename}`;
+              const isSelected = selectedImage === path;
+              return (
+                <button
+                  key={filename}
+                  type="button"
+                  className={`${styles.galleryThumb} ${isSelected ? styles.galleryThumbSelected : ""}`}
+                  onClick={() => setSelectedImage(path)}
+                >
+                  <img src={`${BASE}${path}`} alt={filename} />
+                </button>
+              );
+            })}
+
+            {/* Upload custom */}
+            <button
+              type="button"
+              className={styles.galleryUploadBtn}
+              onClick={() => fileInputRef.current?.click()}
+              title="Upload custom image"
+            >
+              <ImagePlus size={20} />
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              style={{ display: "none" }}
+            />
+          </div>
+        )}
 
         <div className={styles.lowerPart}>
           <input

@@ -1,6 +1,7 @@
 import React, { useRef } from "react";
 import styles from "./finishRider.module.css";
 import { RiderProps } from "@/types/types";
+import { Flag } from "lucide-react";
 
 interface Props {
   rider: RiderProps;
@@ -33,7 +34,7 @@ const FinishRider: React.FC<Props> = ({ rider, color, onDoubleClick }) => {
       onTouchEnd={handleTouchEnd}
     >
       <div className={styles.bib}>{rider.bibNumber}</div>
-      {!isOut && <div className={styles.flag}>🏁</div>}
+      {!isOut && <div className={styles.flag}><Flag size={18} /></div>}
       <div className={`${styles.badge} ${isOut ? styles.badgeOut : styles.badgeFin}`}>
         {label}
       </div>
