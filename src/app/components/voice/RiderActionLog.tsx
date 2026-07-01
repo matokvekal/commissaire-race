@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import styles from './riderActionLog.module.css';
 import { RiderProps } from '@/types/types';
-import { Bell } from 'lucide-react';
+import { Bell, Search, X } from 'lucide-react';
 
 interface RiderAction {
   id: string;
@@ -46,11 +46,38 @@ export function RiderActionLog({ actions, isOpen, onToggle, onCancel }: RiderAct
   const [timeRemaining, setTimeRemaining] = useState<Record<string, number>>({});
   const [sortBy, setSortBy] = useState<'arrival' | 'bib'>('arrival');
   const [now, setNow] = useState(() => Date.now());
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
+
+  // Closing the panel always drops back to the full, unfiltered "Arrival" view
+  useEffect(() => {
+    if (!isOpen) {
+      setSearchOpen(false);
+      setSearchTerm('');
+      setSortBy('arrival');
+    }
+  }, [isOpen]);
+
+  const closeSearch = () => {
+    setSearchOpen(false);
+    setSearchTerm('');
+    setSortBy('arrival');
+  };
+
+  const matchesSearch = (rider: RiderProps) => {
+    const q = searchTerm.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      rider.firstName.toLowerCase().includes(q) ||
+      rider.lastName.toLowerCase().includes(q) ||
+      String(rider.bibNumber).includes(q)
+    );
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -105,7 +132,7 @@ export function RiderActionLog({ actions, isOpen, onToggle, onCancel }: RiderAct
       }
     }
 
-    const groups = Array.from(latestByRider.values());
+    const groups = Array.from(latestByRider.values()).filter((a) => matchesSearch(a.rider));
     groups.sort((a, b) => a.rider.bibNumber - b.rider.bibNumber);
     return groups;
   };
@@ -142,17 +169,43 @@ export function RiderActionLog({ actions, isOpen, onToggle, onCancel }: RiderAct
                   Bib
                 </button>
               </div>
+              <button
+                className={`${styles.searchToggleBtn} ${searchOpen ? styles.active : ''}`}
+                onClick={() => setSearchOpen((o) => !o)}
+                title="Search by name or bib"
+              >
+                <Search size={16} />
+              </button>
               <button className={styles.closeBtn} onClick={onToggle}>✕</button>
             </div>
+
+            {searchOpen && (
+              <div className={styles.searchRow}>
+                <Search size={14} className={styles.searchRowIcon} />
+                <input
+                  autoFocus
+                  className={styles.searchInput}
+                  placeholder="Search name or bib…"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <button className={styles.searchCloseBtn} onClick={closeSearch} title="Clear search">
+                  <X size={14} />
+                </button>
+              </div>
+            )}
 
             {actions.length === 0 ? (
               <div className={styles.empty}>No riders recorded yet</div>
             ) : sortBy === 'arrival' ? (
               <div className={styles.list}>
-                {actions.map((action, idx) => {
+                {actions.filter((a) => matchesSearch(a.rider)).map((action, idx, arr) => {
                   const isConfirming = confirmingId === action.id;
                   const showCancel = showCancelButton(action);
                   const remaining = timeRemaining[action.id] ?? CANCEL_ACTIVE_MS;
+                  // Stable row number: the earliest arrival is #1, and existing rows keep
+                  // their number as new arrivals get prepended above them.
+                  const rowNumber = arr.length - idx;
 
                   const rider = action.rider;
                   const isOut = !!action.statusChange;
@@ -171,6 +224,7 @@ export function RiderActionLog({ actions, isOpen, onToggle, onCancel }: RiderAct
 
                   return (
                     <div key={`${action.id}-${idx}`} className={styles.entry}>
+                      <span className={styles.rowNumber}>{rowNumber}</span>
                       <div
                         className={styles.colorDot}
                         style={{ backgroundColor: action.categoryColor }}

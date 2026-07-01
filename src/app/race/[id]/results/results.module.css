@@ -254,16 +254,16 @@
   flex-shrink: 0;
 }
 
-.statusIcon {
-  width: 16px;
-  text-align: center;
-  font-size: 12px;
-  color: #7a7a9a;
+.statusChip {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 8px;
+  white-space: nowrap;
   flex-shrink: 0;
 }
-
-.statusIcon.done  { color: #3edda4; }
-.statusIcon.outIcon { color: #e05585; }
 
 /* Out chips in podium mode */
 .outSummary {

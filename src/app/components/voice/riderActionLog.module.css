@@ -141,6 +141,90 @@
   color: #1f2937;
 }
 
+.searchToggleBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #f3f4f6;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.searchToggleBtn:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+.searchToggleBtn.active {
+  background: #0ea5e9;
+  border-color: #0284c7;
+  color: white;
+}
+
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.searchRowIcon {
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.searchInput {
+  flex: 1;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+  color: #1f2937;
+  background: #f9fafb;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #0ea5e9;
+  background: white;
+}
+
+.searchCloseBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.searchCloseBtn:hover {
+  background: #f3f4f6;
+  color: #1f2937;
+}
+
+.rowNumber {
+  flex-shrink: 0;
+  min-width: 18px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #9ca3af;
+}
+
 .empty {
   padding: 32px 16px;
   text-align: center;

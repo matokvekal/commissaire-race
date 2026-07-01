@@ -692,7 +692,7 @@ const Heat: React.FC = () => {
 
       {/* Floating mic button and voice indicator */}
       <div className={styles.voiceContainer}>
-        {voiceActive && <VoiceIndicator />}
+        {voiceActive && <VoiceIndicator isListening={isListening} lastTranscript={lastTranscript} />}
 
         <div className={styles.controlRow}>
           <div className={styles.numbersContainer}>

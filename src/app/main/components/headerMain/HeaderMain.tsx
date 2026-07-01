@@ -5,7 +5,7 @@ import Button from "@/components/ui/Button";
 import { useNavigate } from "react-router-dom";
 import { useDataStore } from "@/stores/appStore";
 import Cookies from "js-cookie";
-import { Bike, LogOut, Menu, MessageCircle, Moon, Palette, Sun, UserRound, X } from "lucide-react";
+import { Bike, LogOut, Menu, MessageCircle, Palette, UserRound, X } from "lucide-react";
 import { useTheme, type Theme } from "@/hooks/useTheme";
 
 const THEME_OPTIONS: { value: Theme; label: string; bg: string; accent: string; text: string }[] = [
@@ -20,7 +20,7 @@ function HeaderMain() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const navigate = useNavigate();
   const { user, getUser } = useDataStore();
-  const { theme, setTheme, toggleTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     getUser();
@@ -32,8 +32,6 @@ function HeaderMain() {
     useDataStore.setState({ user: null, token: null });
     setDrawerOpen(false);
   };
-
-  const isDark = theme === 'dark' || theme === 'night';
 
   return (
     <>
@@ -50,17 +48,6 @@ function HeaderMain() {
         </Button>
         <div className={styles.head}>Commissire - Bike Race</div>
         <div className={styles.right}>
-          <button
-            className={styles.themeBtn}
-            onClick={toggleTheme}
-            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-            title={isDark ? 'Light mode' : 'Dark mode'}
-          >
-            {isDark
-              ? <Sun className={styles.themeIcon} aria-hidden="true" />
-              : <Moon className={styles.themeIcon} aria-hidden="true" />
-            }
-          </button>
           <Button
             variant="icon"
             size="md"

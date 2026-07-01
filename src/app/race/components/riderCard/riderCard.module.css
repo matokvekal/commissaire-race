@@ -115,13 +115,7 @@
   letter-spacing: 0.04em;
   padding: 2px 8px;
   border-radius: 8px;
-  background: rgba(99, 166, 252, 0.12);
-  color: #63a6fc;
-}
-
-.statusOut {
-  background: rgba(224, 85, 133, 0.12);
-  color: #e05585;
+  white-space: nowrap;
 }
 
 .pos {

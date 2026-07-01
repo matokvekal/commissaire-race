@@ -7,6 +7,7 @@ import { RiderProps } from "@/types/types";
 import RiderDetailModal from "../../components/riderDetailModal/RiderDetailModal";
 import { buildSchedule, DEFAULT_WAVE_GAP_MINUTES } from "../schedule/Schedule";
 import { Trophy } from "lucide-react";
+import { getRiderStatusInfo } from "@/utils/statusChip";
 
 interface Props {
   raceUuid: string;
@@ -15,9 +16,6 @@ interface Props {
 type SortKey = "place" | "name" | "bib" | "time";
 type GroupBy = "category" | "wave";
 
-const STATUS_ICON: Record<string, string> = {
-  finished: "✓", running: "↻", DNS: "✗", DNF: "✗", DSQ: "✗", standing: "·"
-};
 const MEDAL = ["🥇", "🥈", "🥉"];
 
 function fmtTime(ms: number) {
@@ -121,7 +119,6 @@ const Results: React.FC<Props> = ({ raceUuid }) => {
 
         {display.map((rider, idx) => {
           const isActive = rider.raceStatus === "running";
-          const isDone = rider.raceStatus === "finished" || rider.status === "finished";
           const isOut = ["DNS", "DNF", "DSQ"].includes(rider.status);
           const el = isOut ? null : riderElapsed(rider);
           const showMedal = podiumMode && sortBy === "place" && !isOut && idx < 3;
@@ -145,9 +142,17 @@ const Results: React.FC<Props> = ({ raceUuid }) => {
               <span className={styles.time}>
                 {el && el !== Infinity ? fmtTime(el) : "—"}
               </span>
-              <span className={`${styles.statusIcon} ${isDone ? styles.done : isOut ? styles.outIcon : ""}`}>
-                {STATUS_ICON[rider.status] ?? "·"}
-              </span>
+              {(() => {
+                const info = getRiderStatusInfo(rider);
+                return (
+                  <span
+                    className={styles.statusChip}
+                    style={{ background: `${info.color}1f`, color: info.color }}
+                  >
+                    {info.label}
+                  </span>
+                );
+              })()}
             </div>
           );
         })}

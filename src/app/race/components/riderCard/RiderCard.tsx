@@ -1,10 +1,12 @@
 import React from "react";
 import { RiderProps } from "@/types/types";
 import styles from "./riderCard.module.css";
+import { getRiderStatusInfo } from "@/utils/statusChip";
 
 const RiderCard: React.FC<RiderProps> = (rider) => {
   const isRacing = rider.raceStatus === "running" || rider.raceStatus === "finished";
   const isOut = ["DNS", "DNF", "DSQ"].includes(rider.status);
+  const statusInfo = getRiderStatusInfo(rider);
 
   const fullName = rider.lastName || rider.firstName
     ? `${rider.lastName ?? ""} ${rider.firstName ?? ""}`.trim()
@@ -69,18 +71,15 @@ const RiderCard: React.FC<RiderProps> = (rider) => {
         </div>
 
         <div className={styles.right}>
-          {isOut ? (
-            <span className={`${styles.statusBadge} ${styles.statusOut}`}>{rider.status}</span>
-          ) : isRacing ? (
-            <>
-              <span className={styles.statusBadge}>{rider.raceStatus}</span>
-              <span className={styles.pos}>
-                {rider.raceStatus === "finished"
-                  ? `P${rider.position_category ?? "—"}`
-                  : `P${rider.position_category ?? "—"}`}
-              </span>
-            </>
-          ) : null}
+          <span
+            className={styles.statusBadge}
+            style={{ background: `${statusInfo.color}1f`, color: statusInfo.color }}
+          >
+            {statusInfo.label}
+          </span>
+          {isRacing && (
+            <span className={styles.pos}>P{rider.position_category ?? "—"}</span>
+          )}
         </div>
       </div>
 

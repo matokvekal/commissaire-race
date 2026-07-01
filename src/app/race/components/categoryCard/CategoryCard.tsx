@@ -3,9 +3,11 @@ import styles from "./categoryCard.module.css";
 import ButtonStart from "../buttons/ButtonStart";
 import Icons from "@/constants/Icons";
 import useUIStore from "@/stores/uiStore";
+import { getCategoryStatusInfo } from "@/utils/statusChip";
 
 const CategoryCard = ({ category, setSelectedCategory }: any) => {
   const { openModal } = useUIStore();
+  const statusInfo = getCategoryStatusInfo(category.status);
 
 
   const handleClick = () => {
@@ -44,7 +46,12 @@ const CategoryCard = ({ category, setSelectedCategory }: any) => {
         <div className={styles.buttons}>
           <img src={Icons.setting} alt="setting" width={20} height={20} className={styles.setting} onClick={handleClick} />
           {/* <ButtonStart category={category} /> */}
-          <div>Running</div>
+          <span
+            className={styles.statusChip}
+            style={{ background: `${statusInfo.color}1f`, color: statusInfo.color }}
+          >
+            {statusInfo.label}
+          </span>
         </div>
       </div>
     </div>

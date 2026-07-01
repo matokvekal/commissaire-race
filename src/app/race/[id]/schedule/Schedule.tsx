@@ -21,6 +21,7 @@ import {
 import useCategoryStore from "@/stores/categoryStore";
 import useRiderStore from "@/stores/ridersStore";
 import { RiderProps } from "@/types/types";
+import { getCategoryStatusInfo, getWaveStatusInfo } from "@/utils/statusChip";
 
 interface Props {
   raceUuid: string;
@@ -83,12 +84,6 @@ export function buildSchedule(
 
   return waveMap;
 }
-
-const STATUS_COLOR: Record<string, string> = {
-  running: "#3edda4",
-  upcoming: "#63a6fc",
-  finished: "#aaa"
-};
 
 const OUT_STATUSES = new Set(["DNS", "DSQ", "DNF"]);
 
@@ -407,11 +402,18 @@ const Schedule: React.FC<Props> = ({ raceUuid, categories }) => {
           )
         );
         const waveFinished = waveRiders.filter((r) => r.status === "finished").length;
+        const waveStatusInfo = getWaveStatusInfo(allWaveCats.map((c) => c.status));
 
         return (
           <div key={waveNum} className={styles.wave}>
             <div className={styles.waveHeader}>
               <span className={styles.waveLabel}>Wave {waveNum}</span>
+              <span
+                className={styles.statusBadge}
+                style={{ background: `${waveStatusInfo.color}1f`, color: waveStatusInfo.color }}
+              >
+                {waveStatusInfo.label}
+              </span>
               {firstTime !== "TBD" && <span className={styles.waveTime}>{firstTime}</span>}
               {waveRiders.length > 0 && (
                 <span className={styles.waveStat}>{waveFinished}/{waveRiders.length} ✓</span>
@@ -497,12 +499,17 @@ const Schedule: React.FC<Props> = ({ raceUuid, categories }) => {
                               {catRiders.length} riders · {cat.laps ?? 0} laps
                             </span>
                           </div>
-                          <span
-                            className={styles.statusBadge}
-                            style={{ color: STATUS_COLOR[cat.status ?? "upcoming"] }}
-                          >
-                            {cat.status ?? "upcoming"}
-                          </span>
+                          {(() => {
+                            const info = getCategoryStatusInfo(cat.status);
+                            return (
+                              <span
+                                className={styles.statusBadge}
+                                style={{ background: `${info.color}1f`, color: info.color }}
+                              >
+                                {info.label}
+                              </span>
+                            );
+                          })()}
                           <div className={styles.catActions} onClick={(e) => e.stopPropagation()}>
                             <Button
                               variant="secondary"

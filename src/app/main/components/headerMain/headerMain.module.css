@@ -220,37 +220,6 @@
   background: var(--bg-surface);
 }
 
-/* Theme toggle button */
-.themeBtn {
-  width: 36px;
-  height: 36px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--border-card);
-  border-radius: 12px;
-  background: linear-gradient(180deg, var(--bg-card), var(--bg-surface));
-  cursor: pointer;
-  box-shadow: 0 4px 10px var(--shadow-sm);
-  color: var(--text-primary);
-  transition: background 0.2s, border-color 0.2s, transform 0.15s;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.themeBtn:hover {
-  border-color: var(--brand);
-  background: linear-gradient(180deg, var(--bg-card), var(--bg-surface-3, var(--bg-surface)));
-}
-
-.themeBtn:active {
-  transform: scale(0.93);
-}
-
-.themeIcon {
-  width: 17px;
-  height: 17px;
-}
-
 .navItemIcon {
   width: 18px;
   height: 18px;
