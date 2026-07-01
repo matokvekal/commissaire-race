@@ -1057,6 +1057,8 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
                     <button
                       key={sec}
                       className={styles.countdownBtn}
+                      disabled={totalIssues > 0}
+                      title={totalIssues > 0 ? "Resolve check-in / laps issues first" : undefined}
                       onClick={() => {
                         const errors = validateGroup(group);
                         if (errors.length > 0) { setStartError(errors); return; }
@@ -1066,7 +1068,12 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
                       ⏱ {sec === 30 ? "30s" : sec === 60 ? "1 Min" : "2 Min"}
                     </button>
                   ))}
-                  <button className={styles.startBtn} onClick={() => startGroup(group)}>
+                  <button
+                    className={styles.startBtn}
+                    disabled={totalIssues > 0}
+                    title={totalIssues > 0 ? "Resolve check-in / laps issues first" : undefined}
+                    onClick={() => startGroup(group)}
+                  >
                     <img src={Icons.buttonStart} alt="" width={14} height={14} />
                     Start All
                   </button>

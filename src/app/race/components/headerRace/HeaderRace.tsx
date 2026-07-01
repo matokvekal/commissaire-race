@@ -18,12 +18,13 @@ function HeaderRace() {
         {isRaceMode ? (
           <Button
             variant="secondary"
-            size="sm"
+            size="md"
+            iconOnly
+            aria-label="Exit race mode"
             className={styles.exitBtn}
             onClick={() => setRaceMode(false)}
           >
-            <X size={14} />
-            Exit
+            <X size={20} />
           </Button>
         ) : (
           <Button

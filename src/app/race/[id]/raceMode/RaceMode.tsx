@@ -6,6 +6,7 @@ import CheckIn from "./CheckIn";
 import LiveBoard from "./LiveBoard";
 import LiveCards from "./LiveCards";
 import { buildSchedule, DEFAULT_WAVE_GAP_MINUTES } from "../schedule/Schedule";
+import useRiderStore from "@/stores/ridersStore";
 import { Flag, Circle } from "lucide-react";
 
 interface Props {
@@ -44,6 +45,20 @@ const RaceMode: React.FC<Props> = ({ raceUuid, categories }) => {
     return [...startMap.values()].flat();
   }, [schedule, selectedWave]);
 
+  // Nudge the commissaire toward Check-In when nobody in this wave has checked in yet
+  const riders = useRiderStore((state) => state.riders);
+  const needsCheckIn = useMemo(() => {
+    if (waveStatusMap.get(selectedWave) !== "upcoming") return false;
+    const catNames = new Set(waveCategories.map((c) => c.name));
+    const waveRiders = riders.filter(
+      (r) => r.raceUuid === raceUuid && catNames.has(r.category)
+    );
+    if (waveRiders.length === 0) return false;
+    return waveRiders.every(
+      (r) => !r.checked && !["DNS", "DNF", "DSQ"].includes(r.status)
+    );
+  }, [riders, raceUuid, waveCategories, waveStatusMap, selectedWave]);
+
   return (
     <div className={styles.container}>
       {/* Wave selector */}
@@ -78,7 +93,14 @@ const RaceMode: React.FC<Props> = ({ raceUuid, categories }) => {
         <button className={`${styles.subTab} ${subTab === "start" ? styles.subTabActive : ""}`} onClick={() => setSubTab("start")}>
           Start
         </button>
-        <button className={`${styles.subTab} ${subTab === "checkin" ? styles.subTabActive : ""}`} onClick={() => setSubTab("checkin")}>
+        <button
+          className={[
+            styles.subTab,
+            subTab === "checkin" ? styles.subTabActive : "",
+            needsCheckIn && subTab !== "checkin" ? styles.subTabGlow : "",
+          ].join(" ")}
+          onClick={() => setSubTab("checkin")}
+        >
           Check-In
         </button>
         <button className={`${styles.subTab} ${subTab === "cards" ? styles.subTabActive : ""}`} onClick={() => setSubTab("cards")}>

@@ -162,16 +162,101 @@
   align-items: center;
   gap: 12px;
   padding: 12px;
-  background: #f9fafb;
+  background: #f3f4f6;
+  border: 1.5px solid #b8c0cc;
+  border-left: 4px solid #6b7280;
   border-radius: 10px;
-  border-left: 3px solid #d1d5db;
   animation: slideIn 0.3s ease-out;
   transition: all 0.2s ease;
 }
 
 .entry:hover {
-  background: #f3f4f6;
+  background: #e9ebef;
   border-left-color: #0ea5e9;
+}
+
+.riderCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: #f3f4f6;
+  border: 1.5px solid #b8c0cc;
+  border-left: 4px solid #6b7280;
+  border-radius: 10px;
+  animation: slideIn 0.3s ease-out;
+}
+
+.riderCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.category {
+  color: #9ca3af;
+}
+
+.lapsTable {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 180px;
+  overflow-y: auto;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 6px;
+}
+
+.lapsTableHead {
+  display: grid;
+  grid-template-columns: 32px 1fr 1fr 1fr;
+  gap: 6px;
+  padding: 0 4px 2px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #9ca3af;
+}
+
+.lapRow {
+  display: grid;
+  grid-template-columns: 32px 1fr 1fr 1fr;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.lapRow:nth-child(even) {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.lapNum {
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.lapTime {
+  color: #0ea5e9;
+  font-weight: 600;
+}
+
+.lapCumulative {
+  color: #374151;
+}
+
+.lapArrival {
+  color: #6b7280;
+}
+
+.lapRow .cancelBtn {
+  grid-column: 4;
+  justify-self: end;
+  margin-left: 0;
 }
 
 @keyframes slideIn {
@@ -282,6 +367,79 @@
   background: rgba(220, 53, 100, 0.15);
   color: #b8205c;
   border: 1px solid rgba(220, 53, 100, 0.3);
+}
+
+.statusBadge.fin {
+  font-size: 12px;
+  background: rgba(40, 180, 100, 0.15);
+  color: #1c7a45;
+  border: 1px solid rgba(40, 180, 100, 0.3);
+}
+
+.bellIndicator {
+  display: flex;
+  align-items: center;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.2));
+}
+
+/* Last lap — mini checkered flag on a pole, matching the racing card */
+.flagIndicator {
+  display: flex;
+  align-items: flex-start;
+  transform: rotate(30deg);
+  transform-origin: bottom right;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.2));
+}
+
+.flagCloth {
+  width: 14px;
+  height: 14px;
+  background-image:
+    conic-gradient(#111 90deg, #ff8fc7 90deg 180deg, #111 180deg 270deg, #ff8fc7 270deg);
+  background-size: 7px 7px;
+  clip-path: polygon(
+    0% 20%, 25% 0%, 50% 20%, 75% 0%, 100% 20%,
+    100% 80%, 75% 100%, 50% 80%, 25% 100%, 0% 80%
+  );
+}
+
+.flagPole {
+  width: 2px;
+  height: 26px;
+  margin-left: 1px;
+  background: #ddd;
+  border-radius: 1px;
+}
+
+.liveTimes {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 4px;
+  font-size: 12px;
+}
+
+.liveTimesLabel {
+  color: #9ca3af;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.liveTimesValue {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  color: #1f2937;
+  font-variant-numeric: tabular-nums;
+}
+
+.liveTimesDivider {
+  width: 1.5px;
+  height: 11px;
+  background: rgba(0, 0, 0, 0.25);
+  display: inline-block;
 }
 
 /* Scrollbar styling */

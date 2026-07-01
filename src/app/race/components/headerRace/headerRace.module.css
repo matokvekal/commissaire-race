@@ -53,12 +53,9 @@
   text-transform: uppercase;
 }
 
-.exitBtn {
-  min-height: 34px;
-}
-
 .backBtn,
-.menuBtn {
+.menuBtn,
+.exitBtn {
   width: 36px;
   min-width: 36px;
 }

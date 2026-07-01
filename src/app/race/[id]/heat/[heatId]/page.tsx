@@ -32,45 +32,6 @@ function parseTimeStr(t: string | null | undefined): Date | null {
   return today;
 }
 
-function getCatAvgLapMs(catRiders: RiderProps[]): number {
-  const times: number[] = [];
-  for (const r of catRiders) {
-    for (const d of r.lapsDetails ?? []) {
-      const ms = new Date(d.endTime).getTime() - new Date(d.startTime).getTime();
-      if (ms > 0) times.push(ms);
-    }
-  }
-  return times.length > 0 ? times.reduce((a, b) => a + b, 0) / times.length : 10 * 60 * 1000;
-}
-
-function getExpectedArrival(rider: RiderProps, catAvgMs: number): number {
-  const laps = rider.lapsDetails ?? [];
-
-  // Use this rider's own avg lap if they have history, else category avg
-  let avg = catAvgMs;
-  if (laps.length > 0) {
-    const times = laps
-      .map((d) => new Date(d.endTime).getTime() - new Date(d.startTime).getTime())
-      .filter((t) => t > 0);
-    if (times.length > 0) avg = times.reduce((a, b) => a + b, 0) / times.length;
-  }
-
-  if (!rider.timeArrive) {
-    // Never recorded a lap yet — treat as if they started right now,
-    // so they're expected to arrive in ~1 avg lap from race start
-    const raceStart = rider.timeStartRace
-      ? new Date(
-          rider.timeStartRace.includes("T")
-            ? rider.timeStartRace
-            : (() => { const d = new Date(); const [h,m,s=0] = rider.timeStartRace!.split(":").map(Number); d.setHours(h,m,s,0); return d; })()
-        ).getTime()
-      : Date.now();
-    return raceStart + avg;
-  }
-
-  return new Date(rider.timeArrive).getTime() + avg;
-}
-
 const MIN_LAP_MS = 60 * 1000; // 1 minute minimum between laps
 
 const Heat: React.FC = () => {
@@ -98,8 +59,6 @@ const Heat: React.FC = () => {
   const [showActionLog, setShowActionLog] = useState(false);
   const [flashingRiderId, setFlashingRiderId] = useState<number | null>(null);
   const flashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastClickRef   = useRef<number>(0);
-  const sortTimerRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Always-fresh refs so setTimeout callbacks can see latest store + handler
   const ridersRef = useRef(riders);
   const handleRiderClickRef = useRef<((rider: RiderProps, source?: 'click' | 'voice') => void) | null>(null);
@@ -161,14 +120,6 @@ const Heat: React.FC = () => {
     return cat?.color ?? rider.color ?? "#ccc";
   };
 
-  const catAvgLapMap = useMemo(() => {
-    const map = new Map<string, number>();
-    [...new Set(filteredRiders.map((r) => r.category))].forEach((name) => {
-      map.set(name, getCatAvgLapMs(filteredRiders.filter((r) => r.category === name)));
-    });
-    return map;
-  }, [filteredRiders]);
-
   const handleRiderClick = (rider: RiderProps, source: 'click' | 'voice' = 'click') => {
     if ((rider.totalLaps > 0 && rider.lapsCounter >= rider.totalLaps) || rider.raceStatus === "finished") return;
 
@@ -227,7 +178,6 @@ const Heat: React.FC = () => {
     };
 
     const finalSorted = sorted.map((r) => (r.id === updatedRider.id ? updatedRider : r));
-    lastClickRef.current = Date.now(); // marks this as a lap-click for delayed sort
     lastActionRef.current = { riderId: rider.id, timestamp: clickTime.getTime() }; // track last action for debouncing
     updateRider(updatedRider);
     updateAllRiders(finalSorted);
@@ -237,6 +187,16 @@ const Heat: React.FC = () => {
     if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
     setFlashingRiderId(rider.id);
     flashTimerRef.current = setTimeout(() => setFlashingRiderId(null), 1200);
+
+    // After the flash, deterministically drop this rider to the literal end of the
+    // queue (or off it entirely if they just finished) — no lap-count/time guesswork,
+    // so "tap it, it goes last" always means last, full stop.
+    setTimeout(() => {
+      setDisplayOrder((prev) => {
+        const rest = prev.filter((id) => id !== rider.id);
+        return isFinished ? rest : [...rest, rider.id];
+      });
+    }, 1000);
 
     // Add to detected numbers display (voice path adds this via the queue processor)
     const catColor = getCatColor(rider);
@@ -385,11 +345,18 @@ const Heat: React.FC = () => {
     return map;
   }, [waveCategories]);
 
+  // All non-finished riders for this heat, ignoring search/category filter — this is the
+  // stable pool the manual queue (displayOrder) tracks, so typing in the search box never
+  // reshuffles anyone's position.
+  const runningRiders = useMemo(
+    () => filteredRiders.filter((r) => r.raceStatus !== "finished"),
+    [filteredRiders]
+  );
+
   const activeRiders = useMemo(() => {
-    const running = filteredRiders.filter((r) => r.raceStatus !== "finished");
-    const catFiltered = filterCats.size > 0 ? running.filter((r) => filterCats.has(r.category)) : running;
+    const catFiltered = filterCats.size > 0 ? runningRiders.filter((r) => filterCats.has(r.category)) : runningRiders;
     const q = searchTerm.toLowerCase();
-    const searched = q
+    return q
       ? catFiltered.filter(
           (r) =>
             r.firstName.toLowerCase().includes(q) ||
@@ -397,33 +364,32 @@ const Heat: React.FC = () => {
             String(r.bibNumber).includes(q)
         )
       : catFiltered;
-    return [...searched].sort((a, b) => {
-      const catA = catOrderMap.get(a.category) ?? 999;
-      const catB = catOrderMap.get(b.category) ?? 999;
-      if (catA !== catB) return catA - catB;
-      const expA = getExpectedArrival(a, catAvgLapMap.get(a.category) ?? 600000);
-      const expB = getExpectedArrival(b, catAvgLapMap.get(b.category) ?? 600000);
-      return expA - expB;
-    });
-  }, [filteredRiders, searchTerm, filterCats, catAvgLapMap, catOrderMap]);
+  }, [runningRiders, searchTerm, filterCats]);
 
-  // Delayed display order: re-sort only 5s after a lap click, immediately for search/filter changes
-  const activeRiderIdsKey = activeRiders.map((r) => r.id).join(",");
+  // Seed brand-new riders into the manual queue (category then bib, as a starting point)
+  // and drop anyone no longer running (finished/DNF/DSQ/DNS). Reordering itself only ever
+  // happens explicitly, from a tap moving one id to the end — never from a bulk re-sort —
+  // so "tap it, it goes last" always means the literal last position.
+  const runningIdsKey = [...runningRiders.map((r) => r.id)].sort((a, b) => a - b).join(",");
   useEffect(() => {
-    const ids = activeRiders.map((r) => r.id);
-    const msSinceClick = Date.now() - lastClickRef.current;
-    if (msSinceClick < 500) {
-      // Triggered by a lap click — delay re-order by 1s (matches flash animation)
-      if (sortTimerRef.current) clearTimeout(sortTimerRef.current);
-      sortTimerRef.current = setTimeout(() => setDisplayOrder(ids), 1000);
-    } else {
-      // Search/filter/initial change — immediate
-      if (sortTimerRef.current) clearTimeout(sortTimerRef.current);
-      setDisplayOrder(ids);
-    }
-    return () => { if (sortTimerRef.current) clearTimeout(sortTimerRef.current); };
+    const stillRunning = new Set(runningRiders.map((r) => r.id));
+    setDisplayOrder((prev) => {
+      const kept = prev.filter((id) => stillRunning.has(id));
+      const keptSet = new Set(kept);
+      const newcomers = runningRiders
+        .filter((r) => !keptSet.has(r.id))
+        .sort((a, b) => {
+          const catA = catOrderMap.get(a.category) ?? 999;
+          const catB = catOrderMap.get(b.category) ?? 999;
+          if (catA !== catB) return catA - catB;
+          return a.bibNumber - b.bibNumber;
+        })
+        .map((r) => r.id);
+      if (newcomers.length === 0 && kept.length === prev.length) return prev;
+      return [...kept, ...newcomers];
+    });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeRiderIdsKey]);
+  }, [runningIdsKey]);
 
   // Build displayed riders: stable order from displayOrder, live data from activeRiders
   const displayedRiders = useMemo(() => {

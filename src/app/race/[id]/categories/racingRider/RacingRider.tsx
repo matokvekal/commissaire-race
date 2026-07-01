@@ -1,7 +1,17 @@
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import styles from "./racingRider.module.css";
 import { RiderProps } from "@/types/types";
+import { formatTime } from "@/utils/timeUtils";
 import { Bell } from "lucide-react";
+
+function parseTimeToMs(t: string | null | undefined): number | null {
+  if (!t) return null;
+  if (t.includes("T")) return new Date(t).getTime();
+  const today = new Date();
+  const [h, m, s = 0] = t.split(":").map(Number);
+  today.setHours(h, m, s, 0);
+  return today.getTime();
+}
 
 interface Props {
   rider: RiderProps;
@@ -13,9 +23,6 @@ interface Props {
 }
 
 const RacingRider: React.FC<Props> = ({ rider, color, forceBell = false, isFlashing = false, onClick, onDoubleClick }) => {
-  const lastTapRef = useRef<number>(0);
-  const tapTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isDoubleTapRef = useRef<boolean>(false);
   const clickCountRef = useRef<number>(0);
   const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -23,39 +30,33 @@ const RacingRider: React.FC<Props> = ({ rider, color, forceBell = false, isFlash
   const showBell = forceBell || (lapsRemaining === 2);
   const showStripes = forceBell || (lapsRemaining === 1);
 
-  // Create a lighter version of the color by adding transparency
-  const lighterColor = color + '40'; // Add 40% opacity (hex: 40 = ~25% alpha)
+  // Live ticking clock: how long since this rider last crossed (or since race start if never)
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const sinceArriveBaseline = parseTimeToMs(rider.timeArrive) ?? parseTimeToMs(rider.timeStartRace);
+  const sinceArrive = sinceArriveBaseline != null
+    ? formatTime((now - sinceArriveBaseline) / 1000)
+    : null;
 
-  const bgStyle = showStripes
-    ? `repeating-linear-gradient(-45deg, ${color} 0px, ${color} 9px, ${lighterColor} 9px, ${lighterColor} 10px)`
-    : color;
+  // Last completed lap's time — read straight from lapsDetails (the authoritative,
+  // per-lap history) rather than the separately-tracked elapsedLastLap field, which
+  // can end up stale/blank depending on which code path last touched the rider.
+  const lastLap = rider.lapsDetails && rider.lapsDetails.length > 0
+    ? rider.lapsDetails[rider.lapsDetails.length - 1]
+    : null;
+  const lastLapTime = lastLap?.lapTime ?? rider.elapsedLastLap ?? null;
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    const now = Date.now();
-    if (now - lastTapRef.current < 300) {
-      // Double tap detected
-      isDoubleTapRef.current = true;
-      if (tapTimeoutRef.current) clearTimeout(tapTimeoutRef.current);
-      onDoubleClick();
-      lastTapRef.current = 0;
-    } else {
-      // First tap - wait to see if second tap comes
-      lastTapRef.current = now;
-      isDoubleTapRef.current = false;
-      if (tapTimeoutRef.current) clearTimeout(tapTimeoutRef.current);
-      tapTimeoutRef.current = setTimeout(() => {
-        if (!isDoubleTapRef.current) {
-          onClick();
-        }
-      }, 300);
-    }
-  };
+  const bgStyle = color;
 
+  // Single source of truth for tap disambiguation: the browser always eventually fires
+  // a 'click' event, for touch and mouse alike (the viewport meta tag already kills the
+  // old 300ms mobile click delay). A separate touchend-based detector used to run in
+  // parallel with this one — two independent state machines reacting to the same taps —
+  // which could desync and swallow a double-tap on active (still-racing) riders.
   const handleClick = (e: React.MouseEvent) => {
-    // Only fire on desktop (no touch)
-    if ((e as any).clientX === 0 && (e as any).clientY === 0) return; // Skip synthetic clicks
-
-    // Desktop double-click detection
     clickCountRef.current++;
 
     if (clickCountRef.current === 1) {
@@ -64,6 +65,7 @@ const RacingRider: React.FC<Props> = ({ rider, color, forceBell = false, isFlash
       clickTimeoutRef.current = setTimeout(() => {
         if (clickCountRef.current === 1) {
           onClick(); // Single click
+          setNow(Date.now()); // snap the "since arrive" clock to 0 right away, don't wait for the next tick
         }
         clickCountRef.current = 0;
       }, 300);
@@ -79,19 +81,25 @@ const RacingRider: React.FC<Props> = ({ rider, color, forceBell = false, isFlash
 
   return (
     <div
-      className={`${styles.rider} ${showStripes ? styles.penultimate : ""} ${glowClass}`}
+      className={`${styles.rider} ${glowClass}`}
       style={{ background: bgStyle, "--glow-color": color } as React.CSSProperties}
       onClick={handleClick}
       onDoubleClick={(e) => { e.preventDefault(); }}
-      onTouchEnd={handleTouchEnd}
     >
       {showBell && (
         <div className={styles.bellBadge} title={`2 laps left! (${rider.lapsCounter}/${rider.totalLaps})`}>
-          <Bell size={16} />
+          <Bell size={16} color="#ffd60a" fill="#ffd60a" />
+        </div>
+      )}
+      {showStripes && (
+        <div className={styles.flagBadge} title={`Last lap! (${rider.lapsCounter}/${rider.totalLaps})`}>
+          <div className={styles.flagCloth} />
+          <div className={styles.flagPole} />
         </div>
       )}
       <div className={styles.bib}>{rider.bibNumber}</div>
       <div className={styles.laps}>
+        <span className={styles.lapsLabel}>finish:</span>
         {rider.lapsCounter}/{rider.totalLaps}
       </div>
       {rider.totalLaps > 0 && (
@@ -99,8 +107,11 @@ const RacingRider: React.FC<Props> = ({ rider, color, forceBell = false, isFlash
           {lapsRemaining === 1 ? 'Last' : `${Math.max(0, lapsRemaining)} left`}
         </div>
       )}
-      {rider.elapsedLastLap && (
-        <div className={styles.lapTime}>{rider.elapsedLastLap}</div>
+      {(lastLapTime || sinceArrive) && (
+        <div className={styles.lapTime}>
+          <span className={styles.lapTimeCell}>{lastLapTime ?? "--:--"}</span>
+          <span className={styles.lapTimeCell}>{sinceArrive ?? "--:--"}</span>
+        </div>
       )}
       <div className={styles.pos}>{rider.position_category ?? "—"}</div>
     </div>

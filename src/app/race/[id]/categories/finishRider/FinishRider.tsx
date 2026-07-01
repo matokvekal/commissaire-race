@@ -29,7 +29,7 @@ const FinishRider: React.FC<Props> = ({ rider, color, onDoubleClick }) => {
   return (
     <div
       className={`${styles.rider} ${isOut ? styles.out : styles.fin}`}
-      style={{ borderTopColor: color }}
+      style={{ borderColor: color, borderTopColor: color }}
       onDoubleClick={(e) => { e.preventDefault(); onDoubleClick(); }}
       onTouchEnd={handleTouchEnd}
     >

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import styles from './riderActionLog.module.css';
 import { RiderProps } from '@/types/types';
+import { Bell } from 'lucide-react';
 
 interface RiderAction {
   id: string;
@@ -21,10 +22,35 @@ interface RiderActionLogProps {
 const CANCEL_ACTIVE_MS = 20000; // 20 seconds - show cancel button
 const CANCEL_DEADLINE_MS = 30000; // 30 seconds - no more cancelling
 
+function formatDuration(ms: number): string {
+  const totalSec = Math.max(0, Math.round(ms / 1000));
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  const mm = String(m).padStart(2, '0');
+  const ss = String(s).padStart(2, '0');
+  return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+}
+
+function parseTimeToMs(t: string | null | undefined): number | null {
+  if (!t) return null;
+  if (t.includes('T')) return new Date(t).getTime();
+  const today = new Date();
+  const [h, m, s = 0] = t.split(':').map(Number);
+  today.setHours(h, m, s, 0);
+  return today.getTime();
+}
+
 export function RiderActionLog({ actions, isOpen, onToggle, onCancel }: RiderActionLogProps) {
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<Record<string, number>>({});
   const [sortBy, setSortBy] = useState<'arrival' | 'bib'>('arrival');
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -68,30 +94,20 @@ export function RiderActionLog({ actions, isOpen, onToggle, onCancel }: RiderAct
   const riderName = (rider: RiderProps) =>
     `#${rider.bibNumber} ${rider.firstName} ${rider.lastName}`;
 
-  const getOrganizedActions = () => {
-    if (sortBy === 'arrival') {
-      return actions;
+  // "Bib" view: one card per rider, bib ascending. The newest action for that rider
+  // already carries the full cumulative lapsDetails history, so grouping is just "keep the latest".
+  const getRiderGroups = () => {
+    const latestByRider = new Map<number, RiderAction>();
+    for (const action of actions) {
+      const existing = latestByRider.get(action.rider.id);
+      if (!existing || action.timestamp > existing.timestamp) {
+        latestByRider.set(action.rider.id, action);
+      }
     }
 
-    // Group by bib number, then sort within each group by lap descending
-    const grouped = new Map<number, RiderAction[]>();
-    [...actions].forEach((action) => {
-      const bib = action.rider.bibNumber;
-      if (!grouped.has(bib)) grouped.set(bib, []);
-      grouped.get(bib)!.push(action);
-    });
-
-    // Sort each group by lapsCounter ascending (oldest/lowest lap first - chronological order)
-    grouped.forEach((actions) => {
-      actions.sort((a, b) => (a.rider.lapsCounter || 0) - (b.rider.lapsCounter || 0));
-    });
-
-    // Sort groups by bib ascending
-    const sorted = Array.from(grouped.entries())
-      .sort((a, b) => a[0] - b[0])
-      .flatMap(([_, acts]) => acts);
-
-    return sorted;
+    const groups = Array.from(latestByRider.values());
+    groups.sort((a, b) => a.rider.bibNumber - b.rider.bibNumber);
+    return groups;
   };
 
   return (
@@ -131,27 +147,41 @@ export function RiderActionLog({ actions, isOpen, onToggle, onCancel }: RiderAct
 
             {actions.length === 0 ? (
               <div className={styles.empty}>No riders recorded yet</div>
-            ) : (
+            ) : sortBy === 'arrival' ? (
               <div className={styles.list}>
-                {getOrganizedActions().map((action, idx) => {
+                {actions.map((action, idx) => {
                   const isConfirming = confirmingId === action.id;
                   const showCancel = showCancelButton(action);
-                  const canCancelAction = canCancel(action);
                   const remaining = timeRemaining[action.id] ?? CANCEL_ACTIVE_MS;
+
+                  const rider = action.rider;
+                  const isOut = !!action.statusChange;
+                  const isFinished = !isOut && rider.raceStatus === 'finished';
+                  const lapsRemaining = rider.totalLaps - rider.lapsCounter;
+                  const showBell = !isOut && !isFinished && lapsRemaining === 2;
+                  const showLastLapFlag = !isOut && !isFinished && lapsRemaining === 1;
+
+                  const laps = rider.lapsDetails ?? [];
+                  const lastLap = laps.length > 0 ? laps[laps.length - 1] : null;
+                  const lastLapTime = lastLap?.lapTime ?? rider.elapsedLastLap ?? null;
+                  const sinceArriveBaseline = parseTimeToMs(rider.timeArrive) ?? parseTimeToMs(rider.timeStartRace);
+                  const sinceArrive = !isOut && !isFinished && sinceArriveBaseline != null
+                    ? formatDuration(now - sinceArriveBaseline)
+                    : null;
 
                   return (
                     <div key={`${action.id}-${idx}`} className={styles.entry}>
                       <div
                         className={styles.colorDot}
                         style={{ backgroundColor: action.categoryColor }}
-                        title={action.rider.category}
+                        title={rider.category}
                       />
                       <div className={styles.info}>
                         <div className={styles.riderName}>
-                          {riderName(action.rider)}
+                          {riderName(rider)}
                         </div>
-                        {action.rider.team && (
-                          <div className={styles.club}>{action.rider.team}</div>
+                        {rider.team && (
+                          <div className={styles.club}>{rider.team}</div>
                         )}
                         <div className={styles.meta}>
                           <span className={styles.time}>{formatTime(action.timestamp)}</span>
@@ -159,15 +189,35 @@ export function RiderActionLog({ actions, isOpen, onToggle, onCancel }: RiderAct
                             {action.source === 'voice' ? '🎤' : '👆'}
                           </span>
                         </div>
+                        {!isOut && !isFinished && (lastLapTime || sinceArrive) && (
+                          <div className={styles.liveTimes}>
+                            <span className={styles.liveTimesValue}>
+                              {lastLapTime ?? '--:--'} <span className={styles.liveTimesDivider} /> {sinceArrive ?? '--:--'}
+                            </span>
+                          </div>
+                        )}
                       </div>
                       <div className={styles.lapsInfo}>
-                        {action.statusChange ? (
-                          <div className={`${styles.statusBadge} ${styles[action.statusChange.toLowerCase()]}`}>
-                            {action.statusChange} @ {action.rider.lapsCounter}/{action.rider.totalLaps}
+                        {showBell && (
+                          <div className={styles.bellIndicator} title="2 laps left">
+                            <Bell size={14} color="#c07a00" fill="#ffd60a" />
                           </div>
+                        )}
+                        {showLastLapFlag && (
+                          <div className={styles.flagIndicator} title="Last lap">
+                            <div className={styles.flagCloth} />
+                            <div className={styles.flagPole} />
+                          </div>
+                        )}
+                        {isOut ? (
+                          <div className={`${styles.statusBadge} ${styles[action.statusChange!.toLowerCase()]}`}>
+                            {action.statusChange} @ {rider.lapsCounter}/{rider.totalLaps}
+                          </div>
+                        ) : isFinished ? (
+                          <div className={`${styles.statusBadge} ${styles.fin}`}>FINISH</div>
                         ) : (
                           <div className={styles.laps}>
-                            {action.rider.lapsCounter}/{action.rider.totalLaps}
+                            {rider.lapsCounter}/{rider.totalLaps}
                           </div>
                         )}
                       </div>
@@ -197,6 +247,158 @@ export function RiderActionLog({ actions, isOpen, onToggle, onCancel }: RiderAct
                               <button
                                 className={styles.confirmYes}
                                 onClick={() => confirmCancel(action)}
+                              >
+                                Yes, Cancel
+                              </button>
+                              <button
+                                className={styles.confirmNo}
+                                onClick={() => setConfirmingId(null)}
+                              >
+                                No
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className={styles.list}>
+                {getRiderGroups().map((latestAction) => {
+                  const rider = latestAction.rider;
+                  const laps = rider.lapsDetails ?? [];
+                  const raceStartMs = laps.length > 0 ? new Date(laps[0].startTime).getTime() : null;
+
+                  const isConfirming = confirmingId === latestAction.id;
+                  const showCancel = showCancelButton(latestAction);
+                  const canCancelAction = canCancel(latestAction);
+                  const remaining = timeRemaining[latestAction.id] ?? CANCEL_ACTIVE_MS;
+
+                  const isOut = !!latestAction.statusChange;
+                  const isFinished = !isOut && rider.raceStatus === 'finished';
+                  const lapsRemaining = rider.totalLaps - rider.lapsCounter;
+                  const showBell = !isOut && !isFinished && lapsRemaining === 2;
+                  const showLastLapFlag = !isOut && !isFinished && lapsRemaining === 1;
+
+                  const lastLap = laps.length > 0 ? laps[laps.length - 1] : null;
+                  const lastLapTime = lastLap?.lapTime ?? rider.elapsedLastLap ?? null;
+                  const sinceArriveBaseline = parseTimeToMs(rider.timeArrive) ?? parseTimeToMs(rider.timeStartRace);
+                  const sinceArrive = !isOut && !isFinished && sinceArriveBaseline != null
+                    ? formatDuration(now - sinceArriveBaseline)
+                    : null;
+
+                  return (
+                    <div key={rider.id} className={styles.riderCard}>
+                      <div className={styles.riderCardHeader}>
+                        <div
+                          className={styles.colorDot}
+                          style={{ backgroundColor: latestAction.categoryColor }}
+                          title={rider.category}
+                        />
+                        <div className={styles.info}>
+                          <div className={styles.riderName}>{riderName(rider)}</div>
+                          <div className={styles.meta}>
+                            {rider.team && <span className={styles.club}>{rider.team}</span>}
+                            <span className={styles.category}>
+                              {rider.category}
+                              {rider.subCategory && ` · ${rider.subCategory}`}
+                            </span>
+                          </div>
+                        </div>
+                        {showBell && (
+                          <div className={styles.bellIndicator} title="2 laps left">
+                            <Bell size={14} color="#c07a00" fill="#ffd60a" />
+                          </div>
+                        )}
+                        {showLastLapFlag && (
+                          <div className={styles.flagIndicator} title="Last lap">
+                            <div className={styles.flagCloth} />
+                            <div className={styles.flagPole} />
+                          </div>
+                        )}
+                        {isOut && (
+                          <div className={`${styles.statusBadge} ${styles[latestAction.statusChange!.toLowerCase()]}`}>
+                            {latestAction.statusChange} @ {rider.lapsCounter}/{rider.totalLaps}
+                          </div>
+                        )}
+                        {isFinished && (
+                          <div className={`${styles.statusBadge} ${styles.fin}`}>FINISH</div>
+                        )}
+                      </div>
+
+                      {!isOut && !isFinished && (lastLapTime || sinceArrive) && (
+                        <div className={styles.liveTimes}>
+                          <span className={styles.liveTimesLabel}>Last lap / Since arrive</span>
+                          <span className={styles.liveTimesValue}>
+                            {lastLapTime ?? '--:--'} <span className={styles.liveTimesDivider} /> {sinceArrive ?? '--:--'}
+                          </span>
+                        </div>
+                      )}
+
+                      {laps.length > 0 && (
+                        <div className={styles.lapsTable}>
+                          <div className={styles.lapsTableHead}>
+                            <span>Lap</span>
+                            <span>Lap Time</span>
+                            <span>Total</span>
+                            <span>Arrived</span>
+                          </div>
+                          {laps.map((lap, i) => {
+                            const cumulativeMs = raceStartMs != null
+                              ? new Date(lap.endTime).getTime() - raceStartMs
+                              : 0;
+                            const isLastLap = i === laps.length - 1;
+                            return (
+                              <div key={i} className={styles.lapRow}>
+                                <span className={styles.lapNum}>{lap.lap}</span>
+                                <span className={styles.lapTime}>{lap.lapTime}</span>
+                                <span className={styles.lapCumulative}>{formatDuration(cumulativeMs)}</span>
+                                <span className={styles.lapArrival}>{formatTime(new Date(lap.endTime).getTime())}</span>
+                                {isLastLap && !latestAction.statusChange && showCancel && !isConfirming && (
+                                  <button
+                                    className={styles.cancelBtn}
+                                    onClick={() => handleCancel(latestAction)}
+                                    title="Cancel this lap"
+                                  >
+                                    <span className={styles.cancelTime}>
+                                      {Math.ceil(remaining / 1000)}s
+                                    </span>
+                                    ✕
+                                  </button>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Status-only entry (no laps recorded yet) still needs a cancel affordance */}
+                      {laps.length === 0 && latestAction.statusChange && showCancel && !isConfirming && (
+                        <button
+                          className={styles.cancelBtn}
+                          onClick={() => handleCancel(latestAction)}
+                          title="Cancel this status"
+                        >
+                          <span className={styles.cancelTime}>
+                            {Math.ceil(remaining / 1000)}s
+                          </span>
+                          ✕
+                        </button>
+                      )}
+
+                      {/* Confirmation modal */}
+                      {isConfirming && canCancelAction && (
+                        <div className={styles.confirmOverlay}>
+                          <div className={styles.confirmModal}>
+                            <div className={styles.confirmText}>
+                              Cancel {riderName(rider)}?
+                            </div>
+                            <div className={styles.confirmButtons}>
+                              <button
+                                className={styles.confirmYes}
+                                onClick={() => confirmCancel(latestAction)}
                               >
                                 Yes, Cancel
                               </button>

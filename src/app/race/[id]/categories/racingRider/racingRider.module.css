@@ -20,19 +20,46 @@
   box-shadow: 0 1px 3px rgba(0,0,0,0.15);
 }
 
-/* Penultimate lap — ring outline to make it extra obvious */
-.penultimate {
-  box-shadow: 0 0 0 3px #fff, 0 0 0 5px rgba(0,0,0,0.35), 0 3px 10px rgba(0,0,0,0.2);
-}
-
-/* Bell badge sits top-right */
-.bellBadge {
+/* Bell / flag badges sit top-right */
+.bellBadge,
+.flagBadge {
   position: absolute;
   top: 4px;
   right: 5px;
   font-size: 13px;
   line-height: 1;
   filter: drop-shadow(0 1px 2px rgba(0,0,0,0.25));
+}
+
+/* Last lap — mini checkered (racing) flag on a pole, no circle/backing */
+.flagBadge {
+  top: 9px;
+  width: 20px;
+  height: 18px;
+  display: flex;
+  align-items: flex-start;
+  transform: rotate(30deg);
+  transform-origin: bottom right;
+}
+
+.flagCloth {
+  width: 16px;
+  height: 16px;
+  background-image:
+    conic-gradient(#111 90deg, #ff8fc7 90deg 180deg, #111 180deg 270deg, #ff8fc7 270deg);
+  background-size: 8px 8px;
+  clip-path: polygon(
+    0% 20%, 25% 0%, 50% 20%, 75% 0%, 100% 20%,
+    100% 80%, 75% 100%, 50% 80%, 25% 100%, 0% 80%
+  );
+}
+
+.flagPole {
+  width: 2px;
+  height: 30px;
+  margin-left: 1px;
+  background: #ddd;
+  border-radius: 1px;
 }
 
 .bib {
@@ -43,9 +70,21 @@
 }
 
 .laps {
-  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.1;
+  font-size: 10px;
   font-weight: 700;
-  color: rgba(0,0,0,0.75);
+  color: rgba(0,0,0,0.7);
+}
+
+.lapsLabel {
+  font-size: 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(0,0,0,0.5);
 }
 
 .remaining {
@@ -56,15 +95,27 @@
 }
 
 .lapTime {
-  font-size: 10px;
+  display: flex;
+  align-items: center;
+  font-size: 9px;
+  font-weight: 600;
   color: rgba(0,0,0,0.6);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.lapTimeCell {
+  padding: 0 4px;
+}
+
+.lapTimeCell + .lapTimeCell {
+  border-left: 1.5px solid rgba(0,0,0,0.3);
 }
 
 .pos {
-  font-size: 10px;
-  font-weight: 700;
-  color: rgba(0,0,0,0.55);
+  font-size: 15px;
+  font-weight: 800;
+  color: rgba(0,0,0,0.7);
 }
 
 /* Click/voice-confirm flash — one-shot bright glow that fades out */

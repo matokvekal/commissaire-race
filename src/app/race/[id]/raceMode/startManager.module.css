@@ -326,13 +326,30 @@
 .countdownBtn {
   flex: 1;
   padding: 10px;
-  border: 1.5px solid var(--border-card);
+  border: 1.5px solid var(--brand);
   border-radius: 10px;
-  background: var(--bg-card);
+  background: var(--bg-surface-3);
   font-size: 13px;
-  font-weight: 600;
-  color: var(--text-muted);
+  font-weight: 700;
+  color: var(--brand-strong);
   cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.countdownBtn:hover:not(:disabled) {
+  background: var(--brand);
+  color: #fff;
+}
+
+.countdownBtn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.countdownBtn:disabled,
+.startBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.3);
 }
 
 .startBtn {
