@@ -22,6 +22,7 @@ Read this file first, then drill into the specific doc as needed.
 | Race data structure + store | `docs/race-data.md` |
 | Category data structure + store | `docs/category-data.md` |
 | GitHub Pages deployment (CI, custom domain, SPA routing) | `docs/github-pages.md` |
+| Cloud sync, per-race roles, Supabase (numbered doc set) | `docs/cloud/0-START.md` |
 | All CSV field types | `src/app/types/csv.types.ts` — `RiderFieldKey` type |
 | All core types | `src/app/types/types.ts` |
 | Zustand stores | `src/app/stores/` directory |
