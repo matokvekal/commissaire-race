@@ -18,6 +18,7 @@ import RiderLiveModal from "./RiderLiveModal";
 import { VoiceIndicator } from "@/components/voice/VoiceIndicator";
 import { useVoiceRecognition } from "@/components/voice/useVoiceRecognition";
 import { VoiceSettingsModal } from "./VoiceSettingsModal";
+import { MicPermissionModal } from "@/components/voice/MicPermissionModal";
 import { VoiceRadarIcon } from "@/components/voice/VoiceRadarIcon";
 import { DetectedNumbers } from "@/components/voice/DetectedNumbers";
 import { RiderActionLog } from "@/components/voice/RiderActionLog";
@@ -51,6 +52,7 @@ const Heat: React.FC = () => {
   const [showWaveInfo, setShowWaveInfo] = useState(false);
   const [displayOrder, setDisplayOrder] = useState<number[]>([]);
   const [voiceActive, setVoiceActive] = useState(false);
+  const [showMicPrompt, setShowMicPrompt] = useState(false);
   const [showVoiceSettings, setShowVoiceSettings] = useState(false);
   const [voiceAudioLevel, setVoiceAudioLevel] = useState(0);
   const [voiceIsListening, setVoiceIsListening] = useState(false);
@@ -489,6 +491,26 @@ const Heat: React.FC = () => {
     return formatTimeWithLeadingZeroes(Math.max(0, now.getTime() - startDate.getTime()) / 1000);
   }, [filteredRiders, now]);
 
+  // Turn voice on/off. When turning on, make sure we have mic permission first,
+  // showing a friendly pre-prompt before the browser's native permission dialog.
+  const handleToggleVoice = async () => {
+    if (voiceActive) {
+      setVoiceActive(false);
+      return;
+    }
+    // If the browser already reports mic access, skip straight to listening.
+    try {
+      const status = await navigator.permissions?.query({ name: 'microphone' as PermissionName });
+      if (status?.state === 'granted') {
+        setVoiceActive(true);
+        return;
+      }
+    } catch {
+      /* Permissions API not available (e.g. Safari) — fall through to prompt. */
+    }
+    setShowMicPrompt(true);
+  };
+
   return (
     <div className={styles.heat}>
       <HeaderHeats raceId={raceUuid} onSettingsClick={() => setShowVoiceSettings(true)} />
@@ -508,6 +530,17 @@ const Heat: React.FC = () => {
       {/* Voice settings modal */}
       {showVoiceSettings && (
         <VoiceSettingsModal onClose={() => setShowVoiceSettings(false)} />
+      )}
+
+      {/* Microphone permission pre-prompt */}
+      {showMicPrompt && (
+        <MicPermissionModal
+          onGranted={() => {
+            setShowMicPrompt(false);
+            setVoiceActive(true);
+          }}
+          onClose={() => setShowMicPrompt(false)}
+        />
       )}
 
       {/* Wave info modal */}
@@ -701,7 +734,7 @@ const Heat: React.FC = () => {
 
           <button
             className={styles.micButtonRadar}
-            onClick={() => setVoiceActive(!voiceActive)}
+            onClick={handleToggleVoice}
             title={voiceActive ? "Disable voice input" : "Enable voice input"}
           >
             <VoiceRadarIcon

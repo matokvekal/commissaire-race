@@ -9,21 +9,25 @@ import ContactPage from "./app/contact/page";
 import RacePage from "./app/race/[id]/page";
 import HeatPage from "./app/race/[id]/heat/[heatId]/page";
 import StandingPage from "./app/race/[id]/standing/[heatId]/page";
+import { InstallPrompt } from "./app/components/pwa/InstallPrompt";
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/otp" element={<OtpPage />} />
-      <Route path="/loginerror" element={<LoginErrorPage />} />
-      <Route path="/main" element={<MainPage />} />
-      <Route path="/contact" element={<ContactPage />} />
-      <Route path="/race" element={<Navigate to="/main" replace />} />
-      <Route path="/race/:id" element={<RacePage />} />
-      <Route path="/race/:id/heat/:heatId" element={<HeatPage />} />
-      <Route path="/race/:id/standing/:heatId" element={<StandingPage />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/otp" element={<OtpPage />} />
+        <Route path="/loginerror" element={<LoginErrorPage />} />
+        <Route path="/main" element={<MainPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/race" element={<Navigate to="/main" replace />} />
+        <Route path="/race/:id" element={<RacePage />} />
+        <Route path="/race/:id/heat/:heatId" element={<HeatPage />} />
+        <Route path="/race/:id/standing/:heatId" element={<StandingPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      <InstallPrompt />
+    </>
   );
 }
