@@ -137,6 +137,8 @@ export function detectVerticalRules(canvas: HTMLCanvasElement): number[] {
 export interface PreprocessOptions {
    /** Hard binary threshold (0-255). Off by default — see module comment. */
    threshold?: number;
+   /** Local background flattening (highlighted cells, uneven light). Default on. */
+   flatten?: boolean;
 }
 
 /**
@@ -215,16 +217,18 @@ export function preprocessForOCR(
    // max turns "dark text on colored fill" into dark text on white while
    // leaving ink and ruling lines dark. Window radius must exceed the
    // widest ink stroke but stay below cell height (~1/120 of the page).
-   const radius = Math.max(4, Math.round(Math.max(canvas.width, canvas.height) / 120));
-   const background = localBackground(gray, canvas.width, canvas.height, radius);
    const histogram = new Uint32Array(256);
-   for (let i = 0; i < pixelCount; i++) {
-      // Floor the divisor: inside large solid-dark areas (page borders,
-      // photo edges) there is no background to normalize against.
-      const value = (gray[i] * 255) / Math.max(background[i], 64);
-      gray[i] = value > 255 ? 255 : value;
-      histogram[gray[i]]++;
+   if (options.flatten !== false) {
+      const radius = Math.max(4, Math.round(Math.max(canvas.width, canvas.height) / 120));
+      const background = localBackground(gray, canvas.width, canvas.height, radius);
+      for (let i = 0; i < pixelCount; i++) {
+         // Floor the divisor: inside large solid-dark areas (page borders,
+         // photo edges) there is no background to normalize against.
+         const value = (gray[i] * 255) / Math.max(background[i], 64);
+         gray[i] = value > 255 ? 255 : value;
+      }
    }
+   for (let i = 0; i < pixelCount; i++) histogram[gray[i]]++;
 
    // Contrast stretch: remap the 2nd..98th percentile range to 0..255
    const lowCount = pixelCount * 0.02;
