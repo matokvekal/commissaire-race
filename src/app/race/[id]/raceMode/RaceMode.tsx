@@ -7,6 +7,7 @@ import LiveBoard from "./LiveBoard";
 import LiveCards from "./LiveCards";
 import { buildSchedule, DEFAULT_WAVE_GAP_MINUTES } from "../schedule/Schedule";
 import useRiderStore from "@/stores/ridersStore";
+import useUIStore from "@/stores/uiStore";
 import { Flag, Circle } from "lucide-react";
 
 interface Props {
@@ -23,8 +24,17 @@ const RaceMode: React.FC<Props> = ({ raceUuid, categories }) => {
     [categories]
   );
   const waveNums = useMemo(() => [...schedule.keys()], [schedule]);
-  const [selectedWave, setSelectedWave] = useState<number>(waveNums[0] ?? 1);
+  // Shared across Race and Live phases so the top switcher opens the right heat
+  const selectedWave = useUIStore((s) => s.selectedWave);
+  const setSelectedWave = useUIStore((s) => s.setSelectedWave);
   const [subTab, setSubTab] = useState<SubTab>("start");
+
+  // Ensure the selected wave is valid for this race's schedule
+  React.useEffect(() => {
+    if (waveNums.length && !waveNums.includes(selectedWave)) {
+      setSelectedWave(waveNums[0]);
+    }
+  }, [waveNums, selectedWave, setSelectedWave]);
 
   const waveStatusMap = useMemo(() => {
     const map = new Map<number, "upcoming" | "running" | "finished">();

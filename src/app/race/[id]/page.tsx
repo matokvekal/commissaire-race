@@ -18,7 +18,7 @@ import RaceMode from "./raceMode/RaceMode";
 import EditRiders from "./editRiders/EditRiders";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDataStore } from "@/stores/appStore";
-import RaceCloudPanel from "@/components/cloud/RaceCloudPanel";
+// import RaceCloudPanel from "@/components/cloud/RaceCloudPanel"; // cloud tab hidden for now
 import useCloudRaceSync from "@/hooks/useCloudRaceSync";
 import { canForRace } from "@/services/cloud/permissions";
 
@@ -27,9 +27,8 @@ const TABS = [
   "categories",
   "riders",
   "results",
-  "edit",
   "map",
-  "cloud",
+  // "cloud", // hidden for now
   "info"
 ] as const;
 type Tab = (typeof TABS)[number];
@@ -39,6 +38,7 @@ const Race: React.FC = () => {
   const raceUuid = params?.id as string;
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [ridersEdit, setRidersEdit] = useState(false);
 
   const getRaces = useRaceStore((s) => s.getRaces);
   const races = useRaceStore((s) => s.races);
@@ -148,18 +148,23 @@ const Race: React.FC = () => {
               {activeTabSafe === "categories" && (
                 <Categories raceUuid={raceUuid} />
               )}
-              {activeTabSafe === "riders" && (
-                <Riders raceUuid={raceUuid} categories={filteredCategories} />
-              )}
+              {activeTabSafe === "riders" &&
+                (ridersEdit ? (
+                  <EditRiders
+                    raceUuid={raceUuid}
+                    categories={filteredCategories}
+                    onBack={() => setRidersEdit(false)}
+                  />
+                ) : (
+                  <Riders
+                    raceUuid={raceUuid}
+                    categories={filteredCategories}
+                    onEditMode={() => setRidersEdit(true)}
+                  />
+                ))}
               {activeTabSafe === "results" && <Results raceUuid={raceUuid} />}
-              {activeTabSafe === "edit" && (
-                <EditRiders
-                  raceUuid={raceUuid}
-                  categories={filteredCategories}
-                />
-              )}
               {activeTabSafe === "map" && <Map raceUuid={raceUuid} />}
-              {activeTabSafe === "cloud" && <RaceCloudPanel race={race} />}
+              {/* Cloud tab hidden for now */}
               {activeTabSafe === "info" && (
                 <Info
                   race={race}

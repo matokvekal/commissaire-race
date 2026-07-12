@@ -4,7 +4,6 @@ import { CategoryProps, RiderProps } from "@/types/types";
 import useCategoryStore from "@/stores/categoryStore";
 import useRiderStore from "@/stores/ridersStore";
 import useRaceStore from "@/stores/racesStore";
-import { useNavigate } from "react-router-dom";
 import Icons from "@/constants/Icons";
 import Button from "@/components/ui/Button";
 import { Plus, Edit2, GripVertical, X, Trash2, AlertTriangle, Play, Pause, Flag, ChevronUp, ChevronDown } from "lucide-react";
@@ -304,7 +303,6 @@ const ManageCategoriesModal: React.FC<ManageCategoriesModalProps> = ({
 };
 
 const StartManager: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
-  const navigate = useNavigate();
   const { updateCategory } = useCategoryStore();
   const { riders, updateAllRiders } = useRiderStore();
   const { races, updateRace } = useRaceStore();
@@ -924,12 +922,6 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
                     {formatElapsed(currentTime, actualStart)}
                   </span>
                 </div>
-                <button
-                  className={styles.liveBtn}
-                  onClick={() => navigate(`/race/${raceUuid}/heat/${waveNum}`)}
-                >
-                  Go Live →
-                </button>
                 {confirmFinishId === group.id ? (
                   <div className={styles.confirmInline}>
                     <span className={styles.confirmText}>End race?</span>
@@ -1037,8 +1029,8 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
                           )}
                         </span>
                         {total > 0 && (
-                          <span className={allIn ? styles.checkCountOk : styles.checkCountPending}>
-                            {accounted}/{total} ✓
+                          <span className={allIn ? styles.checkCountOk : styles.checkCountPending} title="Checked in">
+                            🚴 {accounted}/{total}
                           </span>
                         )}
                         <span className={`${styles.statusTag}`}>{cat.status ?? "upcoming"}</span>
@@ -1056,9 +1048,8 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
                   {[30, 60, 120].map((sec) => (
                     <button
                       key={sec}
-                      className={styles.countdownBtn}
-                      disabled={totalIssues > 0}
-                      title={totalIssues > 0 ? "Resolve check-in / laps issues first" : undefined}
+                      className={`${styles.countdownBtn} ${totalIssues > 0 ? styles.btnHasIssues : ""}`}
+                      title={totalIssues > 0 ? "Riders still need to check in" : undefined}
                       onClick={() => {
                         const errors = validateGroup(group);
                         if (errors.length > 0) { setStartError(errors); return; }
@@ -1069,9 +1060,8 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
                     </button>
                   ))}
                   <button
-                    className={styles.startBtn}
-                    disabled={totalIssues > 0}
-                    title={totalIssues > 0 ? "Resolve check-in / laps issues first" : undefined}
+                    className={`${styles.startBtn} ${totalIssues > 0 ? styles.btnHasIssues : ""}`}
+                    title={totalIssues > 0 ? "Riders still need to check in" : undefined}
                     onClick={() => startGroup(group)}
                   >
                     <img src={Icons.buttonStart} alt="" width={14} height={14} />

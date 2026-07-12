@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
 import styles from "./liveBoard.module.css";
 import { CategoryProps, RiderProps } from "@/types/types";
 import useRiderStore from "@/stores/ridersStore";
@@ -35,8 +34,7 @@ function elapsed(rider: RiderProps): string {
   return `${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
 }
 
-const LiveBoard: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
-  const navigate = useNavigate();
+const LiveBoard: React.FC<Props> = ({ raceUuid, categories }) => {
   const { riders, getRiders } = useRiderStore();
   const [filterCat, setFilterCat] = useState("all");
   const [podiumMode, setPodiumMode] = useState(false);
@@ -69,12 +67,6 @@ const LiveBoard: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
 
   return (
     <div className={styles.container}>
-      <button
-        className={styles.goLiveBtn}
-        onClick={() => navigate(`/race/${raceUuid}/heat/${waveNum}`)}
-      >
-        Go Live →
-      </button>
       {/* Toolbar */}
       <div className={styles.toolbar}>
         <select

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import { LayoutList, LayoutGrid, Layers, Play, Flag, Trash2 } from "lucide-react";
+import { LayoutList, LayoutGrid, Layers, Play, Flag, Trash2, Pencil } from "lucide-react";
 import styles from "./riders.module.css";
 import Button from "@/components/ui/Button";
 import useRiderStore from "@/stores/ridersStore";
@@ -17,6 +17,7 @@ import { buildSchedule, DEFAULT_WAVE_GAP_MINUTES } from "../schedule/Schedule";
 interface ManageHeatProps {
   raceUuid: string;
   categories: CategoryProps[];
+  onEditMode?: () => void;
 }
 
 type SortKey = "name" | "bib" | "club" | "category";
@@ -57,7 +58,7 @@ function getNowWave(categories: CategoryProps[], catWaveMap: Map<string, number>
   return closest;
 }
 
-const Riders: React.FC<ManageHeatProps> = ({ raceUuid, categories }) => {
+const Riders: React.FC<ManageHeatProps> = ({ raceUuid, categories, onEditMode }) => {
   const previousRaceUuid = useRef<string | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [sortBy, setSortBy] = useState<SortKey>("name");
@@ -213,6 +214,16 @@ const Riders: React.FC<ManageHeatProps> = ({ raceUuid, categories }) => {
             variant="bar"
             onClick={() => { setImportMode("scan"); setShowImportWizard(true); }}
           />
+          {onEditMode && (
+            <Button
+              variant="secondary"
+              size="sm"
+              className={styles.importBtn}
+              onClick={onEditMode}
+            >
+              <Pencil size={14} /> Edit
+            </Button>
+          )}
         </div>
       </div>
 

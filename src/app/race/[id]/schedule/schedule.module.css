@@ -609,6 +609,31 @@
   gap: 8px;
 }
 
+.nudgeBtn {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: #ffffff;
+  min-width: 34px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  transition: all 0.2s;
+}
+
+.nudgeBtn:hover {
+  background: rgba(255, 255, 255, 0.24);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.nudgeBtn:active {
+  transform: scale(0.94);
+}
+
 .timeInput {
   background: var(--bg-card);
   border: 1px solid var(--border-card);

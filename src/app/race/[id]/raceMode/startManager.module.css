@@ -352,6 +352,12 @@
   filter: grayscale(0.3);
 }
 
+/* Not-ready state: still clickable, but clicking opens the check-in modal */
+.btnHasIssues {
+  opacity: 0.55;
+  filter: grayscale(0.35);
+}
+
 .startBtn {
   flex: 2;
   display: flex;

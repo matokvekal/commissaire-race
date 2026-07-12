@@ -1,0 +1,76 @@
+.switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 12px;
+  background: rgba(10, 16, 28, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background-color 0.18s, color 0.18s;
+  white-space: nowrap;
+}
+
+.btn:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.label {
+  line-height: 1;
+}
+
+/* Active button: filled with the phase's accent colour */
+.active {
+  color: #fff;
+}
+
+.setupActive {
+  background: #3f86e7;
+  box-shadow: 0 2px 8px rgba(63, 134, 231, 0.4);
+}
+
+.raceActive {
+  background: #16a34a;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.4);
+}
+
+.liveActive {
+  background: #dc2626;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.45);
+}
+
+/* Pulsing dot on the Live button while it's the active phase */
+.liveDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  animation: livePulse 1.2s ease-in-out infinite;
+}
+
+@keyframes livePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.75); }
+}
+
+/* Compact on narrow screens: keep icons + labels but tighten spacing */
+@media (max-width: 420px) {
+  .btn {
+    padding: 6px 9px;
+    font-size: 11px;
+  }
+}

@@ -1,5 +1,4 @@
 import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import styles from "./liveCards.module.css";
 import { CategoryProps, RiderProps } from "@/types/types";
 import useRiderStore from "@/stores/ridersStore";
@@ -26,8 +25,7 @@ interface Props {
   categories: CategoryProps[];
 }
 
-const LiveCards: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
-  const navigate = useNavigate();
+const LiveCards: React.FC<Props> = ({ raceUuid, categories }) => {
   const { riders, getRiders, updateRider, updateAllRiders } = useRiderStore();
 
   useEffect(() => { getRiders(raceUuid); }, [raceUuid, getRiders]);
@@ -102,12 +100,6 @@ const LiveCards: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
           Race hasn't started yet
         </div>
       )}
-      <button
-        className={styles.goLiveBtn}
-        onClick={() => navigate(`/race/${raceUuid}/heat/${waveNum}`)}
-      >
-        Go Live →
-      </button>
 
       {categories.map((cat) => {
         const catRiders = positioned.filter((r) => r.category === cat.name);

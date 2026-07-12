@@ -57,10 +57,60 @@ export function toMinutes(t: string | null | undefined): number {
   return h * 60 + m;
 }
 
+export function minutesToTime(mins: number): string {
+  const clamped = ((Math.round(mins) % 1440) + 1440) % 1440;
+  const h = Math.floor(clamped / 60);
+  const m = clamped % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
 export function buildSchedule(
   categories: CategoryProps[],
   waveGapMinutes = DEFAULT_WAVE_GAP_MINUTES
 ) {
+  // Once categories have been assigned to explicit waves (via the Schedule
+  // editor, which writes `heat`), that assignment is authoritative — group by
+  // wave number so a wave shows even if its start time is close to another's.
+  const hasExplicitWaves = categories.some((c) => Number(c.heat) > 0);
+
+  if (hasExplicitWaves) {
+    const waveMap = new Map<number, Map<string, CategoryProps[]>>();
+    const addCat = (waveNum: number, cat: CategoryProps) => {
+      const startKey = normalizeTime(cat.startTime) ?? "TBD";
+      if (!waveMap.has(waveNum)) waveMap.set(waveNum, new Map());
+      const startMap = waveMap.get(waveNum)!;
+      if (!startMap.has(startKey)) startMap.set(startKey, []);
+      startMap.get(startKey)!.push(cat);
+    };
+
+    // Assigned categories → grouped by their wave number
+    const assigned = [...categories]
+      .filter((c) => Number(c.heat) > 0)
+      .sort((a, b) => {
+        const dh = Number(a.heat) - Number(b.heat);
+        return dh !== 0 ? dh : toMinutes(a.startTime) - toMinutes(b.startTime);
+      });
+    assigned.forEach((cat) => addCat(Number(cat.heat), cat));
+
+    // Leftovers with a start time but no wave (e.g. imported after an edit)
+    // → appended as time-derived waves after the last assigned wave.
+    const maxHeat = assigned.reduce((m, c) => Math.max(m, Number(c.heat)), 0);
+    const leftovers = [...categories]
+      .filter((c) => !(Number(c.heat) > 0) && Number.isFinite(toMinutes(c.startTime)))
+      .sort((a, b) => toMinutes(a.startTime) - toMinutes(b.startTime));
+    let waveNum = maxHeat;
+    let lastStartMinutes = -Infinity;
+    for (const cat of leftovers) {
+      const catMinutes = toMinutes(cat.startTime);
+      if (catMinutes - lastStartMinutes > waveGapMinutes) waveNum++;
+      lastStartMinutes = catMinutes;
+      addCat(waveNum, cat);
+    }
+
+    return waveMap;
+  }
+
+  // Fallback for unedited schedules: derive waves from start-time gaps.
   const sorted = [...categories].sort(
     (a, b) => toMinutes(a.startTime) - toMinutes(b.startTime)
   );
@@ -155,7 +205,19 @@ const Schedule: React.FC<Props> = ({ raceUuid, categories }) => {
 
   const addWave = () => {
     const maxWave = waves.length > 0 ? Math.max(...waves.map((w) => w.number)) : 0;
-    setWaves([...waves, { id: Date.now(), number: maxWave + 1, startTime: "08:00", startSlots: [] }]);
+    // New wave starts 1.5 hours after the latest existing wave (default 08:00 if none)
+    const times = waves.map((w) => toMinutes(w.startTime)).filter((n) => Number.isFinite(n));
+    const startTime = times.length ? minutesToTime(Math.max(...times) + 90) : "08:00";
+    setWaves([...waves, { id: Date.now(), number: maxWave + 1, startTime, startSlots: [] }]);
+  };
+
+  // Nudge a wave's start time by ±minutes (used by the −5 / +5 buttons)
+  const nudgeWaveTime = (waveId: number, delta: number) => {
+    const wave = waves.find((w) => w.id === waveId);
+    if (!wave) return;
+    const base = toMinutes(wave.startTime);
+    const mins = Number.isFinite(base) ? base : toMinutes("08:00");
+    updateWaveTime(waveId, minutesToTime(mins + delta));
   };
 
   const updateWaveTime = (waveId: number, time: string) => {
@@ -304,12 +366,26 @@ const Schedule: React.FC<Props> = ({ raceUuid, categories }) => {
                   <button className={styles.iconBtn} onClick={() => moveWave(wave.id, "down")} disabled={waveIdx === waves.length - 1} title="Move down">↓</button>
                 </div>
                 <span className={styles.waveLabel}>Wave {wave.number}</span>
+                <button
+                  className={styles.nudgeBtn}
+                  onClick={() => nudgeWaveTime(wave.id, -5)}
+                  title="5 minutes earlier"
+                >
+                  −5
+                </button>
                 <input
                   type="time"
                   className={styles.timeInput}
                   value={wave.startTime}
                   onChange={(e) => updateWaveTime(wave.id, e.target.value)}
                 />
+                <button
+                  className={styles.nudgeBtn}
+                  onClick={() => nudgeWaveTime(wave.id, 5)}
+                  title="5 minutes later"
+                >
+                  +5
+                </button>
                 <div style={{ marginLeft: "auto" }}>
                   <Button variant="icon" size="sm" iconOnly onClick={() => deleteWave(wave.id)}>
                     <Trash2 size={14} />
@@ -385,7 +461,7 @@ const Schedule: React.FC<Props> = ({ raceUuid, categories }) => {
             <option value={90}>1.5 hrs</option>
           </select>
         </label>
-        <Button variant="primary" size="sm" startIcon={<Edit2 size={14} />} onClick={enterEditMode}>
+        <Button variant="secondary" size="sm" startIcon={<Edit2 size={14} />} onClick={enterEditMode}>
           Edit Schedule
         </Button>
       </div>
@@ -416,16 +492,8 @@ const Schedule: React.FC<Props> = ({ raceUuid, categories }) => {
               </span>
               {firstTime !== "TBD" && <span className={styles.waveTime}>{firstTime}</span>}
               {waveRiders.length > 0 && (
-                <span className={styles.waveStat}>{waveFinished}/{waveRiders.length} ✓</span>
+                <span className={styles.waveStat} title="Finishers">🏁 {waveFinished}/{waveRiders.length}</span>
               )}
-              <Button
-                variant="success"
-                size="sm"
-                className={styles.liveBtn}
-                onClick={() => navigate(`/race/${raceUuid}/heat/${waveNum}`)}
-              >
-                <Radio size={13} /> Go Live
-              </Button>
             </div>
 
             {[...startMap.entries()].map(([startTime, cats], si) => {
@@ -452,7 +520,7 @@ const Schedule: React.FC<Props> = ({ raceUuid, categories }) => {
                         <span className={styles.startTime}> · {startTime}</span>
                       )}
                       {startRiders.length > 0 && (
-                        <span className={styles.startStat}>{startFinished}/{startRiders.length}</span>
+                        <span className={styles.startStat} title="Finishers">🏁 {startFinished}/{startRiders.length}</span>
                       )}
                     </div>
                     <div className={styles.startActions}>

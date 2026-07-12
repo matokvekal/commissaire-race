@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import styles from "./checkIn.module.css";
 import { CategoryProps, RiderProps } from "@/types/types";
 import useRiderStore from "@/stores/ridersStore";
@@ -17,7 +16,6 @@ interface Props {
 }
 
 const CheckIn: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
-  const navigate = useNavigate();
   const { riders, getRiders, updateRider } = useRiderStore();
   const { openModal } = useUIStore();
   const [search, setSearch] = useState("");
@@ -90,12 +88,6 @@ const CheckIn: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
           🏁 Race in progress — check-in locked. You can still change rider status.
         </div>
       )}
-      <button
-        className={styles.goLiveBtn}
-        onClick={() => navigate(`/race/${raceUuid}/heat/${waveNum}`)}
-      >
-        Go Live →
-      </button>
       <div className={styles.toolbar}>
         <div className={styles.searchWrap}>
           <img src={Icons.search} alt="" width={14} height={14} />
