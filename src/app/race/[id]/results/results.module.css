@@ -223,9 +223,10 @@
 }
 
 .bib {
-  width: 36px;
-  font-size: 11px;
-  color: #7a7a9a;
+  min-width: 36px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #3a5580;
   flex-shrink: 0;
 }
 
@@ -241,17 +242,18 @@
 .laps {
   font-size: 14px;
   font-weight: 600;
-  color: #fff;
+  color: #4a6178;
   flex-shrink: 0;
 }
 
 .time {
   font-size: 14px;
-  font-weight: 600;
-  color: #fff;
-  width: 60px;
+  font-weight: 700;
+  color: #1a304f;
+  width: 64px;
   text-align: right;
   flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
 }
 
 .statusChip {

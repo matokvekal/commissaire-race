@@ -20,6 +20,36 @@
   box-shadow: 0 1px 3px rgba(0,0,0,0.15);
 }
 
+/* ── Still on track: this rider's race has ended but they haven't finished.
+   Amber outline + pulsing ribbon so the organizer can't miss who's on the road. */
+.onTrack {
+  outline: 3px solid #f5a623;
+  outline-offset: 1px;
+  box-shadow: 0 0 0 4px rgba(245, 166, 35, 0.25), 0 2px 8px rgba(0,0,0,0.18);
+  padding-top: 16px;
+}
+
+.onTrackRibbon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #f5a623;
+  color: #3a2600;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-align: center;
+  padding: 2px 0;
+  border-radius: 16px 16px 0 0;
+  animation: onTrackPulse 1.3s ease-in-out infinite;
+}
+
+@keyframes onTrackPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
 /* Bell / flag badges sit top-right */
 .bellBadge,
 .flagBadge {

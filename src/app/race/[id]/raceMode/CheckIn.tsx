@@ -23,6 +23,8 @@ const CheckIn: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
   const [selectedRider, setSelectedRider] = useState<RiderProps | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [viewMode, setViewMode] = useState<"list" | "cards">("list");
+  const [sortByStanding, setSortByStanding] = useState(false);
+  const [standingScope, setStandingScope] = useState<"category" | "overall">("category");
 
   useEffect(() => { getRiders(raceUuid); }, [raceUuid, getRiders]);
 
@@ -41,6 +43,23 @@ const CheckIn: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
       String(r.bibNumber).includes(q)
     );
   });
+
+  // Standing = the seeding number imported per rider (position_start).
+  // When enabled we order by it — either within each category, or as one
+  // overall standing across the whole wave (races where standing is global).
+  const byStanding = (a: RiderProps, b: RiderProps) =>
+    (a.position_start ?? Infinity) - (b.position_start ?? Infinity);
+
+  const displayed = sortByStanding
+    ? [...filtered].sort((a, b) => {
+        if (standingScope === "category" && a.category !== b.category)
+          return a.category.localeCompare(b.category);
+        return byStanding(a, b);
+      })
+    : filtered;
+
+  const catColorOf = (name: string) =>
+    categories.find((c) => c.name === name)?.color ?? "#63a6fc";
 
   const catNames = [...new Set(waveRiders.map((r) => r.category))].sort();
 
@@ -116,6 +135,29 @@ const CheckIn: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
         </div>
       </div>
 
+      <div className={styles.standingBar}>
+        <label className={styles.standingToggle}>
+          <input
+            type="checkbox"
+            checked={sortByStanding}
+            onChange={(e) => setSortByStanding(e.target.checked)}
+          />
+          <span>Sort by standing</span>
+        </label>
+        {sortByStanding && (
+          <div className={styles.scopeToggle}>
+            <button
+              className={`${styles.scopeBtn} ${standingScope === "category" ? styles.scopeBtnActive : ""}`}
+              onClick={() => setStandingScope("category")}
+            >Per category</button>
+            <button
+              className={`${styles.scopeBtn} ${standingScope === "overall" ? styles.scopeBtnActive : ""}`}
+              onClick={() => setStandingScope("overall")}
+            >Overall</button>
+          </div>
+        )}
+      </div>
+
       <div className={styles.counts}>
         <span className={styles.countItem}>✓ {waveRiders.filter((r) => r.checked).length} checked</span>
         <span className={styles.countItem}>✗ {waveRiders.filter((r) => r.status === "DNS").length} DNS</span>
@@ -129,7 +171,7 @@ const CheckIn: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
 
       {viewMode === "list" ? (
         <div className={styles.list}>
-          {filtered.map((rider) => {
+          {displayed.map((rider) => {
             const hasStatus = ["DNS", "DNF", "DSQ"].includes(rider.status);
             const statusClass = rider.status === "DNS"
               ? styles.dnsBadge
@@ -165,16 +207,24 @@ const CheckIn: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
                     </>
                   )}
                 </div>
+                {sortByStanding && (
+                  <span className={styles.standingNum} title="Standing">
+                    {rider.position_start ?? "–"}
+                  </span>
+                )}
                 <span className={styles.bib}>#{rider.bibNumber}</span>
                 <span className={styles.name}>{rider.lastName} {rider.firstName}</span>
-                <span className={styles.cat}>{rider.category}</span>
+                <span className={styles.cat}>
+                  <span className={styles.catDot} style={{ background: catColorOf(rider.category) }} />
+                  {rider.category}
+                </span>
               </div>
             );
           })}
         </div>
       ) : (
         <div className={styles.cardGrid}>
-          {filtered.map((rider) => {
+          {displayed.map((rider) => {
             const hasStatus = ["DNS", "DNF", "DSQ"].includes(rider.status);
             const isChecked = rider.checked;
             const cat = categories.find((c) => c.name === rider.category);

@@ -1,6 +1,7 @@
 import React, { useRef } from "react";
 import styles from "./finishRider.module.css";
 import { RiderProps } from "@/types/types";
+import { riderTotalTime } from "@/utils/timeUtils";
 import { Flag } from "lucide-react";
 
 interface Props {
@@ -40,7 +41,7 @@ const FinishRider: React.FC<Props> = ({ rider, color, onDoubleClick }) => {
       </div>
       {!isOut && <div className={styles.pos}>P{rider.position_category ?? "—"}</div>}
       <div className={styles.time}>
-        {rider.elapsedTimeFromStart || rider.elapsedLastLap || "—"}
+        {riderTotalTime(rider)}
       </div>
     </div>
   );

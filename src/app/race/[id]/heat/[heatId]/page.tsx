@@ -113,7 +113,15 @@ const Heat: React.FC = () => {
 
   const filteredRiders = useMemo(
     () => {
-      const filtered = riders.filter((r) => r.raceUuid === raceUuid && heatCategories.includes(r.category));
+      // Live shows only riders whose race has actually begun in this wave —
+      // started or finished. Categories in the wave that haven't been started
+      // yet (and DNS riders) stay "upcoming" and are excluded.
+      const filtered = riders.filter(
+        (r) =>
+          r.raceUuid === raceUuid &&
+          heatCategories.includes(r.category) &&
+          r.raceStatus !== "upcoming"
+      );
       // Enrich riders with totalLaps from their category
       return filtered.map((rider) => {
         const cat = categories.find((c) => c.name === rider.category);
@@ -127,6 +135,11 @@ const Heat: React.FC = () => {
     const cat = categories.find((c) => c.name === rider.category);
     return cat?.color ?? rider.color ?? "#ccc";
   };
+
+  // A rider "still on the track": their category's race has ended but they
+  // haven't finished — the organizer must not lose sight of them.
+  const isOnTrackAfterEnd = (rider: RiderProps): boolean =>
+    categories.find((c) => c.name === rider.category)?.status === "finished";
 
   const handleRiderClick = (rider: RiderProps, source: 'click' | 'voice' = 'click') => {
     if ((rider.totalLaps > 0 && rider.lapsCounter >= rider.totalLaps) || rider.raceStatus === "finished") return;
@@ -706,6 +719,17 @@ const Heat: React.FC = () => {
               {filterCats.size > 0 && (
                 <span className={styles.filterActive}> · {filterCats.size} filtered</span>
               )}
+              {(() => {
+                const onTrack = runningRiders.filter(isOnTrackAfterEnd).length;
+                return onTrack > 0 ? (
+                  <span
+                    className={styles.onTrackTotal}
+                    title="Riders still on the track after their race ended — don't forget them"
+                  >
+                    ⚑ {onTrack} still on track
+                  </span>
+                ) : null;
+              })()}
             </div>
             <button
               className={`${styles.filterIconBtn} ${filterCats.size > 0 ? styles.filterIconActive : ""}`}
@@ -725,6 +749,7 @@ const Heat: React.FC = () => {
                   color={getCatColor(rider)}
                   forceBell={cascadeBellCats.has(rider.category)}
                   isFlashing={flashingRiderId === rider.id}
+                  raceEnded={isOnTrackAfterEnd(rider)}
                   onClick={() => handleRiderClick(rider)}
                   onDoubleClick={() => setContextRider(rider)}
                 />

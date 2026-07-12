@@ -45,10 +45,11 @@ const RacePhaseSwitcher: React.FC = () => {
     icon: React.ReactNode;
     onClick: () => void;
     activeClass: string;
+    idleClass: string;
   }[] = [
-    { key: "setup", label: "Setup", icon: <Sliders size={14} />, onClick: goSetup, activeClass: styles.setupActive },
-    { key: "race", label: "Race", icon: <Flag size={14} />, onClick: goRace, activeClass: styles.raceActive },
-    { key: "live", label: "Live", icon: <Radio size={14} />, onClick: goLive, activeClass: styles.liveActive },
+    { key: "setup", label: "Race", icon: <Sliders size={14} />, onClick: goSetup, activeClass: styles.setupActive, idleClass: styles.setupIdle },
+    { key: "race", label: "Start", icon: <Flag size={14} />, onClick: goRace, activeClass: styles.raceActive, idleClass: styles.raceIdle },
+    { key: "live", label: "Live", icon: <Radio size={14} />, onClick: goLive, activeClass: styles.liveActive, idleClass: styles.liveIdle },
   ];
 
   return (
@@ -60,7 +61,7 @@ const RacePhaseSwitcher: React.FC = () => {
             key={it.key}
             role="tab"
             aria-selected={active}
-            className={`${styles.btn} ${active ? `${styles.active} ${it.activeClass}` : ""}`}
+            className={`${styles.btn} ${active ? `${styles.active} ${it.activeClass}` : it.idleClass}`}
             onClick={it.onClick}
           >
             {it.key === "live" && active ? (

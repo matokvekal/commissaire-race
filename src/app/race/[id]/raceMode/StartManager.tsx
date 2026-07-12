@@ -554,6 +554,23 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
 
     const allUpdatedRiders: RiderProps[] = [];
 
+    // Clear the track from the previous wave: any rider whose category already
+    // finished but who is still "running" (was on the road when the race ended)
+    // is finalized now, so starting a new wave leaves no ghosts behind on Live.
+    riders
+      .filter((r) => r.raceUuid === raceUuid && r.raceStatus === "running")
+      .forEach((r) => {
+        const cat = categories.find((c) => c.name === r.category);
+        if (cat?.status === "finished") {
+          const isOut = ["DNF", "DSQ", "DNS"].includes(r.status);
+          allUpdatedRiders.push({
+            ...r,
+            raceStatus: "finished" as const,
+            status: isOut ? r.status : ("finished" as const),
+          });
+        }
+      });
+
     for (const cat of cats) {
       if (cat.status !== "upcoming") continue;
       const catRiders = riders.filter(
@@ -599,11 +616,21 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
       const catRiders = riders.filter(
         (r) => r.category === cat.name && r.raceUuid === raceUuid && r.status !== "DNS"
       );
-      const updatedRiders = catRiders.map((r) => ({
-        ...r,
-        raceStatus: r.raceStatus === "running" ? ("finished" as const) : r.raceStatus,
-        elapsedTimeFromStart: r.elapsedTimeFromStart ?? formatElapsed(now, r.timeStartRace),
-      }));
+      const updatedRiders = catRiders.map((r) => {
+        const completed = r.raceStatus === "finished";
+        const isOut = r.status === "DNF" || r.status === "DSQ" || r.status === "DNS";
+        return {
+          ...r,
+          // Riders who already completed their laps are finalized as finished.
+          // Riders STILL ON THE TRACK keep raceStatus "running" so they remain
+          // visible on Live (flagged "still on track") — the organizer must not
+          // lose them. They get finalized when the wave is cleared by a new start.
+          status: completed && !isOut ? ("finished" as const) : r.status,
+          elapsedTimeFromStart: completed
+            ? (r.elapsedTimeFromStart ?? formatElapsed(now, r.timeStartRace))
+            : r.elapsedTimeFromStart,
+        };
+      });
       if (updatedRiders.length > 0) await updateAllRiders(updatedRiders);
     }
 

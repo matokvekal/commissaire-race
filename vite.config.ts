@@ -11,7 +11,7 @@ export default defineConfig({
     },
   },
   define: {
-    'import.meta.env.VITE_APP_VERSION': JSON.stringify(process.env.npm_package_version || '0.1.1'),
+    'import.meta.env.VITE_APP_VERSION': JSON.stringify(process.env.npm_package_version || '0.1.2'),
   },
   server: {
     host: '0.0.0.0',

@@ -25,32 +25,60 @@
   white-space: nowrap;
 }
 
-.btn:hover {
-  color: rgba(255, 255, 255, 0.85);
-}
-
 .label {
   line-height: 1;
 }
+
+/* ── Traffic-light phases: Race 🔴 → Start 🟡 → Live 🟢 ──
+   Idle buttons wear a faint tint of their own colour so the
+   colour language is always readable; active buttons fill solid. */
 
 /* Active button: filled with the phase's accent colour */
 .active {
   color: #fff;
 }
 
+/* Race (setup) — RED */
+.setupIdle {
+  background: rgba(220, 38, 38, 0.14);
+  color: #f4a3a3;
+}
+.setupIdle:hover {
+  background: rgba(220, 38, 38, 0.22);
+  color: #ffc4c4;
+}
 .setupActive {
-  background: #3f86e7;
-  box-shadow: 0 2px 8px rgba(63, 134, 231, 0.4);
-}
-
-.raceActive {
-  background: #16a34a;
-  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.4);
-}
-
-.liveActive {
   background: #dc2626;
   box-shadow: 0 2px 8px rgba(220, 38, 38, 0.45);
+}
+
+/* Start (race) — AMBER */
+.raceIdle {
+  background: rgba(234, 179, 8, 0.14);
+  color: #e6c25a;
+}
+.raceIdle:hover {
+  background: rgba(234, 179, 8, 0.24);
+  color: #ffdd7a;
+}
+.raceActive {
+  background: #eab308;
+  color: #3a2c00;
+  box-shadow: 0 2px 8px rgba(234, 179, 8, 0.45);
+}
+
+/* Live — GREEN */
+.liveIdle {
+  background: rgba(22, 163, 74, 0.14);
+  color: #7fd9a0;
+}
+.liveIdle:hover {
+  background: rgba(22, 163, 74, 0.24);
+  color: #a5f0c2;
+}
+.liveActive {
+  background: #16a34a;
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.45);
 }
 
 /* Pulsing dot on the Live button while it's the active phase */
