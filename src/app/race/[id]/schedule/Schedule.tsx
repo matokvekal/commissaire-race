@@ -43,6 +43,23 @@ interface Wave {
 
 export const DEFAULT_WAVE_GAP_MINUTES = 30;
 
+// A category's identity is name + subCategory, NOT name alone — the same name
+// (e.g. "Masters Men ") can exist in multiple waves with different sub-categories.
+// Any map from category → wave MUST key by this composite, or waves collide.
+export function catWaveKey(name: string, subCategory?: string | null): string {
+  return `${name}::${subCategory ?? ""}`;
+}
+
+// True when a rider belongs to a category — matched by name AND subCategory, so a
+// shared category name (e.g. "Masters Men " 19-29 vs 30-49) never pulls in riders
+// from another start/wave. Use this everywhere riders are filtered by category.
+export function riderInCategory(
+  rider: { category: string; subCategory?: string | null },
+  cat: { name: string; subCategory?: string | null }
+): boolean {
+  return rider.category === cat.name && (rider.subCategory ?? null) === (cat.subCategory ?? null);
+}
+
 export function normalizeTime(t: string | null | undefined): string | null {
   if (!t) return null;
   const m = t.match(/^(\d{1,2}):(\d{2})/);
@@ -137,6 +154,17 @@ export function buildSchedule(
 
 const OUT_STATUSES = new Set(["DNS", "DSQ", "DNF"]);
 
+// A wave is "locked" once it has started or finished — its start time can no
+// longer be edited. "finished" = every category finished; "running" = at least
+// one category running or finished (but not all finished yet).
+type WaveLock = "running" | "finished" | null;
+
+function getWaveLock(statuses: (string | null | undefined)[]): WaveLock {
+  if (statuses.length && statuses.every((s) => s === "finished")) return "finished";
+  if (statuses.some((s) => s === "running" || s === "finished")) return "running";
+  return null;
+}
+
 function sortRidersForStanding(riderList: RiderProps[]): RiderProps[] {
   return [...riderList].sort((a, b) => a.bibNumber - b.bibNumber);
 }
@@ -151,7 +179,6 @@ const Schedule: React.FC<Props> = ({ raceUuid, categories }) => {
   }));
 
   const [editMode, setEditMode] = useState(false);
-  const [waveGap, setWaveGap] = useState(DEFAULT_WAVE_GAP_MINUTES);
   const [waves, setWaves] = useState<Wave[]>([]);
   const [unassignedCategories, setUnassignedCategories] = useState<CategoryProps[]>([]);
   const [expandedCats, setExpandedCats] = useState<Set<number>>(new Set());
@@ -175,7 +202,7 @@ const Schedule: React.FC<Props> = ({ raceUuid, categories }) => {
     getRiders(raceUuid);
   }, [raceUuid, getRiders]);
 
-  const schedule = buildSchedule(categories, waveGap);
+  const schedule = buildSchedule(categories, DEFAULT_WAVE_GAP_MINUTES);
 
   const enterEditMode = () => {
     const waveData: Wave[] = [];
@@ -359,40 +386,57 @@ const Schedule: React.FC<Props> = ({ raceUuid, categories }) => {
           {waves.length === 0 ? (
             <div className={styles.emptyMessage}>No waves yet — click "Add Wave" to create one.</div>
           ) : (
-            waves.map((wave, waveIdx) => (
-              <div key={wave.id} className={styles.waveTimeRow}>
-                <div className={styles.dragButtons}>
-                  <button className={styles.iconBtn} onClick={() => moveWave(wave.id, "up")} disabled={waveIdx === 0} title="Move up">↑</button>
-                  <button className={styles.iconBtn} onClick={() => moveWave(wave.id, "down")} disabled={waveIdx === waves.length - 1} title="Move down">↓</button>
+            waves.map((wave, waveIdx) => {
+              const waveLock = getWaveLock(
+                wave.startSlots
+                  .flatMap((s) => s.categoryIds)
+                  .map((id) => categories.find((c) => c.id === id)?.status)
+              );
+              const locked = waveLock !== null;
+              return (
+                <div key={wave.id} className={styles.waveTimeRow} data-wave-lock={waveLock ?? undefined}>
+                  <div className={styles.dragButtons}>
+                    <button className={styles.iconBtn} onClick={() => moveWave(wave.id, "up")} disabled={waveIdx === 0} title="Move up">↑</button>
+                    <button className={styles.iconBtn} onClick={() => moveWave(wave.id, "down")} disabled={waveIdx === waves.length - 1} title="Move down">↓</button>
+                  </div>
+                  <span className={styles.waveLabel}>Wave {wave.number}</span>
+                  <button
+                    className={styles.nudgeBtn}
+                    onClick={() => nudgeWaveTime(wave.id, -5)}
+                    disabled={locked}
+                    title={locked ? "Time locked — wave already started" : "5 minutes earlier"}
+                  >
+                    −5
+                  </button>
+                  <input
+                    type="time"
+                    className={styles.timeInput}
+                    value={wave.startTime}
+                    onChange={(e) => updateWaveTime(wave.id, e.target.value)}
+                    disabled={locked}
+                    title={locked ? "Time locked — wave already started" : undefined}
+                  />
+                  <button
+                    className={styles.nudgeBtn}
+                    onClick={() => nudgeWaveTime(wave.id, 5)}
+                    disabled={locked}
+                    title={locked ? "Time locked — wave already started" : "5 minutes later"}
+                  >
+                    +5
+                  </button>
+                  {locked && (
+                    <span className={styles.lockTag} data-wave-lock={waveLock}>
+                      🔒 {waveLock === "finished" ? "Finished" : "Started"}
+                    </span>
+                  )}
+                  <div style={{ marginLeft: "auto" }}>
+                    <Button variant="icon" size="sm" iconOnly onClick={() => deleteWave(wave.id)}>
+                      <Trash2 size={14} />
+                    </Button>
+                  </div>
                 </div>
-                <span className={styles.waveLabel}>Wave {wave.number}</span>
-                <button
-                  className={styles.nudgeBtn}
-                  onClick={() => nudgeWaveTime(wave.id, -5)}
-                  title="5 minutes earlier"
-                >
-                  −5
-                </button>
-                <input
-                  type="time"
-                  className={styles.timeInput}
-                  value={wave.startTime}
-                  onChange={(e) => updateWaveTime(wave.id, e.target.value)}
-                />
-                <button
-                  className={styles.nudgeBtn}
-                  onClick={() => nudgeWaveTime(wave.id, 5)}
-                  title="5 minutes later"
-                >
-                  +5
-                </button>
-                <div style={{ marginLeft: "auto" }}>
-                  <Button variant="icon" size="sm" iconOnly onClick={() => deleteWave(wave.id)}>
-                    <Trash2 size={14} />
-                  </Button>
-                </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 
@@ -447,20 +491,6 @@ const Schedule: React.FC<Props> = ({ raceUuid, categories }) => {
         >
           {allExpanded ? <ChevronsUp size={16} /> : <ChevronsDown size={16} />}
         </button>
-        <label className={styles.gapLabel}>
-          Wave gap
-          <select
-            className={styles.gapSelect}
-            value={waveGap}
-            onChange={(e) => setWaveGap(Number(e.target.value))}
-          >
-            <option value={15}>15 min</option>
-            <option value={30}>30 min</option>
-            <option value={45}>45 min</option>
-            <option value={60}>1 hour</option>
-            <option value={90}>1.5 hrs</option>
-          </select>
-        </label>
         <Button variant="secondary" size="sm" startIcon={<Edit2 size={14} />} onClick={enterEditMode}>
           Edit Schedule
         </Button>
@@ -479,10 +509,11 @@ const Schedule: React.FC<Props> = ({ raceUuid, categories }) => {
         );
         const waveFinished = waveRiders.filter((r) => r.status === "finished").length;
         const waveStatusInfo = getWaveStatusInfo(allWaveCats.map((c) => c.status));
+        const waveLock = getWaveLock(allWaveCats.map((c) => c.status));
 
         return (
           <div key={waveNum} className={styles.wave}>
-            <div className={styles.waveHeader}>
+            <div className={styles.waveHeader} data-wave-lock={waveLock ?? undefined}>
               <span className={styles.waveLabel}>Wave {waveNum}</span>
               <span
                 className={styles.statusBadge}
@@ -498,6 +529,7 @@ const Schedule: React.FC<Props> = ({ raceUuid, categories }) => {
 
             {[...startMap.entries()].map(([startTime, cats], si) => {
               const anyRunning = cats.some((c) => c.status === "running");
+              const startLock = getWaveLock(cats.map((c) => c.status));
               const startRiders = cats.flatMap((cat) =>
                 riders.filter(
                   (r) =>
@@ -510,7 +542,7 @@ const Schedule: React.FC<Props> = ({ raceUuid, categories }) => {
 
               return (
                 <div key={startTime} className={styles.startGroup}>
-                  <div className={styles.startHeader} data-wave-running={anyRunning ? "true" : "false"}>
+                  <div className={styles.startHeader} data-wave-running={anyRunning ? "true" : "false"} data-wave-lock={startLock ?? undefined}>
                     <div className={styles.startInfo}>
                       <span>Start {si + 1}</span>
                       {si === 0 && firstTime !== "TBD" && (

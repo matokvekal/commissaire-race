@@ -50,6 +50,46 @@
   min-height: 32px;
 }
 
+/* ── Started / finished waves "shine" ──────────────────────────────
+   A wave that has started or finished is locked; a moving sheen +
+   colored edge glow flags it. Green = started, gold = finished. */
+.waveHeader[data-wave-lock] {
+  position: relative;
+  overflow: hidden;
+}
+
+.waveHeader[data-wave-lock="running"] {
+  --shine: rgba(62, 221, 164, 0.45);
+  box-shadow: inset 4px 0 0 #3edda4, 0 0 16px rgba(62, 221, 164, 0.28);
+}
+
+.waveHeader[data-wave-lock="finished"] {
+  --shine: rgba(255, 207, 64, 0.55);
+  box-shadow: inset 4px 0 0 #ffcf40, 0 0 16px rgba(255, 207, 64, 0.32);
+}
+
+.waveHeader[data-wave-lock]::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 45%;
+  height: 100%;
+  background: linear-gradient(100deg, transparent, var(--shine, rgba(255, 255, 255, 0.3)), transparent);
+  transform: skewX(-20deg);
+  pointer-events: none;
+  animation: waveShine 3.8s ease-in-out infinite;
+}
+
+@keyframes waveShine {
+  0% { left: -60%; }
+  55%, 100% { left: 160%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .waveHeader[data-wave-lock]::after { animation: none; }
+}
+
 /* Start group */
 .startGroup {
   border-top: 3px solid var(--text-primary);
@@ -81,6 +121,39 @@
   border-bottom-color: #f0e6c0;
   color: #5a4a2a;
   text-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);
+}
+
+/* ── Started / finished start-group "shine" (green / gold edge + sheen) ── */
+.startHeader[data-wave-lock] {
+  position: relative;
+  overflow: hidden;
+}
+
+.startHeader[data-wave-lock="running"] {
+  --shine: rgba(62, 221, 164, 0.5);
+  box-shadow: inset 4px 0 0 #24a877, inset 0 -2px 0 rgba(0, 0, 0, 0.1);
+}
+
+.startHeader[data-wave-lock="finished"] {
+  --shine: rgba(240, 160, 20, 0.5);
+  box-shadow: inset 4px 0 0 #c8860a, inset 0 -2px 0 rgba(0, 0, 0, 0.1);
+}
+
+.startHeader[data-wave-lock]::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 45%;
+  height: 100%;
+  background: linear-gradient(100deg, transparent, var(--shine, rgba(255, 255, 255, 0.3)), transparent);
+  transform: skewX(-20deg);
+  pointer-events: none;
+  animation: waveShine 3.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .startHeader[data-wave-lock]::after { animation: none; }
 }
 
 .startInfo {
@@ -902,6 +975,49 @@
 
 .waveTimeRow:last-child {
   border-bottom: none;
+}
+
+/* Locked (started / finished) wave rows in the editor */
+.waveTimeRow[data-wave-lock="running"] {
+  box-shadow: inset 4px 0 0 #3edda4;
+}
+
+.waveTimeRow[data-wave-lock="finished"] {
+  box-shadow: inset 4px 0 0 #ffcf40;
+}
+
+.nudgeBtn:disabled,
+.timeInput:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.nudgeBtn:disabled:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.lockTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+.lockTag[data-wave-lock="running"] {
+  color: #3edda4;
+  background: rgba(62, 221, 164, 0.16);
+}
+
+.lockTag[data-wave-lock="finished"] {
+  color: #ffcf40;
+  background: rgba(255, 207, 64, 0.18);
 }
 
 .categoryAssignSection {

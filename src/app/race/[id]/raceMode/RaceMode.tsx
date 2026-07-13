@@ -5,7 +5,7 @@ import StartManager from "./StartManager";
 import CheckIn from "./CheckIn";
 import LiveBoard from "./LiveBoard";
 import LiveCards from "./LiveCards";
-import { buildSchedule, DEFAULT_WAVE_GAP_MINUTES } from "../schedule/Schedule";
+import { buildSchedule, DEFAULT_WAVE_GAP_MINUTES, riderInCategory } from "../schedule/Schedule";
 import useRiderStore from "@/stores/ridersStore";
 import useUIStore from "@/stores/uiStore";
 import { Flag, Circle } from "lucide-react";
@@ -59,9 +59,8 @@ const RaceMode: React.FC<Props> = ({ raceUuid, categories }) => {
   const riders = useRiderStore((state) => state.riders);
   const needsCheckIn = useMemo(() => {
     if (waveStatusMap.get(selectedWave) !== "upcoming") return false;
-    const catNames = new Set(waveCategories.map((c) => c.name));
     const waveRiders = riders.filter(
-      (r) => r.raceUuid === raceUuid && catNames.has(r.category)
+      (r) => r.raceUuid === raceUuid && waveCategories.some((c) => riderInCategory(r, c))
     );
     if (waveRiders.length === 0) return false;
     return waveRiders.every(

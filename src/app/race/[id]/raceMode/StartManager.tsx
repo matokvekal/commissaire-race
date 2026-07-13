@@ -7,6 +7,7 @@ import useRaceStore from "@/stores/racesStore";
 import Icons from "@/constants/Icons";
 import Button from "@/components/ui/Button";
 import { Plus, Edit2, GripVertical, X, Trash2, AlertTriangle, Play, Pause, Flag, ChevronUp, ChevronDown } from "lucide-react";
+import { riderInCategory } from "../schedule/Schedule";
 
 interface Props {
   raceUuid: string;
@@ -303,9 +304,22 @@ const ManageCategoriesModal: React.FC<ManageCategoriesModalProps> = ({
 };
 
 const StartManager: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
-  const { updateCategory } = useCategoryStore();
+  const { updateCategory, categories: allCategories } = useCategoryStore();
   const { riders, updateAllRiders } = useRiderStore();
   const { races, updateRace } = useRaceStore();
+
+  // This wave has begun once at least one of its categories is running or finished.
+  // Rule: once begun, the wave's start time can no longer be adjusted.
+  const waveHasStarted = categories.some(
+    (c) => c.status === "running" || c.status === "finished"
+  );
+
+  // Rule: only one wave may run at a time. If any category OUTSIDE this wave is
+  // running, this wave cannot be started until that one finishes.
+  const thisWaveIds = new Set(categories.map((c) => c.id));
+  const otherWaveRunning = allCategories.some(
+    (c) => c.raceUuid === raceUuid && !thisWaveIds.has(c.id) && c.status === "running"
+  );
   const [countdown, setCountdown] = useState<{ groupId: string; seconds: number } | null>(null);
 const [editingStartId, setEditingStartId] = useState<string | null>(null);
   const [startGroups, setStartGroups] = useState<StartGroup[]>([]);
@@ -497,7 +511,7 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
         errors.push(`"${cat.name}": no laps configured`);
       }
       const catRiders = riders.filter(
-        (r) => r.category === cat.name && r.raceUuid === raceUuid && r.status !== "DNS"
+        (r) => riderInCategory(r, cat) && r.raceUuid === raceUuid && r.status !== "DNS"
       );
       if (catRiders.length === 0) {
         errors.push(`"${cat.name}": no riders assigned`);
@@ -519,7 +533,7 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
     const issues: string[] = [];
     if (!cat.laps || cat.laps <= 0) issues.push("No laps configured");
     const catRiders = riders.filter(
-      (r) => r.category === cat.name && r.raceUuid === raceUuid && r.status !== "DNS"
+      (r) => riderInCategory(r, cat) && r.raceUuid === raceUuid && r.status !== "DNS"
     );
     if (catRiders.length === 0) {
       issues.push("No riders assigned");
@@ -534,6 +548,11 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
   };
 
   const startGroup = async (group: StartGroup) => {
+    // Only one wave may run at a time.
+    if (otherWaveRunning) {
+      setStartError(["Another wave is still running — finish it before starting this wave."]);
+      return;
+    }
     const errors = validateGroup(group);
     if (errors.length > 0) {
       setStartError(errors);
@@ -560,7 +579,7 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
     riders
       .filter((r) => r.raceUuid === raceUuid && r.raceStatus === "running")
       .forEach((r) => {
-        const cat = categories.find((c) => c.name === r.category);
+        const cat = allCategories.find((c) => c.raceUuid === raceUuid && riderInCategory(r, c));
         if (cat?.status === "finished") {
           const isOut = ["DNF", "DSQ", "DNS"].includes(r.status);
           allUpdatedRiders.push({
@@ -575,7 +594,7 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
       if (cat.status !== "upcoming") continue;
       const catRiders = riders.filter(
         (r) =>
-          r.category === cat.name &&
+          riderInCategory(r, cat) &&
           r.raceUuid === raceUuid &&
           r.status !== "DNS"
       );
@@ -614,7 +633,7 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
         await updateCategory({ ...cat, status: "finished" as const, finishedAt: now.getTime() });
       }
       const catRiders = riders.filter(
-        (r) => r.category === cat.name && r.raceUuid === raceUuid && r.status !== "DNS"
+        (r) => riderInCategory(r, cat) && r.raceUuid === raceUuid && r.status !== "DNS"
       );
       const updatedRiders = catRiders.map((r) => {
         const completed = r.raceStatus === "finished";
@@ -821,33 +840,44 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
         <div className={styles.waveTimeHeader}>
           <span className={styles.waveLabel}>Wave {waveNum} Start Time</span>
           <span className={styles.waveTimeHelp}>
-            (Adjusting wave time shifts all starts)
+            {waveHasStarted
+              ? "🔒 Locked — wave already started"
+              : "(Adjusting wave time shifts all starts)"}
           </span>
         </div>
         <div className={styles.waveTimeAdjust}>
           <button
             className={styles.waveTimeBtn}
             onClick={() => adjustWaveTime(-30)}
-            title="Shift all starts -30 seconds"
+            disabled={waveHasStarted}
+            title={waveHasStarted ? "Time locked — wave already started" : "Shift all starts -30 seconds"}
           >
             − 30s
           </button>
           <span
             className={styles.waveTimeDisplay}
-            onClick={setWaveTimeToNow}
-            title="Click to set wave time to now"
+            onClick={waveHasStarted ? undefined : setWaveTimeToNow}
+            style={waveHasStarted ? { cursor: "default" } : undefined}
+            title={waveHasStarted ? "Time locked — wave already started" : "Click to set wave time to now"}
           >
             {waveBaseTime || "Not Set"}
           </span>
           <button
             className={styles.waveTimeBtn}
             onClick={() => adjustWaveTime(30)}
-            title="Shift all starts +30 seconds"
+            disabled={waveHasStarted}
+            title={waveHasStarted ? "Time locked — wave already started" : "Shift all starts +30 seconds"}
           >
             + 30s
           </button>
         </div>
       </div>
+
+      {otherWaveRunning && (
+        <div className={styles.otherWaveBanner}>
+          ⚠ Another wave is still running — finish it before starting this wave.
+        </div>
+      )}
 
       {startGroups.map((group, si) => {
         const cats = group.categoryIds
@@ -903,7 +933,7 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
         if (isRunning) {
           // Use rider timeStartRace for actual elapsed (cat.startTime is the scheduled time)
           const runningRider = riders.find(
-            (r) => r.raceUuid === raceUuid && cats.some((c) => c.name === r.category) && r.raceStatus === "running" && r.timeStartRace
+            (r) => r.raceUuid === raceUuid && cats.some((c) => riderInCategory(r, c)) && r.raceStatus === "running" && r.timeStartRace
           );
           const actualStart = runningRider?.timeStartRace ?? group.time;
 
@@ -920,7 +950,7 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
               <div className={styles.catList}>
                 {cats.map((cat) => {
                   const catRider = riders.find(
-                    (r) => r.raceUuid === raceUuid && r.category === cat.name && r.raceStatus === "running" && r.timeStartRace
+                    (r) => r.raceUuid === raceUuid && riderInCategory(r, cat) && r.raceStatus === "running" && r.timeStartRace
                   );
                   return (
                     <div key={cat.id} className={styles.catRow}>
@@ -1041,7 +1071,7 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
               <>
                 <div className={styles.catList}>
                   {cats.map((cat) => {
-                    const catRiders = riders.filter((r) => r.raceUuid === raceUuid && r.category === cat.name);
+                    const catRiders = riders.filter((r) => r.raceUuid === raceUuid && riderInCategory(r, cat));
                     const total = catRiders.length;
                     const accounted = catRiders.filter((r) => r.checked || ["DNS", "DNF", "DSQ"].includes(r.status)).length;
                     const allIn = total > 0 && accounted >= total;
@@ -1076,8 +1106,10 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
                     <button
                       key={sec}
                       className={`${styles.countdownBtn} ${totalIssues > 0 ? styles.btnHasIssues : ""}`}
-                      title={totalIssues > 0 ? "Riders still need to check in" : undefined}
+                      disabled={otherWaveRunning}
+                      title={otherWaveRunning ? "Another wave is still running" : totalIssues > 0 ? "Riders still need to check in" : undefined}
                       onClick={() => {
+                        if (otherWaveRunning) { setStartError(["Another wave is still running — finish it before starting this wave."]); return; }
                         const errors = validateGroup(group);
                         if (errors.length > 0) { setStartError(errors); return; }
                         setCountdown({ groupId: group.id, seconds: sec });
@@ -1088,7 +1120,8 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
                   ))}
                   <button
                     className={`${styles.startBtn} ${totalIssues > 0 ? styles.btnHasIssues : ""}`}
-                    title={totalIssues > 0 ? "Riders still need to check in" : undefined}
+                    disabled={otherWaveRunning}
+                    title={otherWaveRunning ? "Another wave is still running" : totalIssues > 0 ? "Riders still need to check in" : undefined}
                     onClick={() => startGroup(group)}
                   >
                     <img src={Icons.buttonStart} alt="" width={14} height={14} />

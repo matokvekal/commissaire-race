@@ -8,6 +8,7 @@ import QuickAddRider from "./QuickAddRider";
 import Icons from "@/constants/Icons";
 import { recordRaceEvent } from "@/services/cloud/raceEvents";
 import { canForRace } from "@/services/cloud/permissions";
+import { riderInCategory } from "../schedule/Schedule";
 
 interface Props {
   raceUuid: string;
@@ -23,14 +24,14 @@ const CheckIn: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
   const [selectedRider, setSelectedRider] = useState<RiderProps | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [viewMode, setViewMode] = useState<"list" | "cards">("list");
+  const [groupByCat, setGroupByCat] = useState(false);
   const [sortByStanding, setSortByStanding] = useState(false);
   const [standingScope, setStandingScope] = useState<"category" | "overall">("category");
 
   useEffect(() => { getRiders(raceUuid); }, [raceUuid, getRiders]);
 
-  const waveCatNames = new Set(categories.map((c) => c.name));
   const waveRiders = riders.filter(
-    (r) => r.raceUuid === raceUuid && waveCatNames.has(r.category)
+    (r) => r.raceUuid === raceUuid && categories.some((c) => riderInCategory(r, c))
   );
 
   const filtered = waveRiders.filter((r) => {
@@ -58,8 +59,15 @@ const CheckIn: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
       })
     : filtered;
 
-  const catColorOf = (name: string) =>
-    categories.find((c) => c.name === name)?.color ?? "#63a6fc";
+  // Per-rider category color. Prefer the rider's own color (set from its exact
+  // category incl. subCategory); fall back to a composite category lookup so a
+  // shared category name (e.g. "Masters Men " 19-29 vs 30-49) resolves correctly.
+  const catColorOfRider = (rider: RiderProps) =>
+    rider.color ??
+    categories.find(
+      (c) => c.name === rider.category && (c.subCategory ?? null) === (rider.subCategory ?? null)
+    )?.color ??
+    "#63a6fc";
 
   const catNames = [...new Set(waveRiders.map((r) => r.category))].sort();
 
@@ -100,6 +108,123 @@ const CheckIn: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
     if (selectedRider) updateRider({ ...selectedRider, status });
   };
 
+  const catMetaOf = (name: string, sub: string | null) =>
+    categories.find((c) => c.name === name && (c.subCategory ?? null) === sub);
+
+  // Group the displayed riders into per-category blocks (name + subCategory),
+  // ordered by category start time then name, for the "blocks" check-in view.
+  const groups = (() => {
+    const map = new Map<string, { key: string; name: string; sub: string | null; color: string; riders: RiderProps[] }>();
+    for (const r of displayed) {
+      const sub = r.subCategory ?? null;
+      const key = `${r.category} ${sub ?? ""}`;
+      if (!map.has(key)) map.set(key, { key, name: r.category, sub, color: catColorOfRider(r), riders: [] });
+      map.get(key)!.riders.push(r);
+    }
+    return [...map.values()].sort((a, b) => {
+      const sa = catMetaOf(a.name, a.sub)?.startTime ?? "";
+      const sb = catMetaOf(b.name, b.sub)?.startTime ?? "";
+      if (sa !== sb) return sa.localeCompare(sb);
+      return a.name.localeCompare(b.name);
+    });
+  })();
+
+  const renderRow = (rider: RiderProps) => {
+    const hasStatus = ["DNS", "DNF", "DSQ"].includes(rider.status);
+    const statusClass = rider.status === "DNS"
+      ? styles.dnsBadge
+      : rider.status === "DNF"
+      ? styles.dnfBadge
+      : rider.status === "DSQ"
+      ? styles.dsqBadge
+      : "";
+    return (
+      <div key={rider.id} className={`${styles.row} ${rider.checked ? styles.checked : ""} ${hasStatus ? styles.out : ""}`}>
+        <span className={styles.rowColorBar} style={{ background: catColorOfRider(rider) }} title={rider.category} />
+        <div className={styles.leftArea}>
+          {hasStatus ? (
+            <button
+              className={`${styles.statusInlineBadge} ${statusClass}`}
+              onClick={() => { setSelectedRider(rider); openModal("modalStatus"); }}
+              title="Tap to change status"
+            >
+              {rider.status}
+            </button>
+          ) : isRaceActive ? (
+            <>
+              <span className={`${styles.checkBtn} ${rider.checked ? styles.checkedBtn : styles.lockedBtn}`} title="Check-in locked" />
+              <button className={styles.statusTrigger} onClick={() => { setSelectedRider(rider); openModal("modalStatus"); }}>Status</button>
+            </>
+          ) : (
+            <>
+              <button
+                className={`${styles.checkBtn} ${rider.checked ? styles.checkedBtn : ""}`}
+                onClick={() => toggleCheck(rider)}
+                title={rider.checked ? "Uncheck" : "Check in"}
+              />
+              <button className={styles.statusTrigger} onClick={() => { setSelectedRider(rider); openModal("modalStatus"); }}>Status</button>
+            </>
+          )}
+        </div>
+        {sortByStanding && (
+          <span className={styles.standingNum} title="Standing">
+            {rider.position_start ?? "–"}
+          </span>
+        )}
+        <span className={styles.bib}>#{rider.bibNumber}</span>
+        <span className={styles.name}>{rider.lastName} {rider.firstName}</span>
+        <span className={styles.cat}>
+          <span className={styles.catDot} style={{ background: catColorOfRider(rider) }} />
+          {rider.category}
+        </span>
+      </div>
+    );
+  };
+
+  const renderCard = (rider: RiderProps) => {
+    const hasStatus = ["DNS", "DNF", "DSQ"].includes(rider.status);
+    const isChecked = rider.checked;
+    const catColor = catColorOfRider(rider);
+    const tileBg = isChecked
+      ? `linear-gradient(160deg, #3edda4, #2fcf95)`
+      : hasStatus
+      ? "#d0d8ea"
+      : catColor;
+    return (
+      <div key={rider.id} className={`${styles.checkTile} ${hasStatus ? styles.checkTileOut : ""}`}>
+        {/* Category color strip — always visible, even when checked (green) or out (grey) */}
+        <span className={styles.tileCatStrip} style={{ background: catColor }} title={rider.category} />
+        <div className={styles.checkTileInner} style={{ background: tileBg }}>
+          <button
+            className={styles.tileStatusTrigger}
+            onClick={() => { setSelectedRider(rider); openModal("modalStatus"); }}
+            title="Change status"
+          >⋯</button>
+          {isChecked && !hasStatus && <div className={styles.checkMark}>✓</div>}
+          <div className={styles.checkTileBib}>{rider.bibNumber}</div>
+          {hasStatus && <div className={styles.tileStatusBadge}>{rider.status}</div>}
+        </div>
+        <button
+          className={styles.checkTileBtn}
+          onClick={() => { if (!isRaceActive && !hasStatus) toggleCheck(rider); }}
+          disabled={isRaceActive || hasStatus}
+        >
+          {isChecked ? "✓ Go Live" : "Go Live"}
+        </button>
+      </div>
+    );
+  };
+
+  const renderGroupHeader = (g: { name: string; sub: string | null; color: string; riders: RiderProps[] }) => (
+    <div className={styles.catGroupHeader}>
+      <span className={styles.catGroupBar} style={{ background: g.color }} />
+      <span className={styles.catGroupName}>{g.name}{g.sub ? ` · ${g.sub}` : ""}</span>
+      <span className={styles.catGroupCount}>
+        ✓ {g.riders.filter((r) => r.checked).length}/{g.riders.length}
+      </span>
+    </div>
+  );
+
   return (
     <div className={styles.container}>
       {isRaceActive && (
@@ -139,6 +264,14 @@ const CheckIn: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
         <label className={styles.standingToggle}>
           <input
             type="checkbox"
+            checked={groupByCat}
+            onChange={(e) => setGroupByCat(e.target.checked)}
+          />
+          <span>Group by category</span>
+        </label>
+        <label className={styles.standingToggle}>
+          <input
+            type="checkbox"
             checked={sortByStanding}
             onChange={(e) => setSortByStanding(e.target.checked)}
           />
@@ -169,94 +302,23 @@ const CheckIn: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
         )}
       </div>
 
-      {viewMode === "list" ? (
-        <div className={styles.list}>
-          {displayed.map((rider) => {
-            const hasStatus = ["DNS", "DNF", "DSQ"].includes(rider.status);
-            const statusClass = rider.status === "DNS"
-              ? styles.dnsBadge
-              : rider.status === "DNF"
-              ? styles.dnfBadge
-              : rider.status === "DSQ"
-              ? styles.dsqBadge
-              : "";
-            return (
-              <div key={rider.id} className={`${styles.row} ${rider.checked ? styles.checked : ""} ${hasStatus ? styles.out : ""}`}>
-                <div className={styles.leftArea}>
-                  {hasStatus ? (
-                    <button
-                      className={`${styles.statusInlineBadge} ${statusClass}`}
-                      onClick={() => { setSelectedRider(rider); openModal("modalStatus"); }}
-                      title="Tap to change status"
-                    >
-                      {rider.status}
-                    </button>
-                  ) : isRaceActive ? (
-                    <>
-                      <span className={`${styles.checkBtn} ${rider.checked ? styles.checkedBtn : styles.lockedBtn}`} title="Check-in locked" />
-                      <button className={styles.statusTrigger} onClick={() => { setSelectedRider(rider); openModal("modalStatus"); }}>Status</button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        className={`${styles.checkBtn} ${rider.checked ? styles.checkedBtn : ""}`}
-                        onClick={() => toggleCheck(rider)}
-                        title={rider.checked ? "Uncheck" : "Check in"}
-                      />
-                      <button className={styles.statusTrigger} onClick={() => { setSelectedRider(rider); openModal("modalStatus"); }}>Status</button>
-                    </>
-                  )}
-                </div>
-                {sortByStanding && (
-                  <span className={styles.standingNum} title="Standing">
-                    {rider.position_start ?? "–"}
-                  </span>
-                )}
-                <span className={styles.bib}>#{rider.bibNumber}</span>
-                <span className={styles.name}>{rider.lastName} {rider.firstName}</span>
-                <span className={styles.cat}>
-                  <span className={styles.catDot} style={{ background: catColorOf(rider.category) }} />
-                  {rider.category}
-                </span>
-              </div>
-            );
-          })}
+      {groupByCat ? (
+        <div className={styles.groupWrap}>
+          {groups.map((g) => (
+            <div key={g.key} className={styles.catGroup}>
+              {renderGroupHeader(g)}
+              {viewMode === "list" ? (
+                <div className={styles.list}>{g.riders.map(renderRow)}</div>
+              ) : (
+                <div className={styles.cardGrid}>{g.riders.map(renderCard)}</div>
+              )}
+            </div>
+          ))}
         </div>
+      ) : viewMode === "list" ? (
+        <div className={styles.list}>{displayed.map(renderRow)}</div>
       ) : (
-        <div className={styles.cardGrid}>
-          {displayed.map((rider) => {
-            const hasStatus = ["DNS", "DNF", "DSQ"].includes(rider.status);
-            const isChecked = rider.checked;
-            const cat = categories.find((c) => c.name === rider.category);
-            const catColor = cat?.color ?? "#63a6fc";
-            const tileBg = isChecked
-              ? `linear-gradient(160deg, #3edda4, #2fcf95)`
-              : hasStatus
-              ? "#d0d8ea"
-              : catColor;
-            return (
-              <div key={rider.id} className={`${styles.checkTile} ${hasStatus ? styles.checkTileOut : ""}`}>
-                <div className={styles.checkTileInner} style={{ background: tileBg }}>
-                  <button
-                    className={styles.tileStatusTrigger}
-                    onClick={() => { setSelectedRider(rider); openModal("modalStatus"); }}
-                    title="Change status"
-                  >⋯</button>
-                  {isChecked && !hasStatus && <div className={styles.checkMark}>✓</div>}
-                  <div className={styles.checkTileBib}>{rider.bibNumber}</div>
-                  {hasStatus && <div className={styles.tileStatusBadge}>{rider.status}</div>}
-                </div>
-                <button
-                  className={styles.checkTileBtn}
-                  onClick={() => { if (!isRaceActive && !hasStatus) toggleCheck(rider); }}
-                  disabled={isRaceActive || hasStatus}
-                >
-                  {isChecked ? "✓ Go Live" : "Go Live"}
-                </button>
-              </div>
-            );
-          })}
-        </div>
+        <div className={styles.cardGrid}>{displayed.map(renderCard)}</div>
       )}
 
       <button className={styles.addBtn} onClick={() => setShowAdd((v) => !v)}>

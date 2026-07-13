@@ -1,5 +1,7 @@
 import { initIndexedDB } from "@/stores/indexDb/indexedDbHelper";
 import useRaceStore from "@/stores/racesStore";
+import useCategoryStore from "@/stores/categoryStore";
+import useRiderStore from "@/stores/ridersStore";
 import type { RaceProps, CategoryProps, RiderProps } from "@/types/types";
 
 export const DEMO_RACE_UUID = "demo-race-99001";
@@ -213,13 +215,53 @@ const RIDERS: RiderProps[] = [
   mk(99040, 105, "Paola", "Vitale", C_MW, "50+", IT_AURORA, "it", 2, "#795548", 4, 5),
 ];
 
-// Idempotent — safe to call multiple times; skips silently if demo already loaded.
-export async function seedDemoRace(): Promise<void> {
+// Fresh copies of the seed data — never hand store/IDB a shared module object.
+const cleanCategories = (): CategoryProps[] => CATEGORIES.map((c) => ({ ...c }));
+const cleanRiders = (): RiderProps[] =>
+  RIDERS.map((r) => ({ ...r, lapsDetails: [] }));
+
+// Overwrite the demo's categories + riders for DEMO_RACE_UUID back to the clean
+// seed state, in BOTH IndexedDB and the Zustand stores, so every tab reflects the
+// reset immediately (no stale finished/running statuses left over from a prior run).
+async function resetDemoData(): Promise<void> {
+  const cats = cleanCategories();
+  const riders = cleanRiders();
+
+  const db = await initIndexedDB();
+
+  const catTx = db.transaction("categories", "readwrite");
+  const existingCats = (await catTx.store.getAll()) as CategoryProps[];
+  for (const c of existingCats) if (c.raceUuid === DEMO_RACE_UUID) await catTx.store.delete(c.id);
+  for (const c of cats) await catTx.store.put(c);
+  await catTx.done;
+
+  const riderTx = db.transaction("riders", "readwrite");
+  const existingRiders = (await riderTx.store.getAll()) as RiderProps[];
+  for (const r of existingRiders) if (r.raceUuid === DEMO_RACE_UUID) await riderTx.store.delete(r.id);
+  for (const r of riders) await riderTx.store.put(r);
+  await riderTx.done;
+
+  db.close();
+
+  // Sync in-memory state (Zustand is the source the tabs render from).
+  useCategoryStore.setState((s) => ({
+    categories: [...s.categories.filter((c) => c.raceUuid !== DEMO_RACE_UUID), ...cleanCategories()],
+  }));
+  useRiderStore.setState((s) => ({
+    riders: [...s.riders.filter((r) => r.raceUuid !== DEMO_RACE_UUID), ...cleanRiders()],
+    lastFetchedRaceUuid: DEMO_RACE_UUID,
+  }));
+}
+
+// Idempotent by default — skips if demo already loaded. Pass `force` (e.g. from the
+// "Try Demo Race" button) to wipe the demo back to a clean, unstarted state.
+export async function seedDemoRace(force = false): Promise<void> {
   try {
     const db = await initIndexedDB();
     const allRaces = await db.getAll("races");
     const existing = (allRaces as RaceProps[]).find((r) => r.uuid === DEMO_RACE_UUID);
-    if (existing) {
+
+    if (existing && !force) {
       // Backfill / refresh the real Bullentäle course onto demos seeded before
       // the map feature (or with an earlier, incorrect course) existed.
       const stale =
@@ -246,18 +288,19 @@ export async function seedDemoRace(): Promise<void> {
       return;
     }
 
-    const catTx = db.transaction("categories", "readwrite");
-    for (const cat of CATEGORIES) await catTx.store.put(cat);
-    await catTx.done;
-
-    const riderTx = db.transaction("riders", "readwrite");
-    for (const rider of RIDERS) await riderTx.store.put(rider);
-    await riderTx.done;
-
     db.close();
 
-    // insertRace handles both IDB write and Zustand state update
-    await useRaceStore.getState().insertRace(RACE);
+    // Fresh load OR forced reset — clean categories + riders in IDB and state.
+    await resetDemoData();
+
+    if (existing) {
+      // Reset the race itself back to an unstarted state (clears status: "running"
+      // / any timing left from a prior session), keeping the id/uuid stable.
+      await useRaceStore.getState().updateRace({ ...RACE });
+    } else {
+      // insertRace handles both IDB write and Zustand state update
+      await useRaceStore.getState().insertRace(RACE);
+    }
   } catch (e) {
     console.warn("Demo seed failed (non-fatal):", e);
   }

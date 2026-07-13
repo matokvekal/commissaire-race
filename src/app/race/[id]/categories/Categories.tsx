@@ -6,7 +6,8 @@ import { CategoryProps, CategoryTemplate, RiderProps } from "@/types/types";
 import { COLORS } from "@/constants/index";
 import useCategoryStore from "@/stores/categoryStore";
 import useRiderStore from "@/stores/ridersStore";
-import { buildSchedule, DEFAULT_WAVE_GAP_MINUTES } from "../schedule/Schedule";
+import { buildSchedule, DEFAULT_WAVE_GAP_MINUTES, catWaveKey } from "../schedule/Schedule";
+import { getCategoryStatusInfo } from "@/utils/statusChip";
 
 interface CategoriesProps {
   raceUuid: string;
@@ -90,7 +91,7 @@ const Categories: React.FC<CategoriesProps> = ({ raceUuid }) => {
     const schedule = buildSchedule(raceCategories, DEFAULT_WAVE_GAP_MINUTES);
     const map = new Map<string, number>();
     schedule.forEach((startMap, waveNum) => {
-      startMap.forEach((cats) => cats.forEach((cat) => map.set(cat.name, waveNum)));
+      startMap.forEach((cats) => cats.forEach((cat) => map.set(catWaveKey(cat.name, cat.subCategory), waveNum)));
     });
     return map;
   }, [raceCategories]);
@@ -511,6 +512,17 @@ const Categories: React.FC<CategoriesProps> = ({ raceUuid }) => {
                               · {cat.subCategory}
                             </span>
                           )}
+                          {(() => {
+                            const info = getCategoryStatusInfo(cat.status);
+                            return (
+                              <span
+                                className={styles.categoryStatusChip}
+                                style={{ background: `${info.color}1f`, color: info.color }}
+                              >
+                                {info.label}
+                              </span>
+                            );
+                          })()}
                         </div>
                         <div className={styles.categoryMeta}>
                           <span className={styles.lapsStepper}>
@@ -524,7 +536,7 @@ const Categories: React.FC<CategoriesProps> = ({ raceUuid }) => {
                               onClick={(e) => { e.stopPropagation(); updateCategory({ ...cat, laps: (cat.laps ?? 0) + 1 }); }}
                             >+</button>
                           </span>
-                          {" · "}Wave {catWaveMap.get(cat.name) ?? cat.heat ?? 1} · {riderCount} riders
+                          {" · "}Wave {catWaveMap.get(catWaveKey(cat.name, cat.subCategory)) ?? cat.heat ?? 1} · {riderCount} riders
                           {cat.linkedFinish && <span className={styles.linkedBadge}><Bell size={11} /> linked</span>}
                         </div>
                       </div>

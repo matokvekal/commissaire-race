@@ -67,7 +67,7 @@ const MainPage = () => {
   const handleLoadDemo = async () => {
     setLoadingDemo(true);
     try {
-      await seedDemoRace();
+      await seedDemoRace(true);
       navigate(`/race/${DEMO_RACE_UUID}`);
     } finally {
       setLoadingDemo(false);
