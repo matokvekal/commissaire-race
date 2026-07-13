@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
 import styles from "./liveBoard.module.css";
 import { CategoryProps, RiderProps } from "@/types/types";
 import useRiderStore from "@/stores/ridersStore";
 import calculatePositions from "@/utils/calculatePosition";
+import { riderInCategory } from "../schedule/Schedule";
 import { Trophy, Flag, Zap } from "lucide-react";
 
 interface Props {
@@ -35,8 +35,7 @@ function elapsed(rider: RiderProps): string {
   return `${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
 }
 
-const LiveBoard: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
-  const navigate = useNavigate();
+const LiveBoard: React.FC<Props> = ({ raceUuid, categories }) => {
   const { riders, getRiders } = useRiderStore();
   const [filterCat, setFilterCat] = useState("all");
   const [podiumMode, setPodiumMode] = useState(false);
@@ -44,12 +43,18 @@ const LiveBoard: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
 
   useEffect(() => { getRiders(raceUuid); }, [raceUuid, getRiders]);
 
-  const catNames = new Set(categories.map((c) => c.name));
-  const waveRiders = riders.filter((r) => r.raceUuid === raceUuid && catNames.has(r.category));
+  // Only categories that have actually started (running/finished) belong on the
+  // live board — riders from not-yet-started starts must not appear here.
+  const startedCategories = categories.filter(
+    (c) => c.status === "running" || c.status === "finished"
+  );
+  const waveRiders = riders.filter(
+    (r) => r.raceUuid === raceUuid && startedCategories.some((c) => riderInCategory(r, c))
+  );
   const positioned = calculatePositions([...waveRiders]);
 
   const displayedCategories = useMemo(() => {
-    const sorted = [...categories].sort((a, b) => {
+    const sorted = [...startedCategories].sort((a, b) => {
       const aFin = a.status === "finished", bFin = b.status === "finished";
       if (aFin && bFin) return (b.finishedAt ?? 0) - (a.finishedAt ?? 0);
       if (aFin) return -1;
@@ -57,7 +62,7 @@ const LiveBoard: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
       return 0;
     });
     return filterCat === "all" ? sorted : sorted.filter((c) => c.name === filterCat);
-  }, [categories, filterCat]);
+  }, [startedCategories, filterCat]);
 
   const getPodiumSize = (catName: string): 3 | 5 => podiumSizes[catName] ?? 3;
   const togglePodiumSize = (catName: string) =>
@@ -69,12 +74,6 @@ const LiveBoard: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
 
   return (
     <div className={styles.container}>
-      <button
-        className={styles.goLiveBtn}
-        onClick={() => navigate(`/race/${raceUuid}/heat/${waveNum}`)}
-      >
-        Go Live →
-      </button>
       {/* Toolbar */}
       <div className={styles.toolbar}>
         <select
@@ -83,7 +82,7 @@ const LiveBoard: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
           onChange={(e) => setFilterCat(e.target.value)}
         >
           <option value="all">All categories</option>
-          {categories.map((c) => (
+          {startedCategories.map((c) => (
             <option key={c.id} value={c.name}>{c.name}</option>
           ))}
         </select>
@@ -95,8 +94,12 @@ const LiveBoard: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
         </button>
       </div>
 
+      {displayedCategories.length === 0 && (
+        <div className={styles.empty}>No start has been started yet.</div>
+      )}
+
       {displayedCategories.map((cat) => {
-        const catRiders = positioned.filter((r) => r.category === cat.name);
+        const catRiders = positioned.filter((r) => riderInCategory(r, cat));
         const activeRiders = catRiders.filter((r) => !["DNF", "DSQ", "DNS"].includes(r.status));
         const finished = activeRiders.filter((r) => r.raceStatus === "finished").length;
         const onTrack  = activeRiders.filter((r) => r.raceStatus === "running").length;
@@ -108,7 +111,8 @@ const LiveBoard: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
           .sort((a, b) => (b.lapsCounter ?? 0) - (a.lapsCounter ?? 0) || (a.position_category ?? 999) - (b.position_category ?? 999));
 
         const display = podiumMode ? candidates.slice(0, podSize) : candidates.slice(0, 5);
-        const outRiders = catRiders.filter((r) => ["DNF", "DSQ", "DNS"].includes(r.status));
+        // DNF/DSQ are shown (dropped from the race); DNS never started, so it's hidden.
+        const outRiders = catRiders.filter((r) => ["DNF", "DSQ"].includes(r.status));
 
         return (
           <div key={cat.id} className={`${styles.catBlock} ${allDone ? styles.catBlockDone : ""}`}>

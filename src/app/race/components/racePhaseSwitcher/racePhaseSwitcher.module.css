@@ -1,0 +1,124 @@
+.switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px 18px;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: rgba(30, 40, 55, 0.55);
+  font-size: 14px;
+  font-weight: 900;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background-color 0.18s, color 0.18s, filter 0.12s;
+  white-space: nowrap;
+}
+
+.label {
+  line-height: 1;
+}
+
+/* ── Traffic-light phases: Race 🔴 → Start 🟡 → Live 🟢 ──
+   Idle buttons wear a faint tint of their own colour so the
+   colour language is always readable; the active button gets the
+   glossy racing-game fill (matches start-zone buttons). */
+
+/* Active button: glossy top / dark bottom split + checkered texture */
+.active {
+  color: #fff;
+  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
+  border-color: rgba(0, 0, 0, 0.5);
+}
+
+.active:hover {
+  filter: brightness(1.08);
+}
+
+/* Race (setup) — RED */
+.setupIdle {
+  background: rgba(220, 38, 38, 0.1);
+  color: #c02525;
+}
+.setupIdle:hover {
+  background: rgba(220, 38, 38, 0.18);
+  color: #a31414;
+}
+.setupActive {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.1) 46%, rgba(0, 0, 0, 0.16) 52%, rgba(0, 0, 0, 0.3) 100%),
+    repeating-conic-gradient(rgba(0, 0, 0, 0.1) 0% 25%, transparent 0% 50%) 0 0 / 12px 12px,
+    linear-gradient(180deg, #e6413c 0%, #a30f0f 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 3px 8px rgba(220, 38, 38, 0.45);
+}
+
+/* Start (race) — AMBER */
+.raceIdle {
+  background: rgba(234, 179, 8, 0.12);
+  color: #9a6c00;
+}
+.raceIdle:hover {
+  background: rgba(234, 179, 8, 0.22);
+  color: #7d5700;
+}
+.raceActive {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.1) 46%, rgba(0, 0, 0, 0.16) 52%, rgba(0, 0, 0, 0.3) 100%),
+    repeating-conic-gradient(rgba(0, 0, 0, 0.1) 0% 25%, transparent 0% 50%) 0 0 / 12px 12px,
+    linear-gradient(180deg, #f0b429 0%, #b07d00 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 3px 8px rgba(234, 179, 8, 0.45);
+}
+
+/* Live — GREEN */
+.liveIdle {
+  background: rgba(22, 163, 74, 0.12);
+  color: #12813c;
+}
+.liveIdle:hover {
+  background: rgba(22, 163, 74, 0.22);
+  color: #0d6a30;
+}
+.liveActive {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0.1) 46%, rgba(0, 0, 0, 0.16) 52%, rgba(0, 0, 0, 0.3) 100%),
+    repeating-conic-gradient(rgba(0, 0, 0, 0.1) 0% 25%, transparent 0% 50%) 0 0 / 12px 12px,
+    linear-gradient(180deg, #7ec832 0%, #3d8f0e 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 3px 8px rgba(22, 163, 74, 0.45);
+}
+
+/* Pulsing dot on the Live button while it's the active phase */
+.liveDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+  animation: livePulse 1.2s ease-in-out infinite;
+}
+
+@keyframes livePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.75); }
+}
+
+/* Compact on narrow screens: keep icons + labels but tighten spacing */
+@media (max-width: 420px) {
+  .btn {
+    padding: 9px 12px;
+    font-size: 12.5px;
+  }
+}

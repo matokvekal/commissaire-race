@@ -1,6 +1,6 @@
 {
   "name": "commissaire",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "scripts": {
     "dev": "vite",
@@ -9,7 +9,9 @@
     "lint": "eslint .",
     "deploy": "gh-pages -d dist",
     "gen-images": "node scripts/gen-images-manifest.mjs",
-    "ocr-assets": "node scripts/fetch-ocr-assets.mjs"
+    "ocr-assets": "node scripts/fetch-ocr-assets.mjs",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed"
   },
   "dependencies": {
     "@emotion/react": "^11.13.0",

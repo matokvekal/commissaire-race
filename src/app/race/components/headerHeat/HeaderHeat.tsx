@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import Icons from "@/constants/Icons";
+import { useParams } from "react-router-dom";
 import styles from "./headerHeat.module.css";
 import useRaceStore from "@/stores/racesStore";
 import { Settings } from "lucide-react";
+import RacePhaseSwitcher from "../racePhaseSwitcher/RacePhaseSwitcher";
 
 function HeaderHeat({ raceId, onSettingsClick }: { raceId: string; onSettingsClick?: () => void }) {
-  const navigate = useNavigate();
   const params = useParams();
   const heatId = params?.heatId ? parseInt(params.heatId as string, 10) : null;
   const [currentTime, setCurrentTime] = useState<string>("");
@@ -30,16 +29,9 @@ function HeaderHeat({ raceId, onSettingsClick }: { raceId: string; onSettingsCli
     return () => clearInterval(interval);
   }, []);
 
-  const handleBack = () => {
-    navigate(`/race/${raceId}`);
-  };
-
   return (
     <div className={styles.headerRace}>
       <div className={styles.leftSection}>
-        <button className={styles.backBtn} onClick={handleBack} title="Back to race">
-          <img src={Icons.arrowBackBlack} alt="back" width={16} height={16} />
-        </button>
         <div className={styles.raceInfo}>
           <div className={styles.raceLiveLabel}>
             <span className={styles.liveDot}>●</span>
@@ -49,6 +41,9 @@ function HeaderHeat({ raceId, onSettingsClick }: { raceId: string; onSettingsCli
           {heatId && <div className={styles.waveLabel}>Wave {heatId}</div>}
         </div>
       </div>
+
+      {/* Always-visible Setup / Race / Live switcher */}
+      <RacePhaseSwitcher />
 
       <div className={styles.rightSection}>
         <div className={styles.timeDisplay}>

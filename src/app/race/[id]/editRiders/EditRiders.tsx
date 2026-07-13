@@ -7,6 +7,7 @@ import CategoryManager from "../../components/categoryManager/CategoryManager";
 interface Props {
   raceUuid: string;
   categories: CategoryProps[];
+  onBack?: () => void;
 }
 
 interface FormState {
@@ -86,7 +87,7 @@ function parseCSV(text: string): ParsedRow[] {
     });
 }
 
-const EditRiders: React.FC<Props> = ({ raceUuid, categories }) => {
+const EditRiders: React.FC<Props> = ({ raceUuid, categories, onBack }) => {
   const {
     riders,
     getRiders,
@@ -346,6 +347,11 @@ const EditRiders: React.FC<Props> = ({ raceUuid, categories }) => {
     <div className={styles.container}>
       {/* Toolbar */}
       <div className={styles.toolbar}>
+        {onBack && (
+          <button className={styles.importBtn} onClick={onBack}>
+            ← Back
+          </button>
+        )}
         <div className={styles.searchWrap}>
           <span className={styles.searchIcon}>🔍</span>
           <input

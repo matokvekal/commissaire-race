@@ -5,9 +5,9 @@ import useRiderStore from "@/stores/ridersStore";
 import useCategoryStore from "@/stores/categoryStore";
 import { RiderProps } from "@/types/types";
 import RiderDetailModal from "../../components/riderDetailModal/RiderDetailModal";
-import { buildSchedule, DEFAULT_WAVE_GAP_MINUTES } from "../schedule/Schedule";
+import { buildSchedule, DEFAULT_WAVE_GAP_MINUTES, catWaveKey } from "../schedule/Schedule";
 import { Trophy } from "lucide-react";
-import { getRiderStatusInfo } from "@/utils/statusChip";
+import { getRiderStatusInfo, getCategoryStatusInfo } from "@/utils/statusChip";
 
 interface Props {
   raceUuid: string;
@@ -56,14 +56,24 @@ const Results: React.FC<Props> = ({ raceUuid }) => {
     const schedule = buildSchedule(raceCategories, DEFAULT_WAVE_GAP_MINUTES);
     const map = new Map<string, number>();
     schedule.forEach((startMap, waveNum) => {
-      startMap.forEach((cats) => cats.forEach((cat) => map.set(cat.name, waveNum)));
+      startMap.forEach((cats) => cats.forEach((cat) => map.set(catWaveKey(cat.name, cat.subCategory), waveNum)));
     });
     return { waveNums: [...schedule.keys()].sort((a, b) => a - b), catWaveMap: map };
   }, [raceCategories]);
 
-  const allCatNames = useMemo(
-    () => [...new Set(raceRiders.map((r) => r.category))].sort(),
-    [raceRiders]
+  // A "category" here is identified by name + subCategory (composite key), so
+  // e.g. "Masters Men " 19-29 and 30-49 are separate blocks in the right waves.
+  const catIdents = useMemo(() => {
+    const map = new Map<string, { name: string; sub: string | null }>();
+    raceRiders.forEach((r) => {
+      map.set(catWaveKey(r.category, r.subCategory), { name: r.category, sub: r.subCategory ?? null });
+    });
+    return map;
+  }, [raceRiders]);
+
+  const allCatKeys = useMemo(
+    () => [...catIdents.keys()].sort(),
+    [catIdents]
   );
 
   const sortGroup = (group: RiderProps[]) =>
@@ -78,37 +88,57 @@ const Results: React.FC<Props> = ({ raceUuid }) => {
       return 0;
     });
 
-  const filteredCatNames = useMemo(() => {
-    let names = allCatNames;
-    if (waveFilter !== "all") names = names.filter((n) => catWaveMap.get(n) === waveFilter);
-    if (filterCategory !== "all") names = names.filter((n) => n === filterCategory);
-    return names;
-  }, [allCatNames, waveFilter, filterCategory, catWaveMap]);
+  const filteredCatKeys = useMemo(() => {
+    let keys = allCatKeys;
+    if (waveFilter !== "all") keys = keys.filter((k) => catWaveMap.get(k) === waveFilter);
+    if (filterCategory !== "all") keys = keys.filter((k) => k === filterCategory);
+    return keys;
+  }, [allCatKeys, waveFilter, filterCategory, catWaveMap]);
 
-  const getPodiumSize = (catName: string): 3 | 5 => podiumSizes[catName] ?? 3;
+  const getPodiumSize = (catKey: string): 3 | 5 => podiumSizes[catKey] ?? 3;
 
-  const togglePodiumSize = (catName: string) =>
-    setPodiumSizes((prev) => ({ ...prev, [catName]: prev[catName] === 5 ? 3 : 5 }));
+  const togglePodiumSize = (catKey: string) =>
+    setPodiumSizes((prev) => ({ ...prev, [catKey]: prev[catKey] === 5 ? 3 : 5 }));
 
-  const renderCategory = (catName: string) => {
-    const allInCat = raceRiders.filter((r) => r.category === catName);
+  const renderCategory = (catKey: string) => {
+    const ident = catIdents.get(catKey);
+    if (!ident) return null;
+    const { name, sub } = ident;
+    const waveNum = catWaveMap.get(catKey);
+    const allInCat = raceRiders.filter(
+      (r) => r.category === name && (r.subCategory ?? null) === sub
+    );
     const sorted = sortGroup(allInCat);
     if (!sorted.length) return null;
-    const catMeta = raceCategories.find((c) => c.name === catName);
-    const podSize = getPodiumSize(catName);
+    const catMeta = raceCategories.find(
+      (c) => c.name === name && (c.subCategory ?? null) === sub
+    );
+    const podSize = getPodiumSize(catKey);
     const active = sorted.filter((r) => !["DNS", "DNF", "DSQ"].includes(r.status));
     const out = sorted.filter((r) => ["DNS", "DNF", "DSQ"].includes(r.status));
     const display = podiumMode ? active.slice(0, podSize) : sorted;
 
     return (
-      <div key={catName} className={styles.categoryBlock}>
+      <div key={catKey} className={styles.categoryBlock}>
         <div className={styles.categoryHeader}>
           {catMeta && <span className={styles.dot} style={{ background: catMeta.color ?? "#ccc" }} />}
-          <span className={styles.catHeaderName}>{catName}</span>
+          <span className={styles.catHeaderName}>{name}{sub ? ` · ${sub}` : ""}</span>
+          {(() => {
+            const info = getCategoryStatusInfo(catMeta?.status);
+            return (
+              <span
+                className={styles.statusChip}
+                style={{ background: `${info.color}1f`, color: info.color }}
+              >
+                {info.label}
+              </span>
+            );
+          })()}
+          {waveNum != null && <span className={styles.count}>Wave {waveNum}</span>}
           {podiumMode && (
             <button
               className={`${styles.podiumSizeBtn} ${podSize === 5 ? styles.podiumSize5 : ""}`}
-              onClick={() => togglePodiumSize(catName)}
+              onClick={() => togglePodiumSize(catKey)}
               title={`Top ${podSize} — click to toggle 3/5`}
             >
               {podSize === 5 ? "Top 5" : "Top 3"}
@@ -194,7 +224,11 @@ const Results: React.FC<Props> = ({ raceUuid }) => {
             onChange={(e) => setFilterCategory(e.target.value)}
           >
             <option value="all">All categories</option>
-            {allCatNames.map((c) => <option key={c} value={c}>{c}</option>)}
+            {allCatKeys.map((k) => {
+              const ident = catIdents.get(k);
+              const label = ident ? `${ident.name}${ident.sub ? ` · ${ident.sub}` : ""}` : k;
+              return <option key={k} value={k}>{label}</option>;
+            })}
           </select>
           <div className={styles.groupBtns}>
             <button
@@ -239,7 +273,7 @@ const Results: React.FC<Props> = ({ raceUuid }) => {
         ? waveNums
             .filter((w) => waveFilter === "all" || waveFilter === w)
             .map((w) => {
-              const cats = filteredCatNames.filter((n) => catWaveMap.get(n) === w);
+              const cats = filteredCatKeys.filter((k) => catWaveMap.get(k) === w);
               if (!cats.length) return null;
               return (
                 <div key={w}>
@@ -248,7 +282,7 @@ const Results: React.FC<Props> = ({ raceUuid }) => {
                 </div>
               );
             })
-        : filteredCatNames.map(renderCategory)
+        : filteredCatKeys.map(renderCategory)
       }
     </div>
   );

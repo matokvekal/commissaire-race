@@ -18,11 +18,12 @@ interface Props {
   color: string;
   forceBell?: boolean;
   isFlashing?: boolean;
+  raceEnded?: boolean;
   onClick: () => void;
   onDoubleClick: () => void;
 }
 
-const RacingRider: React.FC<Props> = ({ rider, color, forceBell = false, isFlashing = false, onClick, onDoubleClick }) => {
+const RacingRider: React.FC<Props> = ({ rider, color, forceBell = false, isFlashing = false, raceEnded = false, onClick, onDoubleClick }) => {
   const clickCountRef = useRef<number>(0);
   const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -84,11 +85,16 @@ const RacingRider: React.FC<Props> = ({ rider, color, forceBell = false, isFlash
 
   return (
     <div
-      className={`${styles.rider} ${glowClass}`}
+      className={`${styles.rider} ${glowClass} ${raceEnded ? styles.onTrack : ""}`}
       style={{ background: bgStyle, "--glow-color": color } as React.CSSProperties}
       onClick={handleClick}
       onDoubleClick={(e) => { e.preventDefault(); }}
     >
+      {raceEnded && (
+        <div className={styles.onTrackRibbon} title="Race ended — this rider is still on the track">
+          ⚑ ON TRACK
+        </div>
+      )}
       {showBell && (
         <div className={styles.bellBadge} title={`2 laps left! (${rider.lapsCounter}/${rider.totalLaps})`}>
           <Bell size={16} color="#ffd60a" fill="#ffd60a" />

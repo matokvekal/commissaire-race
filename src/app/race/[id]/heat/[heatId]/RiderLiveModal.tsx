@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import styles from "./riderLiveModal.module.css";
 import { RiderProps } from "@/types/types";
+import { riderTotalTime } from "@/utils/timeUtils";
 
 interface Props {
   rider: RiderProps;
@@ -70,7 +71,7 @@ const RiderLiveModal: React.FC<Props> = ({
           </div>
           <div className={styles.stat}>
             <span className={styles.statLabel}>Total</span>
-            <span className={styles.statVal}>{rider.elapsedTimeFromStart || "—"}</span>
+            <span className={styles.statVal}>{riderTotalTime(rider)}</span>
           </div>
           {isOut && (
             <div className={`${styles.stat} ${styles.statOut}`}>

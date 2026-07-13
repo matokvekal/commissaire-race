@@ -1,5 +1,11 @@
 .main {
-  background: transparent;
+  /* Same backdrop as the live screen: faint speed-lines + colour glows */
+  background:
+    repeating-linear-gradient(115deg, rgba(22, 48, 94, 0.035) 0 2px, transparent 2px 28px),
+    radial-gradient(900px 480px at 85% -10%, rgba(52, 161, 255, 0.22), transparent 60%),
+    radial-gradient(700px 420px at -10% 35%, rgba(124, 232, 60, 0.16), transparent 60%),
+    radial-gradient(800px 500px at 50% 110%, rgba(255, 166, 61, 0.13), transparent 60%),
+    linear-gradient(180deg, #eef5fd 0%, #dfeaf7 100%);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
