@@ -1,43 +1,101 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 12px 12px 32px;
+  gap: 13px;
+  padding: 13px 13px 34px;
+}
+
+/* Sections cascade in on the shared Fibonacci beat */
+.container > * {
+  animation: infoRise var(--beat-3) ease-out backwards;
+}
+
+.container > *:nth-child(2) {
+  animation-delay: var(--stagger);
+}
+
+.container > *:nth-child(3) {
+  animation-delay: calc(var(--stagger) * 2);
+}
+
+.container > *:nth-child(4) {
+  animation-delay: calc(var(--stagger) * 3);
+}
+
+.container > *:nth-child(5) {
+  animation-delay: calc(var(--stagger) * 4);
+}
+
+@keyframes infoRise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .section {
-  background: #fff;
-  border-radius: 14px;
+  background: linear-gradient(165deg, #ffffff, #f6faff);
+  border: 1px solid rgba(99, 166, 252, 0.16);
+  border-radius: 13px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  box-shadow:
+    0 8px 18px rgba(99, 166, 252, 0.1),
+    0 1px 0 rgba(255, 255, 255, 0.7) inset;
 }
 
 .sectionTitle {
-  padding: 10px 14px;
-  background: #f8f8fe;
-  font-size: 11px;
-  font-weight: 700;
-  color: #7a7a9a;
+  padding: 8px 14px;
+  background: linear-gradient(180deg, #f5f9ff, #eef4fe);
+  font-size: 10px;
+  font-weight: 800;
+  color: #5f7ba5;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  border-bottom: 1px solid #f0f0f8;
+  letter-spacing: 0.12em;
+  border-bottom: 1px solid rgba(99, 166, 252, 0.14);
 }
 
 .sectionTitleRow {
-  padding: 8px 14px;
-  background: #f8f8fe;
+  padding: 5px 14px;
+  background: linear-gradient(180deg, #f5f9ff, #eef4fe);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #f0f0f8;
+  border-bottom: 1px solid rgba(99, 166, 252, 0.14);
 }
 
 .sectionTitleText {
-  font-size: 11px;
-  font-weight: 700;
-  color: #7a7a9a;
+  font-size: 10px;
+  font-weight: 800;
+  color: #5f7ba5;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.12em;
+}
+
+/* ═══ PRO skin: arcade info sections — gold eyebrows, plate depth ═══ */
+:root[data-skin="gaming"] .section,
+:root[data-skin="gaming"] .dataSection,
+:root[data-skin="gaming"] .dangerZone {
+  border-radius: 13px;
+  border-width: 2px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 4px 0 rgba(16, 48, 94, 0.12),
+    0 8px 16px rgba(99, 166, 252, 0.12);
+}
+
+:root[data-skin="gaming"] .section {
+  border-color: rgba(16, 48, 94, 0.2);
+}
+
+:root[data-skin="gaming"] .sectionTitle,
+:root[data-skin="gaming"] .sectionTitleText,
+:root[data-skin="gaming"] .dataSectionTitle {
+  font-style: italic;
+  color: #c9930f;
 }
 
 .editIconBtn {
@@ -129,16 +187,16 @@
 }
 
 .rowLabel {
-  font-size: 13px;
-  color: #7a7a9a;
+  font-size: 12px;
+  color: #7a8db0;
   width: 80px;
   flex-shrink: 0;
 }
 
 .rowValue {
   font-size: 13px;
-  font-weight: 500;
-  color: #1a1a2e;
+  font-weight: 600;
+  color: #14243c;
   flex: 1;
 }
 

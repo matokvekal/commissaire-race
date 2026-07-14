@@ -1,7 +1,7 @@
 .heat {
   display: flex;
   flex-direction: column;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-sans);
   /* Live backdrop: faint diagonal speed-lines + colour glows on a bright base */
   background:
     repeating-linear-gradient(115deg, rgba(22, 48, 94, 0.035) 0 2px, transparent 2px 28px),
@@ -124,11 +124,41 @@
 .ridersWrapper {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  margin-top: 6px;
+  gap: 21px;
+  margin-top: 5px;
   flex: 1;
   overflow-y: auto;
   min-height: 0;
+}
+
+/* Sections (band + grid) fade up on entry. Deliberately applied to the
+   section containers only — never to the rider cards themselves, so the
+   one-shot clickFlash feedback animation can never be overridden. */
+.ridersWrapper > * {
+  animation: sectionRise var(--beat-3) ease-out backwards;
+}
+
+.ridersWrapper > *:nth-child(2) {
+  animation-delay: var(--stagger);
+}
+
+.ridersWrapper > *:nth-child(3) {
+  animation-delay: calc(var(--stagger) * 2);
+}
+
+.ridersWrapper > *:nth-child(4) {
+  animation-delay: calc(var(--stagger) * 3);
+}
+
+@keyframes sectionRise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ── Timer row + wave info button ── */
@@ -155,6 +185,20 @@
   padding: 7px 22px;
   text-shadow: 0 0 10px rgba(124, 232, 60, 0.5);
   box-shadow: 0 3px 10px rgba(10, 16, 30, 0.3);
+  /* Heartbeat: the glow breathes once every φ seconds — the screen feels alive */
+  animation: timerHeartbeat 1618ms ease-in-out infinite;
+}
+
+@keyframes timerHeartbeat {
+  0%,
+  100% {
+    text-shadow: 0 0 10px rgba(124, 232, 60, 0.5);
+  }
+  50% {
+    text-shadow:
+      0 0 16px rgba(124, 232, 60, 0.85),
+      0 0 32px rgba(124, 232, 60, 0.3);
+  }
 }
 
 /* PRO skin: broadcast LED clock — bigger, scanlines, stronger glow */

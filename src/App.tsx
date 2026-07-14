@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import LandingPage from "./app/page";
+import LandingV2Page from "./app/landingV2/page";
 import LoginPage from "./app/login/page";
 import OtpPage from "./app/otp/page";
 import LoginErrorPage from "./app/loginerror/page";
@@ -28,6 +29,7 @@ export default function App() {
     <>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/landing2" element={<LandingV2Page />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/otp" element={<OtpPage />} />
         <Route path="/loginerror" element={<LoginErrorPage />} />

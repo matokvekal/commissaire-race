@@ -16,21 +16,21 @@
 }
 
 .navIconBtn {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
-  border: 1px solid #bfdafb;
-  background: linear-gradient(180deg, #ffffff, #e8f2ff);
+  border-radius: 13px;
+  border: 1px solid var(--border-card);
+  background: linear-gradient(180deg, var(--surface-1), var(--surface-2));
   cursor: pointer;
-  box-shadow: 0 8px 16px rgba(86, 145, 231, 0.19);
+  box-shadow: 0 6px 13px var(--shadow-sm), 0 1px 0 rgba(255, 255, 255, 0.25) inset;
 }
 
 .navIconBtn:hover {
-  border-color: #99c5fb;
-  background: linear-gradient(180deg, #ffffff, #dcebff);
+  border-color: var(--brand);
+  background: linear-gradient(180deg, var(--surface-1), var(--surface-3));
 }
 
 .navIconBtn:active {
@@ -40,15 +40,50 @@
 .navIcon {
   width: 18px;
   height: 18px;
-  color: #4a7dc4;
+  color: var(--brand-strong);
 }
 
+/* Logo lockup: main word over a small sub-line */
 .head {
-  color: #4f90ea;
-  font-size: 14px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
   text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.headMain {
+  color: #4f90ea;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.headSub {
+  margin-top: 3px;
+  color: var(--text-muted);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.34em; /* tracked out to match the main word's width */
+}
+
+/* ═══ PRO skin: golden-pair lockup — 21px / 13px = φ, arcade italic + gold sub ═══ */
+:root[data-skin="gaming"] .headMain {
+  font-size: var(--fs-md); /* 21px */
+  font-weight: 900;
+  font-style: italic;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6), 0 2px 6px rgba(79, 144, 234, 0.35);
+}
+
+:root[data-skin="gaming"] .headSub {
+  font-size: var(--fs-sm); /* 13px — golden pair with 21px */
+  font-style: italic;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  color: #c9930f;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .right {
@@ -58,21 +93,21 @@
 }
 
 .msgBtn {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #bfdafb;
-  border-radius: 12px;
-  background: linear-gradient(180deg, #ffffff, #e8f2ff);
+  border: 1px solid var(--border-card);
+  border-radius: 13px;
+  background: linear-gradient(180deg, var(--surface-1), var(--surface-2));
   cursor: pointer;
-  box-shadow: 0 8px 16px rgba(86, 145, 231, 0.19);
+  box-shadow: 0 6px 13px var(--shadow-sm), 0 1px 0 rgba(255, 255, 255, 0.25) inset;
 }
 
 .msgBtn:hover {
-  border-color: #99c5fb;
-  background: linear-gradient(180deg, #ffffff, #dcebff);
+  border-color: var(--brand);
+  background: linear-gradient(180deg, var(--surface-1), var(--surface-3));
 }
 
 .msgBtn:active {
@@ -82,7 +117,7 @@
 .msgIcon {
   width: 17px;
   height: 17px;
-  color: #4a7dc4;
+  color: var(--brand-strong);
 }
 
 .user {
@@ -114,8 +149,11 @@
   display: flex;
   flex-direction: column;
   transform: translateX(-100%);
-  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), background 0.25s ease;
-  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.18);
+  transition: transform 0.34s cubic-bezier(0.22, 1, 0.36, 1), background 0.25s ease;
+  box-shadow: 8px 0 34px rgba(0, 0, 0, 0.22);
+  border-radius: 0 21px 21px 0;
+  border-right: 1px solid var(--drawer-border);
+  overflow: hidden;
 }
 
 .drawerOpen {
@@ -126,59 +164,67 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 16px 16px;
+  padding: 21px 16px 13px;
   border-bottom: 1px solid var(--drawer-border);
 }
 
 .drawerTitle {
-  font-size: 18px;
-  font-weight: 800;
+  font-size: 16px;
+  font-weight: 900;
+  font-style: italic;
   color: #4f90ea;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
 .closeBtn {
   width: 34px;
   height: 34px;
-  border: 1px solid #bfdafb;
+  border: 1px solid var(--border-card);
   border-radius: 11px;
-  background: linear-gradient(180deg, #ffffff, #e8f2ff);
+  background: linear-gradient(180deg, var(--surface-1), var(--surface-2));
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
 }
 
+.closeBtn:active {
+  transform: translateY(1px);
+}
+
 .closeIcon {
   width: 16px;
   height: 16px;
-  color: #5c8fce;
+  color: var(--brand-strong);
 }
 
 .drawerAvatar {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 24px 16px 20px;
+  padding: 21px 16px 16px;
   border-bottom: 1px solid var(--drawer-border);
-  gap: 4px;
+  gap: 3px;
+  background:
+    radial-gradient(200px 100px at 50% 0%, rgba(99, 166, 252, 0.1), transparent 70%);
 }
 
 .avatarImg {
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  border: 2px solid #63a6fc;
+  border: 2px solid var(--brand);
   padding: 3px;
   box-sizing: border-box;
   object-fit: cover;
   margin-bottom: 6px;
+  box-shadow: 0 0 0 5px rgba(99, 166, 252, 0.14), 0 5px 13px var(--shadow-sm);
 }
 
 .avatarName {
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 800;
   color: var(--text-primary);
 }
 
@@ -191,19 +237,19 @@
 .drawerNav {
   display: flex;
   flex-direction: column;
-  padding: 12px 0;
+  padding: 13px 0;
   flex: 1;
 }
 
 .navItem {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 14px 20px;
+  gap: 13px;
+  padding: 13px 16px;
   background: transparent;
   border: none;
-  border-radius: 12px;
-  margin: 0 10px 4px;
+  border-radius: 13px;
+  margin: 0 10px 5px;
   font-size: 15px;
   font-weight: 600;
   color: var(--text-primary);
@@ -212,19 +258,67 @@
   width: calc(100% - 20px);
   transition:
     background 0.15s,
-    color 0.15s;
+    color 0.15s,
+    transform 0.15s;
   -webkit-tap-highlight-color: transparent;
+}
+
+.navItem:hover {
+  background: var(--bg-surface);
+  transform: translateX(3px);
 }
 
 .navItem:active {
   background: var(--bg-surface);
 }
 
+/* Menu items cascade in each time the drawer opens (89ms Fibonacci beat) */
+.drawerOpen .navItem {
+  animation: navItemIn var(--beat-3) ease-out backwards;
+}
+
+.drawerOpen .navItem:nth-child(1) { animation-delay: calc(var(--stagger) * 1); }
+.drawerOpen .navItem:nth-child(2) { animation-delay: calc(var(--stagger) * 2); }
+.drawerOpen .navItem:nth-child(3) { animation-delay: calc(var(--stagger) * 3); }
+.drawerOpen .navItem:nth-child(4) { animation-delay: calc(var(--stagger) * 4); }
+.drawerOpen .navItem:nth-child(5) { animation-delay: calc(var(--stagger) * 5); }
+.drawerOpen .navItem:nth-child(6) { animation-delay: calc(var(--stagger) * 6); }
+
+@keyframes navItemIn {
+  from {
+    opacity: 0;
+    transform: translateX(-13px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Icon sits in a small brand-tinted tile — scannable, modern */
 .navItemIcon {
-  width: 18px;
-  height: 18px;
-  color: #5c8fce;
+  width: 34px;
+  height: 34px;
+  padding: 8px;
+  border-radius: 10px;
+  background: rgba(99, 166, 252, 0.12);
+  color: var(--brand-strong);
   flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+/* ═══ PRO skin: gold arcade drawer accents ═══ */
+:root[data-skin="gaming"] .drawerTitle {
+  color: #c9930f;
+}
+
+:root[data-skin="gaming"] .navItemIcon {
+  background: rgba(224, 169, 44, 0.14);
+  color: #c9930f;
+}
+
+:root[data-skin="gaming"] .navItem {
+  font-weight: 800;
 }
 
 /* ─── Theme picker (bottom of drawer) ──────────────────────────────────────── */

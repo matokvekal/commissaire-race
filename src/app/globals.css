@@ -6,6 +6,35 @@
     "Droid Sans Mono", "Courier New", monospace;
   --font-sans: "Assistant", "Roboto", Arial, sans-serif;
 
+  /* ── Golden-ratio / Fibonacci design scale ─────────────────────────
+     φ = 1.618. Spacing steps are Fibonacci pixels, the type scale is a
+     golden modular scale (16 × φⁿ snapped to Fibonacci numbers), and
+     motion runs on Fibonacci milliseconds — one shared tempo so every
+     screen moves to the same beat. */
+  --phi: 1.618;
+  --sp-1: 3px;
+  --sp-2: 5px;
+  --sp-3: 8px;
+  --sp-4: 13px;
+  --sp-5: 21px;
+  --sp-6: 34px;
+  --sp-7: 55px;
+  --sp-8: 89px;
+
+  --fs-xs: 11px;
+  --fs-sm: 13px;
+  --fs-base: 16px;
+  --fs-md: 21px;
+  --fs-lg: 26px; /* 16 × φ — the live timer already sits here */
+  --fs-xl: 34px;
+  --fs-hero: 55px;
+
+  --beat-1: 130ms; /* micro feedback (taps) */
+  --beat-2: 210ms; /* hovers, small moves */
+  --beat-3: 340ms; /* card / row entrances */
+  --beat-4: 550ms; /* page-level reveals */
+  --stagger: 89ms; /* delay step between siblings */
+
   /* Brand / accent — same in both themes */
   --brand: #63a6fc;
   --brand-strong: #3f86e7;
@@ -413,6 +442,19 @@ a {
    ───────────────────────────────────────────────────────────────────────────── */
 :root {
   --tablet-zoom: 1.75;
+}
+
+/* ── Accessibility: honor the OS "reduce motion" preference.
+   All entrance staggers, pulses and shimmers collapse to instant. ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Small / portrait tablets (e.g. iPad mini/portrait) */

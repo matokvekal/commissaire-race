@@ -56,7 +56,10 @@ function HeaderMain() {
         >
           <Menu className={styles.navIcon} aria-hidden="true" />
         </Button>
-        <div className={styles.head}>Commissire - Bike Race</div>
+        <div className={styles.head}>
+          <span className={styles.headMain}>Commissaire</span>
+          <span className={styles.headSub}>Bike Race</span>
+        </div>
         <div className={styles.right}>
           <Button
             variant="icon"

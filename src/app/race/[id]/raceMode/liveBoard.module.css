@@ -1,8 +1,36 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding-bottom: 32px;
+  gap: 13px;
+  padding-bottom: 34px;
+}
+
+/* Timing-tower blocks cascade in on the shared Fibonacci beat */
+.container > * {
+  animation: boardRise var(--beat-3) ease-out backwards;
+}
+
+.container > *:nth-child(2) {
+  animation-delay: var(--stagger);
+}
+
+.container > *:nth-child(3) {
+  animation-delay: calc(var(--stagger) * 2);
+}
+
+.container > *:nth-child(4) {
+  animation-delay: calc(var(--stagger) * 3);
+}
+
+@keyframes boardRise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ── Toolbar ── */
@@ -77,10 +105,29 @@
   color: #a0e0ff;
 }
 
-/* Podium row highlights */
-.rowP1 { background: rgba(255,215,0,0.14); border-left: 3px solid #ffd700; }
+/* Podium row highlights — P1 gets a slow gold shine sweep (trophy-case feel) */
+.rowP1 {
+  background: linear-gradient(
+    100deg,
+    rgba(255, 215, 0, 0.14) 20%,
+    rgba(255, 235, 130, 0.34) 50%,
+    rgba(255, 215, 0, 0.14) 80%
+  );
+  background-size: 250% 100%;
+  border-left: 3px solid #ffd700;
+  animation: goldShimmer 2584ms linear infinite;
+}
 .rowP2 { background: rgba(200,205,215,0.12); border-left: 3px solid #c8cdd7; }
 .rowP3 { background: rgba(205,127,50,0.14); border-left: 3px solid #cd7f32; }
+
+@keyframes goldShimmer {
+  0% {
+    background-position: 125% 0;
+  }
+  100% {
+    background-position: -125% 0;
+  }
+}
 
 .finRow { background: rgba(52,161,255,0.08); }
 

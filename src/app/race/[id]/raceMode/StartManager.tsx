@@ -85,11 +85,12 @@ const Countdown: React.FC<CountdownProps> = ({ seconds: initial, groupLabel, onD
   const color = remaining <= 10 ? "#ff6b6b" : remaining <= 30 ? "#ffc107" : "#3edda4";
 
   return (
-    <div className={styles.countdownBar}>
+    <div className={`${styles.countdownBar} ${remaining <= 10 ? styles.countdownFinal : ""}`}>
       <div className={styles.countdownProgress} style={{ width: `${pct}%`, background: color }} />
       <div className={styles.countdownInner}>
         <div className={styles.countdownTimer}>
-          <span className={styles.countdownNum} style={{ color }}>{remaining}</span>
+          {/* key={remaining} remounts the digit each second so the tick-pop replays */}
+          <span key={remaining} className={styles.countdownNum} style={{ color }}>{remaining}</span>
           <span className={styles.countdownSec}>sec</span>
         </div>
         <span className={styles.countdownGroup}>{groupLabel}</span>

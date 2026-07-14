@@ -1,8 +1,36 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 12px 12px 32px;
+  gap: 13px;
+  padding: 13px 13px 34px;
+}
+
+/* Result blocks cascade in — the podium reveal moment */
+.container > * {
+  animation: resultsRise var(--beat-3) ease-out backwards;
+}
+
+.container > *:nth-child(2) {
+  animation-delay: var(--stagger);
+}
+
+.container > *:nth-child(3) {
+  animation-delay: calc(var(--stagger) * 2);
+}
+
+.container > *:nth-child(4) {
+  animation-delay: calc(var(--stagger) * 3);
+}
+
+@keyframes resultsRise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ── Wave filter pills ── */
@@ -204,10 +232,29 @@
 .row.active { background: rgba(62, 221, 164, 0.05); }
 .row.out { opacity: 0.5; }
 
-/* Podium row highlights */
-.rowGold   { background: rgba(255, 215, 0, 0.08); border-left: 3px solid #ffd700; }
+/* Podium row highlights — gold gets a slow shine sweep (peak-end reward) */
+.rowGold {
+  background: linear-gradient(
+    100deg,
+    rgba(255, 215, 0, 0.08) 20%,
+    rgba(255, 235, 130, 0.26) 50%,
+    rgba(255, 215, 0, 0.08) 80%
+  );
+  background-size: 250% 100%;
+  border-left: 3px solid #ffd700;
+  animation: goldShimmer 2584ms linear infinite;
+}
 .rowSilver { background: rgba(192, 192, 192, 0.10); border-left: 3px solid #b8b8c8; }
 .rowBronze { background: rgba(205, 127, 50, 0.08); border-left: 3px solid #cd7f32; }
+
+@keyframes goldShimmer {
+  0% {
+    background-position: 125% 0;
+  }
+  100% {
+    background-position: -125% 0;
+  }
+}
 
 .rowGold:hover   { background: rgba(255, 215, 0, 0.14) !important; }
 .rowSilver:hover { background: rgba(192, 192, 192, 0.16) !important; }
