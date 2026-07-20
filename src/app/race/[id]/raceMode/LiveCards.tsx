@@ -5,7 +5,7 @@ import useRiderStore from "@/stores/ridersStore";
 import RacingRider from "../categories/racingRider/RacingRider";
 import FinishRider from "../categories/finishRider/FinishRider";
 import calculatePositions from "@/utils/calculatePosition";
-import { riderInCategory } from "../schedule/Schedule";
+import { riderInCategory, withCategoryLaps } from "../schedule/Schedule";
 import { formatTime } from "@/utils/timeUtils";
 import { toast } from "react-toastify";
 
@@ -37,8 +37,13 @@ const LiveCards: React.FC<Props> = ({ raceUuid, categories }) => {
   );
   const isRaceStarted = startedCategories.length > 0;
 
-  const waveRiders = riders.filter(
-    (r) => r.raceUuid === raceUuid && startedCategories.some((c) => riderInCategory(r, c)) && r.checked
+  // Laps resolved from the category — without this a rider whose totalLaps is 0
+  // never satisfies the finish check below and can lap forever (BUGS.md #7).
+  const waveRiders = withCategoryLaps(
+    riders.filter(
+      (r) => r.raceUuid === raceUuid && startedCategories.some((c) => riderInCategory(r, c)) && r.checked
+    ),
+    startedCategories
   );
 
   const positioned = calculatePositions([...waveRiders]);

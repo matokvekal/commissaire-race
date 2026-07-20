@@ -358,11 +358,11 @@ export const FIELD_KEYWORDS: FieldKeywords[] = [
    {
       field: 'position',
       hebrew: [
-         'מיקום', 'עמדה', 'מקום', 'דירוג',
+         'מיקום', 'עמדה', 'מקום',
          'מיקום התחלה', 'עמדת התחלה', 'מיקום פתיחה'
       ],
       english: [
-         'position', 'pos', 'place', 'rank', 'standing',
+         'position', 'pos', 'place',
          'start pos', 'starting position', 'grid', 'grid pos'
       ],
       priority: 4
@@ -381,8 +381,14 @@ export const FIELD_KEYWORDS: FieldKeywords[] = [
    },
    {
       field: 'standing',
-      hebrew: ['דירוג', 'דירוג כללי', 'ראנקינג', 'דירוג UCI', 'דירוג ישראלי'],
-      english: ['standing', 'ranking', 'rank', 'current rank', 'current ranking'],
+      hebrew: [
+         'דירוג', 'דירוג כללי', 'ראנקינג', 'דירוג UCI', 'דירוג ישראלי',
+         'מסד', 'מס״ד', 'מס"ד', 'מספר סידורי', 'סידורי', 'סדר'
+      ],
+      english: [
+         'standing', 'ranking', 'rank', 'current rank', 'current ranking',
+         'serial', 'serial no', 'index', 'order', 'seed', 'seeding'
+      ],
       priority: 6
    },
    {
@@ -400,3 +406,43 @@ export const FIELD_KEYWORDS: FieldKeywords[] = [
       priority: 8
    }
 ];
+
+/**
+ * Fields that are recognised in a start list but deliberately NOT imported.
+ *
+ * Sub-categories were dropped in favour of one flat category per age band
+ * ("Man Masters 30-39"), see BUGS.md #2. The keywords are kept in
+ * FIELD_KEYWORDS on purpose: a "תת קטגוריה" column must still be absorbed by
+ * this field, otherwise it fuzzy-matches "קטגוריה" and overwrites the real
+ * category column. It is simply never written onto the rider.
+ */
+export const IGNORED_FIELDS = new Set<RiderFieldKey>(['subCategory']);
+
+/**
+ * Aliases that name a rider field only weakly — they are just as likely to head
+ * a seeding/serial column ("מס'" = serial no.) as the real bib column.
+ * Matches on these are capped so a specific header ("מספר רוכב", "bib") always
+ * wins the field instead of losing it to whichever column came first.
+ * See BUGS.md #3 — bib was being filled with the standing order.
+ */
+export const AMBIGUOUS_ALIASES = new Set<string>([
+   'no', 'no.', 'num', 'number', '#', 'sno', 'sn',
+   'מס', 'מס.', "מס'", 'מספר', 'רוכב'
+]);
+
+/**
+ * Max confidence an ambiguous-alias match may claim. Deliberately above the
+ * auto-map thresholds (60 keyword / 70 dictionary) so such a column is still
+ * mapped when it's the only candidate, but below 85 so it is always surfaced
+ * for user confirmation — and always loses to a specific header.
+ */
+export const AMBIGUOUS_ALIAS_CAP = 75;
+
+/**
+ * Headers that mean "row order / serial number". These are the pre-race
+ * seeding order (standing), never the bib number.
+ */
+export const SEED_ORDER_ALIASES = new Set<string>([
+   'מסד', 'מס״ד', 'מס"ד', 'מספר סידורי', 'סידורי', 'סדר', 'סד',
+   'serial', 'serial no', 's/n', 'index', 'row', 'order', 'seed', 'seeding'
+]);

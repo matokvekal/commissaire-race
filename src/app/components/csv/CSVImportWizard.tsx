@@ -74,7 +74,8 @@ function rowToRider(
         data.category = value;
         break;
       case "subCategory":
-        data.subCategory = value || null;
+        // Recognised so it can't be mistaken for the category column, but never
+        // imported — categories are flat, one per age band (BUGS.md #2).
         break;
       case "team": {
         let teamValue = value || null;
@@ -170,6 +171,7 @@ function rowToRider(
     totalLaps: data.totalLaps ?? 0,
     timeStartRace: data.timeStartRace ?? null,
     position_start: data.position_start ?? null,
+    standing: data.standing ?? null,
     lapsCounter: 0,
     lapsDetails: [],
     checked: false,

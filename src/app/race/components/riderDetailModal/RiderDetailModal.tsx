@@ -50,6 +50,10 @@ export default function RiderDetailModal({ rider, onClose }: Props) {
       ? rider.image
       : Images.user;
 
+  // A dead image URL must fall back to the placeholder icon, not the broken-image
+  // alt text (BUGS.md #5).
+  const [avatarFailed, setAvatarFailed] = useState(false);
+
   const set = (field: string, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
@@ -103,8 +107,13 @@ export default function RiderDetailModal({ rider, onClose }: Props) {
         {/* Avatar + identity */}
         <div className={styles.hero}>
           <div className={styles.avatarWrap}>
-            {rider.image ? (
-              <img src={avatar} alt="rider" className={styles.avatar} />
+            {rider.image && !avatarFailed ? (
+              <img
+                src={avatar}
+                alt=""
+                className={styles.avatar}
+                onError={() => setAvatarFailed(true)}
+              />
             ) : (
               <div className={styles.avatarPlaceholder}>
                 <User size={34} color="#aac0df" />
@@ -149,10 +158,16 @@ export default function RiderDetailModal({ rider, onClose }: Props) {
           <Field label="Category" editMode={editMode}
             view={<span>{rider.category}{rider.subCategory ? ` · ${rider.subCategory}` : ""}</span>}
             edit={
-              <div className={styles.twoCol}>
+              // Sub-category is legacy — only editable on riders that already
+              // have one. New races use one flat category per age band (BUGS.md #2).
+              rider.subCategory ? (
+                <div className={styles.twoCol}>
+                  <input className={styles.input} value={form.category} onChange={e => set("category", e.target.value)} placeholder="Category" />
+                  <input className={styles.input} value={form.subCategory} onChange={e => set("subCategory", e.target.value)} placeholder="Sub-category" />
+                </div>
+              ) : (
                 <input className={styles.input} value={form.category} onChange={e => set("category", e.target.value)} placeholder="Category" />
-                <input className={styles.input} value={form.subCategory} onChange={e => set("subCategory", e.target.value)} placeholder="Sub-category" />
-              </div>
+              )
             }
           />
 

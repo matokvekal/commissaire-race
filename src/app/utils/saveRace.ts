@@ -37,7 +37,8 @@ export const saveRace = async (
   status: string,
   imageUrl: string | null,
   file: File | null,
-  setAddNewwRace: (value: boolean) => void
+  setAddNewwRace: (value: boolean) => void,
+  autoColor: boolean = true
 ) => {
   event.preventDefault();
 
@@ -77,6 +78,7 @@ export const saveRace = async (
       createdAt: new Date(),
       lastUpdateAt: new Date(),
       isActive: true,
+      autoColor,
       map: "",
       distance: 0,
     };

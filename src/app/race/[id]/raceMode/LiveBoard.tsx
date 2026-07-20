@@ -3,7 +3,7 @@ import styles from "./liveBoard.module.css";
 import { CategoryProps, RiderProps } from "@/types/types";
 import useRiderStore from "@/stores/ridersStore";
 import calculatePositions from "@/utils/calculatePosition";
-import { riderInCategory } from "../schedule/Schedule";
+import { riderInCategory, withCategoryLaps } from "../schedule/Schedule";
 import { Trophy, Flag, Zap } from "lucide-react";
 
 interface Props {
@@ -48,8 +48,12 @@ const LiveBoard: React.FC<Props> = ({ raceUuid, categories }) => {
   const startedCategories = categories.filter(
     (c) => c.status === "running" || c.status === "finished"
   );
-  const waveRiders = riders.filter(
-    (r) => r.raceUuid === raceUuid && startedCategories.some((c) => riderInCategory(r, c))
+  // Laps resolved from the category so the board reads 0/5, not 0/? (BUGS.md #7)
+  const waveRiders = withCategoryLaps(
+    riders.filter(
+      (r) => r.raceUuid === raceUuid && startedCategories.some((c) => riderInCategory(r, c))
+    ),
+    startedCategories
   );
   const positioned = calculatePositions([...waveRiders]);
 

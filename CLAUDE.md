@@ -139,6 +139,66 @@ See `docs/app-review.md` for full bug list. Top 4 critical:
 | Update UI component | Component file + matching `.module.css` |
 | Add role/permission | `docs/roadmap.md` Phase 2 checklist |
 
+### Category colours
+- Assigned by `utils/colorAssignment.ts`, not by palette index. Colours are chosen
+  in CIE L*a*b* space so categories that can be **on course together** look clearly
+  different; `CLOSE_START_MINUTES` is 90 because a race runs up to 1.5 h while waves
+  go off ~10 min apart. Colours recycle outside that window on purpose.
+- Assign only after every category and start time is known — never while iterating.
+- `race.autoColor === false` means the organizer picks colours by hand; `undefined`
+  counts as true so existing races keep auto-colouring.
+
+### Static assets must go through BASE_URL
+- Prod is served from `/commissire-race/`, so `import.meta.env.BASE_URL` is required
+  on every `public/` asset reference. A hardcoded `/foo.svg` works in dev and 404s
+  in production — this is what silently broke all rider flags.
+- Rider flags: use `<RiderFlag>` (`race/components/riderFlag/RiderFlag.tsx`). It
+  renders nothing when the flag is missing or the file 404s. Only gb/il/it/us ship.
+- `public/example.csv` is the downloadable start-list template offered in the import
+  wizard. It has a UTF-8 BOM (Excel needs it for Hebrew) — preserve it if editing.
+
+### Live tap / undo (heat page)
+- Tapping a rider records a lap and, after a 1s flash, drops them to the end of
+  `displayOrder` (the manual queue). The timer is held in `reorderTimersRef` per
+  rider so an undo inside that window can cancel the move.
+- Every action in the log carries `prevRider` (exact pre-tap snapshot) +
+  `prevOrderIndex`. Undo restores from the snapshot — never rebuild state from
+  `lapsDetails`, that drops `elapsedTimeFromStart` and `position_category`.
+- Status buttons are ordered DNF → DSQ → DNS everywhere (`RiderLiveModal`,
+  `StatusModal`); out-statuses come before the internal ones.
+
+### Laps: the category is the source of truth
+- `rider.totalLaps` is only a cache of `category.laps`. Riders imported without a
+  laps column start at 0.
+- **Reading:** resolve via `effectiveTotalLaps()` / `withCategoryLaps()` from
+  `race/[id]/schedule/Schedule.tsx`. Never render or compare `rider.totalLaps` raw —
+  `LiveCards` gates finishing on it, so a 0 means the rider never finishes.
+- **Writing:** every change to `category.laps` must go through
+  `updateCategoryAndSyncRiders()` in `Categories.tsx`, never `updateCategory()` directly.
+- Resolution is `category.laps || rider.totalLaps` on purpose: a category at 0/null
+  means "not set yet" and must not wipe laps that came from the start list.
+
+### Categories are flat (no sub-categories)
+- One category per age band — `"Man Masters 30-39"`, not `"Man Masters"` + `"30-39"`.
+  `"Man Pro"`/Elite stay a single category.
+- `subCategory` still exists on `RiderProps`/`CategoryProps` and in the category
+  identity key (`name::subCategory`) **only** so pre-existing races keep rendering.
+  Nothing authors it anymore — new categories always get `null`.
+- Import: `subCategory` is in `IGNORED_FIELDS` (`types/csv.types.ts`). Its keywords
+  are kept on purpose so a `תת קטגוריה` / `Age Group` column is absorbed by that
+  field rather than fuzzy-matching `קטגוריה` and overwriting the real category.
+
+### Bib vs Standing (distinct fields — do not conflate)
+- `bibNumber` — the number on the rider's plate. Identity only.
+- `standing` — pre-race ranking/seeding order (from previous points). Row order in
+  the start list, so new unranked riders get a bib unrelated to their row.
+- Column auto-mapping assigns each field to its **best-matching column anywhere in
+  the row**, not the first one. Vague headers (`מס'`, `No.`, `#`) are capped at
+  confidence 75 (`AMBIGUOUS_ALIAS_CAP`) so a specific header (`מספר רוכב`, `bib`)
+  always wins; a vague header that loses is left unmapped rather than falling
+  through to an unrelated field. Serial/seed headers map to `standing`.
+  See `AMBIGUOUS_ALIASES` / `SEED_ORDER_ALIASES` in `types/csv.types.ts`.
+
 ### Important Constraints
 - CSV import fields: `bib, first_name, middle_name, last_name, full_name, club, category, gender, heat, start_time, total_laps, position, points, federation, race_day`
 - Club dictionary: manual JSON or in-app ClubDictionaryManager

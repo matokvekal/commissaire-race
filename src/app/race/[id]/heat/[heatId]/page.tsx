@@ -13,7 +13,7 @@ import { useVoiceSettingsStore } from "@/stores/voiceSettingsStore";
 import { RiderProps } from "@/types/types";
 import { formatTime, formatTimeWithLeadingZeroes } from "../../../../utils/timeUtils";
 import calculatePositions from "../../../../utils/calculatePosition";
-import { buildSchedule, DEFAULT_WAVE_GAP_MINUTES, riderInCategory } from "../../schedule/Schedule";
+import { buildSchedule, DEFAULT_WAVE_GAP_MINUTES, riderInCategory, withCategoryLaps } from "../../schedule/Schedule";
 import RiderLiveModal from "./RiderLiveModal";
 import { VoiceIndicator } from "@/components/voice/VoiceIndicator";
 import { useVoiceRecognition } from "@/components/voice/useVoiceRecognition";
@@ -69,7 +69,14 @@ const Heat: React.FC = () => {
   const [voiceAudioLevel, setVoiceAudioLevel] = useState(0);
   const [voiceIsListening, setVoiceIsListening] = useState(false);
   const [detectedNumbers, setDetectedNumbers] = useState<Array<{ bib: string; categoryColor?: string; timestamp: number }>>([]);
-  const [riderActions, setRiderActions] = useState<Array<{ id: string; rider: RiderProps; timestamp: number; source: 'click' | 'voice'; categoryColor: string; statusChange?: 'DNF' | 'DSQ' | 'DNS' }>>([]);
+  // `prevRider` / `prevOrderIndex` are the rider exactly as they were BEFORE the
+  // tap, so Cancel can put them back untouched — same data, same place in the
+  // queue (BUGS.md #10). Reconstructing from lapsDetails alone loses
+  // elapsedTimeFromStart, position and the rider's slot in the list.
+  const [riderActions, setRiderActions] = useState<Array<{ id: string; rider: RiderProps; prevRider?: RiderProps; prevOrderIndex?: number; timestamp: number; source: 'click' | 'voice'; categoryColor: string; statusChange?: 'DNF' | 'DSQ' | 'DNS' }>>([]);
+  // Pending "drop to end of queue" timers, so a Cancel within the 1s delay can
+  // stop the rider being moved at all.
+  const reorderTimersRef = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map());
   const [showActionLog, setShowActionLog] = useState(false);
   const [flashingRiderId, setFlashingRiderId] = useState<number | null>(null);
   const flashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -124,11 +131,8 @@ const Heat: React.FC = () => {
           waveCategories.some((c) => riderInCategory(r, c)) &&
           r.raceStatus !== "upcoming"
       );
-      // Enrich riders with totalLaps from their category
-      return filtered.map((rider) => {
-        const cat = waveCategories.find((c) => riderInCategory(rider, c));
-        return cat && cat.laps ? { ...rider, totalLaps: cat.laps } : rider;
-      });
+      // Laps resolved from the category — the shared rule (BUGS.md #7)
+      return withCategoryLaps(filtered, waveCategories);
     },
     [riders, raceUuid, waveCategories]
   );
@@ -243,12 +247,18 @@ const Heat: React.FC = () => {
     // After the flash, deterministically drop this rider to the literal end of the
     // queue (or off it entirely if they just finished) — no lap-count/time guesswork,
     // so "tap it, it goes last" always means last, full stop.
-    setTimeout(() => {
-      setDisplayOrder((prev) => {
-        const rest = prev.filter((id) => id !== rider.id);
-        return isFinished ? rest : [...rest, rider.id];
-      });
-    }, 1000);
+    const pendingReorder = reorderTimersRef.current.get(rider.id);
+    if (pendingReorder) clearTimeout(pendingReorder);
+    reorderTimersRef.current.set(
+      rider.id,
+      setTimeout(() => {
+        reorderTimersRef.current.delete(rider.id);
+        setDisplayOrder((prev) => {
+          const rest = prev.filter((id) => id !== rider.id);
+          return isFinished ? rest : [...rest, rider.id];
+        });
+      }, 1000)
+    );
 
     // Add to detected numbers display (voice path adds this via the queue processor)
     const catColor = getCatColor(rider);
@@ -260,9 +270,19 @@ const Heat: React.FC = () => {
       ]);
     }
 
-    // Add to action log with unique ID (rider + lap + timestamp)
+    // Add to action log with unique ID (rider + lap + timestamp).
+    // `rider` here is still the pre-tap snapshot — keep it for an exact undo.
+    const prevOrderIndex = displayOrder.indexOf(rider.id);
     setRiderActions((prev) => [
-      { id: `${rider.id}-${lapsCounter}-${actionTimestamp}`, rider: updatedRider, timestamp: actionTimestamp, source, categoryColor: catColor },
+      {
+        id: `${rider.id}-${lapsCounter}-${actionTimestamp}`,
+        rider: updatedRider,
+        prevRider: rider,
+        prevOrderIndex: prevOrderIndex === -1 ? undefined : prevOrderIndex,
+        timestamp: actionTimestamp,
+        source,
+        categoryColor: catColor
+      },
       ...prev,
     ]);
   };
@@ -336,19 +356,46 @@ const Heat: React.FC = () => {
       setContextRider(null);
       return;
     }
+    // Prefer the exact pre-tap snapshot from the action log, so an undo restores
+    // the rider's full previous state and queue slot rather than an
+    // approximation rebuilt from lapsDetails (BUGS.md #10).
+    const snapshot = riderActions.find(
+      (a) => a.prevRider && a.prevRider.id === rider.id && a.rider.lapsCounter === rider.lapsCounter
+    );
+
     const newDetails = (rider.lapsDetails ?? []).slice(0, -1);
     const prevArrive = newDetails.length > 0
       ? new Date(newDetails[newDetails.length - 1].endTime).toISOString()
       : null;
-    const revertedRider: RiderProps = {
-      ...rider,
-      lapsCounter: rider.lapsCounter - 1,
-      lapsDetails: newDetails,
-      timeArrive: prevArrive,
-      raceStatus: "running",
-      elapsedLastLap: newDetails.length > 0 ? newDetails[newDetails.length - 1].lapTime : null,
-    };
+    const revertedRider: RiderProps = snapshot?.prevRider
+      ? { ...snapshot.prevRider }
+      : {
+          ...rider,
+          lapsCounter: rider.lapsCounter - 1,
+          lapsDetails: newDetails,
+          timeArrive: prevArrive,
+          raceStatus: "running",
+          elapsedLastLap: newDetails.length > 0 ? newDetails[newDetails.length - 1].lapTime : null,
+        };
     updateRider(revertedRider);
+
+    // Stop any pending drop-to-end, and put them back where they were.
+    const pendingReorder = reorderTimersRef.current.get(rider.id);
+    if (pendingReorder) {
+      clearTimeout(pendingReorder);
+      reorderTimersRef.current.delete(rider.id);
+    }
+    if (snapshot?.prevOrderIndex !== undefined) {
+      const at = snapshot.prevOrderIndex;
+      setDisplayOrder((prev) => {
+        const rest = prev.filter((id) => id !== rider.id);
+        const idx = Math.min(at, rest.length);
+        return [...rest.slice(0, idx), rider.id, ...rest.slice(idx)];
+      });
+    }
+    if (snapshot) {
+      setRiderActions((prev) => prev.filter((a) => a.id !== snapshot.id));
+    }
     void recordRaceEvent({
       raceUuid,
       riderId: rider.id,
@@ -571,8 +618,13 @@ const Heat: React.FC = () => {
   }, [isListening]);
 
   // Cleanup timers on unmount
-  useEffect(() => () => {
-    if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
+  useEffect(() => {
+    const reorderTimers = reorderTimersRef.current;
+    return () => {
+      if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
+      reorderTimers.forEach((t) => clearTimeout(t));
+      reorderTimers.clear();
+    };
   }, []);
 
   // Auto-clear detected numbers after 3 seconds
@@ -877,20 +929,42 @@ const Heat: React.FC = () => {
           const rider = riders.find((r) => r.id === Number(riderIdStr));
           if (!rider || rider.lapsCounter <= 0) return;
 
-          // Revert the last lap
-          const newDetails = (rider.lapsDetails ?? []).slice(0, -1);
-          const prevArrive = newDetails.length > 0
-            ? new Date(newDetails[newDetails.length - 1].endTime).toISOString()
-            : null;
+          // The tap may not have dropped them to the end yet — stop it happening.
+          const pendingReorder = reorderTimersRef.current.get(rider.id);
+          if (pendingReorder) {
+            clearTimeout(pendingReorder);
+            reorderTimersRef.current.delete(rider.id);
+          }
 
-          updateRider({
-            ...rider,
-            lapsCounter: rider.lapsCounter - 1,
-            lapsDetails: newDetails,
-            timeArrive: prevArrive,
-            raceStatus: "running",
-            elapsedLastLap: newDetails.length > 0 ? newDetails[newDetails.length - 1].lapTime : null,
-          });
+          if (action.prevRider) {
+            // Exact undo: restore the rider byte-for-byte as they were before the
+            // tap. Rebuilding from lapsDetails would silently drop
+            // elapsedTimeFromStart and position_category (BUGS.md #10).
+            updateRider({ ...action.prevRider });
+          } else {
+            // Older action logged before snapshots existed — best-effort revert.
+            const newDetails = (rider.lapsDetails ?? []).slice(0, -1);
+            const prevArrive = newDetails.length > 0
+              ? new Date(newDetails[newDetails.length - 1].endTime).toISOString()
+              : null;
+            updateRider({
+              ...rider,
+              lapsCounter: rider.lapsCounter - 1,
+              lapsDetails: newDetails,
+              timeArrive: prevArrive,
+              raceStatus: "running",
+              elapsedLastLap: newDetails.length > 0 ? newDetails[newDetails.length - 1].lapTime : null,
+            });
+          }
+
+          // Put them back where they were standing in the queue.
+          if (action.prevOrderIndex !== undefined) {
+            setDisplayOrder((prev) => {
+              const rest = prev.filter((id) => id !== rider.id);
+              const at = Math.min(action.prevOrderIndex as number, rest.length);
+              return [...rest.slice(0, at), rider.id, ...rest.slice(at)];
+            });
+          }
 
           // Remove from action log
           setRiderActions((prev) => prev.filter((a) => a.id !== actionId));

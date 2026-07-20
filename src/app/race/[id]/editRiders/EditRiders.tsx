@@ -77,8 +77,9 @@ function parseCSV(text: string): ParsedRow[] {
         firstName: cols[idx("first name")] ?? "",
         lastName: cols[idx("last name")] ?? "",
         category: cols[idx("category")] ?? "",
-        subCategory:
-          cols[idx("sub category")] || cols[idx("subcategory")] || null,
+        // Sub-categories are no longer imported — categories are flat, one per
+        // age band (BUGS.md #2). Legacy rows keep rendering theirs.
+        subCategory: null,
         team: cols[idx("team")] ?? "",
         heat: parseInt(cols[idx("heat")] ?? "1") || 1,
         totalLaps: parseInt(cols[idx("laps")] ?? "0") || 0,

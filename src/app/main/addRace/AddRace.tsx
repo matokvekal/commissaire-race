@@ -37,6 +37,8 @@ const AddRace: React.FC<Props> = ({ setAddNewwRace }) => {
   const [status,      setStatus]      = useState("");
   const [ridersFile,  setRidersFile]  = useState<File | null>(null);
   const [loading,     setLoading]     = useState(false);
+  // On by default — most organizers want colours picked for them (BUGS.md #6)
+  const [autoColor,   setAutoColor]   = useState(true);
 
   // Selected image: either an "images/filename" gallery path or a base64 data: URL
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -98,7 +100,8 @@ const AddRace: React.FC<Props> = ({ setAddNewwRace }) => {
         status,
         selectedImage,
         ridersFile,
-        setAddNewwRace
+        setAddNewwRace,
+        autoColor
       );
     } catch (error) {
       console.error("Failed to save race:", error);
@@ -219,6 +222,21 @@ const AddRace: React.FC<Props> = ({ setAddNewwRace }) => {
             />
             {ridersFile && <p>{ridersFile.name}</p>}
           </div>
+
+          <label className={styles.autoColorRow}>
+            <input
+              type="checkbox"
+              checked={autoColor}
+              onChange={(e) => setAutoColor(e.target.checked)}
+            />
+            <span className={styles.autoColorText}>
+              <strong>Auto color categories</strong>
+              <small>
+                Picks a colour per category, keeping starts that overlap on
+                course clearly different. Uncheck to choose colours yourself.
+              </small>
+            </span>
+          </label>
 
           <Button
             type="submit"

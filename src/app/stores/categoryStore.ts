@@ -2,7 +2,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { initIndexedDB } from "@/stores/indexDb/indexedDbHelper";
-import { CategoryProps, RiderProps } from "@/types/types";
+import { CategoryProps, RiderProps, RaceProps } from "@/types/types";
+import { assignCategoryColors } from "@/utils/colorAssignment";
 import categoryStorageAdapter from "./indexDb/categoryStorageAdapter";
 import { COLORS } from "@/constants/index";
 import useRiderStore from "./ridersStore";
@@ -96,16 +97,38 @@ const useCategoryStore = create<CategoryState>()(
                 riders: 0, // ✅ Always initialize to 0
                 startTime: normTime(rider.timeStartRace),
                 isConnected: false,
-                color: COLORS[colorIndex].code, // ✅ Assign color from COLORS array
+                // Provisional — replaced below once every start time is known
+                color: COLORS[colorIndex].code,
                 heat: rider.heat || null,
                 status: "upcoming",
               };
             }
             categoryMap[categoryKey].riders = (categoryMap[categoryKey]?.riders ?? 0) + 1;
+          });
 
-            // ✅ Ensure riders get the correct color
-            riderUpdates.push({ ...rider, color: categoryMap[categoryKey].color });
+          // Colours are assigned only once ALL categories and their start times
+          // are known — waves that can be on course together must look distinct,
+          // which can't be decided while still discovering them (BUGS.md #6).
+          // Skipped when the organizer turned Auto color off for this race.
+          const race = (await db.getAll("races")).find(
+            (r: RaceProps) => r.uuid === raceUuid
+          );
+          if (race?.autoColor !== false) {
+            const palette = assignCategoryColors(Object.values(categoryMap));
+            for (const cat of Object.values(categoryMap)) {
+              const assigned = palette.get(`${cat.name}::${cat.subCategory ?? ""}`);
+              if (assigned) cat.color = assigned;
+            }
+          }
 
+          // ✅ Ensure riders get the correct color (after final assignment)
+          riders.forEach((rider) => {
+            if (!rider.category) return;
+            const categoryKey = rider.subCategory
+              ? `${rider.category}::${rider.subCategory}`
+              : rider.category;
+            const cat = categoryMap[categoryKey];
+            if (cat) riderUpdates.push({ ...rider, color: cat.color });
           });
 
           // ✅ Store updated categories in Zustand and IndexedDB

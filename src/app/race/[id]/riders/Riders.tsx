@@ -5,6 +5,7 @@ import Button from "@/components/ui/Button";
 import useRiderStore from "@/stores/ridersStore";
 import { CategoryProps, RiderProps } from "@/types/types";
 import RiderCard from "../../components/riderCard/RiderCard";
+import RiderFlag from "../../components/riderFlag/RiderFlag";
 import Icons from "@/constants/Icons";
 import { shallow } from "zustand/shallow";
 import { debounce } from "lodash";
@@ -371,11 +372,7 @@ const Riders: React.FC<ManageHeatProps> = ({ raceUuid, categories, onEditMode })
                         <span className={styles.colRow}>{idx + 1}</span>
                         <span className={styles.colDot} style={{ background: rider.color ?? "#ddd" }} />
                         <span className={styles.colFlag}>
-                          <img
-                            src={`/international/${rider.flag || "il"}.svg`}
-                            alt={rider.flag || "il"}
-                            className={styles.flagIcon}
-                          />
+                          <RiderFlag flag={rider.flag} className={styles.flagIcon} />
                         </span>
                         <span className={styles.colBib}><strong>#{rider.bibNumber || "—"}</strong></span>
                         <span className={styles.colName} dir="auto">

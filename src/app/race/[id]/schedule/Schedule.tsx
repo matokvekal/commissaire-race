@@ -60,6 +60,33 @@ export function riderInCategory(
   return rider.category === cat.name && (rider.subCategory ?? null) === (cat.subCategory ?? null);
 }
 
+/**
+ * The category owns the lap count; a rider's own totalLaps is only a cache of
+ * it. Riders imported without a laps column sit at 0, which not only displays
+ * as "0/0" but stops them ever reaching the finish check (BUGS.md #7).
+ * Resolve laps through here wherever they are shown or compared.
+ */
+export function effectiveTotalLaps(
+  rider: { category: string; subCategory?: string | null; totalLaps: number },
+  categories: { name: string; subCategory?: string | null; laps: number | null }[]
+): number {
+  const cat = categories.find((c) => riderInCategory(rider, c));
+  return cat?.laps || rider.totalLaps || 0;
+}
+
+/** Riders with totalLaps resolved from their category. */
+export function withCategoryLaps<
+  T extends { category: string; subCategory?: string | null; totalLaps: number }
+>(
+  riders: T[],
+  categories: { name: string; subCategory?: string | null; laps: number | null }[]
+): T[] {
+  return riders.map((rider) => {
+    const laps = effectiveTotalLaps(rider, categories);
+    return laps === rider.totalLaps ? rider : { ...rider, totalLaps: laps };
+  });
+}
+
 export function normalizeTime(t: string | null | undefined): string | null {
   if (!t) return null;
   const m = t.match(/^(\d{1,2}):(\d{2})/);

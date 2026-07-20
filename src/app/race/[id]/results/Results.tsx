@@ -5,7 +5,7 @@ import useRiderStore from "@/stores/ridersStore";
 import useCategoryStore from "@/stores/categoryStore";
 import { RiderProps } from "@/types/types";
 import RiderDetailModal from "../../components/riderDetailModal/RiderDetailModal";
-import { buildSchedule, DEFAULT_WAVE_GAP_MINUTES, catWaveKey } from "../schedule/Schedule";
+import { buildSchedule, DEFAULT_WAVE_GAP_MINUTES, catWaveKey, withCategoryLaps } from "../schedule/Schedule";
 import { Trophy } from "lucide-react";
 import { getRiderStatusInfo, getCategoryStatusInfo } from "@/utils/statusChip";
 
@@ -46,10 +46,14 @@ const Results: React.FC<Props> = ({ raceUuid }) => {
 
   useEffect(() => { getRiders(raceUuid); }, [raceUuid, getRiders]);
 
-  const raceRiders = riders.filter((r) => r.raceUuid === raceUuid);
   const raceCategories = useMemo(
     () => categories.filter((c) => c.raceUuid === raceUuid),
     [categories, raceUuid]
+  );
+  // Laps resolved from the category so results read 0/5, not 0/0 (BUGS.md #7)
+  const raceRiders = useMemo(
+    () => withCategoryLaps(riders.filter((r) => r.raceUuid === raceUuid), raceCategories),
+    [riders, raceUuid, raceCategories]
   );
 
   const { waveNums, catWaveMap } = useMemo(() => {

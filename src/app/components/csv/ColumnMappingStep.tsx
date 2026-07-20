@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import type { ColumnMapping, RiderFieldKey, MappingTemplate } from "@/types/csv.types";
-import { FIELD_KEYWORDS } from "@/types/csv.types";
+import { FIELD_KEYWORDS, IGNORED_FIELDS } from "@/types/csv.types";
 import {
   getColumnSuggestions,
   confirmMapping,
@@ -154,7 +154,7 @@ export default function ColumnMappingStep({
     firstNameEnglish: "First Name (English)",
     lastNameEnglish: "Last Name (English)",
     category: "Category",
-    subCategory: "Sub-Category",
+    subCategory: "Sub-Category (not imported)",
     team: "Team / Club",
     gender: "Gender",
     heat: "Wave Number",
@@ -177,7 +177,8 @@ export default function ColumnMappingStep({
 
   const FIELD_HINTS: Partial<Record<string, string>> = {
     category: "Main group — e.g. Men Junior, Gravel, MTB",
-    subCategory: "Sub-group within a category — e.g. age range 19-29, 30-39",
+    subCategory:
+      "Not imported — categories are flat. Put the age band in the category itself, e.g. \"Man Masters 30-39\"",
     heat: "Wave group number — e.g. 1, 2, 3  (not a clock time)",
     startTime: "Clock start time — e.g. 09:00, 11:30  (not a wave number)",
   };
@@ -213,9 +214,13 @@ export default function ColumnMappingStep({
 
   const availableFields: (RiderFieldKey | null)[] = [
     null,
-    ...FIELD_KEYWORDS.map((f) => f.field).filter(
-      (f) => !usedFields.has(f) || mappings.find((m) => m.targetField === f)
-    )
+    // IGNORED_FIELDS stay out of the picker — they are detected only so their
+    // column isn't misread as something else, never imported (BUGS.md #2).
+    ...FIELD_KEYWORDS.map((f) => f.field)
+      .filter((f) => !IGNORED_FIELDS.has(f))
+      .filter(
+        (f) => !usedFields.has(f) || mappings.find((m) => m.targetField === f)
+      )
   ];
 
   const mappedCount = mappings.filter((m) => m.targetField !== null).length;

@@ -46,6 +46,12 @@ export interface RaceProps {
   lastUpdateAt: Date;
   isActive: boolean;
   isFavorite?: boolean;
+  /**
+   * Auto-assign category colours, keeping starts that overlap on course
+   * visually distinct. On by default — undefined counts as true so existing
+   * races keep the behaviour. Off means the organizer picks colours by hand.
+   */
+  autoColor?: boolean;
   map: string;
   // Map / course area
   mapCenter?: { lat: number; lng: number };  // race area center
@@ -117,6 +123,8 @@ export interface RiderProps {
   position_start: number | null;
   position_category: number;
   position_race: number;
+  /** Pre-race ranking/seeding order from the start list. NOT the bib number. */
+  standing?: number | null;
   raceStatus: "finished" | "running" | "upcoming";
   status: "standing" | "running" | "finished" | "DNF" | "DSQ" | "DNS";
   raceUuid: string;
