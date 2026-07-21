@@ -167,3 +167,20 @@ Tables: `users`, `races`, `race_members`, `categories`, `riders`, `lap_details`
 - [ ] **Animated position changes** in LiveBoard (UX-02)
 - [ ] **Long press** instead of double-tap for rider modal (UX-03 — 400–500ms)
 - [ ] **Collapsible finished section** in heat page (UX-08)
+מה נדרש כדי שזה באמת יהיה אמין
+
+באפליקציית השופטים שלך הייתי מקפיד על:
+
+IndexedDB הוא מקור הנתונים בזמן המרוץ — לא השרת.
+כל לחיצה ורישום הקפה נשמרים מיד מקומית.
+סנכרון לשרת מתבצע כשהאינטרנט חוזר או כשהאפליקציה פתוחה.
+לא להסתמך על Background Sync כדי לא לאבד מידע.
+להציג למשתמש בבירור:
+Saved locally
+Waiting for sync
+Synced
+לשמור Action Log כדי שאפשר יהיה לבצע שחזור ו־Undo.
+לאפשר Export וגיבוי של המרוץ.
+לבדוק על iPhone אמיתי, לא רק דרך Chrome DevTools.
+
+WebKit מציין שנתוני אתר עלולים להימחק במצבים של מחסור באחסון, חריגה ממכסה או חוסר שימוש ממושך. לכן, למערכת קריטית אסור שהעותק היחיד של תוצאות המרוץ יישאר רק מקומית לאורך זמן.

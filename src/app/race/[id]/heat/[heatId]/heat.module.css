@@ -162,20 +162,28 @@
 }
 
 /* ── Timer row + wave info button ── */
+/* Grid, not centered-flex-with-absolute-overlay: the wave chip used to be
+   position:absolute right:0 and floated ON TOP of the centered clock, hiding the
+   seconds on narrow phones (BUGS.md #15). Three columns keep the clock centred
+   in the middle while the chip reserves its own space and can never overlap. */
 .timerRow {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: center;
-  position: relative;
+  gap: 6px;
   height: 60px;
+  padding: 0 8px;
 }
 
 /* Hero race clock: dark plate, gold frame, glowing green digits */
 .timerText {
+  grid-column: 2;
+  justify-self: center;
   font-size: 26px;
   font-weight: 900;
   letter-spacing: 6px;
   margin: 0;
+  white-space: nowrap;
   font-family: "Courier New", monospace;
   font-variant-numeric: tabular-nums;
   color: #7ce83c;
@@ -218,8 +226,8 @@
 }
 
 .waveInfoBtn {
-  position: absolute;
-  right: 0;
+  grid-column: 3;
+  justify-self: end;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -249,6 +257,86 @@
   height: 10px;
   border-radius: 5px;
   display: inline-block;
+}
+
+/* Narrow phones: shrink the clock's spacing and trim the chip so the full
+   time (incl. seconds) always fits next to the wave chip (BUGS.md #15). */
+@media (max-width: 380px) {
+  .timerText {
+    font-size: 22px;
+    letter-spacing: 3px;
+    padding: 6px 12px;
+  }
+  .waveInfoBtn {
+    padding: 5px 7px;
+  }
+  /* The colour dots are decorative — drop them before the clock loses digits. */
+  .waveInfoBtn .miniDot {
+    display: none;
+  }
+}
+
+/* ── Clear board (BUGS.md #14) ── */
+.clearRow {
+  display: flex;
+  justify-content: center;
+  margin-top: 6px;
+}
+
+.clearBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-card);
+  border-radius: 18px;
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.clearBtn:hover {
+  background: var(--bg-surface);
+}
+
+.clearConfirmText {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.clearConfirmActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.clearCancelBtn,
+.clearConfirmBtn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid var(--border-card);
+}
+
+.clearCancelBtn {
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+}
+
+.clearConfirmBtn {
+  background: #c0392b;
+  color: #fff;
+  border-color: #c0392b;
+}
+
+.clearConfirmBtn:hover {
+  background: #a93226;
 }
 
 /* ── Wave info modal ── */

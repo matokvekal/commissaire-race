@@ -334,6 +334,50 @@
   border-top: 1px solid var(--drawer-border);
 }
 
+/* Feedback block — same rhythm as .themeSection so the drawer reads as one list */
+.feedbackSection {
+  padding: 14px 16px 18px;
+  border-top: 1px solid var(--drawer-border);
+}
+
+.feedbackTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.feedbackIcon {
+  width: 14px;
+  height: 14px;
+}
+
+.feedbackText {
+  margin: 0 0 8px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.feedbackLink {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent, #63a6fc);
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.feedbackLink:hover,
+.feedbackLink:focus-visible {
+  text-decoration: underline;
+}
+
 .themeSectionLabel {
   display: flex;
   align-items: center;

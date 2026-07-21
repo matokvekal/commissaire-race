@@ -71,15 +71,20 @@ const AddRace: React.FC<Props> = ({ setAddNewwRace }) => {
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+    // Reset the input so re-picking the SAME file still fires onChange.
+    event.target.value = "";
     try {
       // Shrink large uploads to ~100–200 KB so they don't bloat storage.
       const compressed = await compressImage(file);
       setSelectedImage(compressed);
-    } catch {
-      // Compression failed (unusual) — fall back to the raw image.
-      const reader = new FileReader();
-      reader.onload = (e) => setSelectedImage(e.target?.result as string);
-      reader.readAsDataURL(file);
+    } catch (err) {
+      // Never store the raw full-resolution photo — a multi-MB base64 bloats
+      // IndexedDB and can crash rendering on phones (BUGS.md #13). Keep the
+      // current cover and tell the user instead.
+      console.error("Image processing failed:", err);
+      alert(
+        "Couldn't process that image (it may be an unsupported format such as HEIC). Please pick a different photo or choose a cover from the gallery."
+      );
     }
   };
 

@@ -119,6 +119,15 @@ export const riderTotalTime = (rider: {
   return stored && stored !== "00:00" && stored !== "00:00:00" ? stored : "—";
 };
 
+/**
+ * `parseClockTime` as epoch milliseconds, or null. Convenience for the live
+ * screens that only ever want to subtract two instants (BUGS.md #26).
+ */
+export const parseClockTimeMs = (t: string | null | undefined): number | null => {
+   const d = parseClockTime(t);
+   return d ? d.getTime() : null;
+};
+
 export const formatTime = (seconds: number): string => {
   // If negative or NaN, return "00:00"
   if (!Number.isFinite(seconds) || seconds < 0) return "00:00";

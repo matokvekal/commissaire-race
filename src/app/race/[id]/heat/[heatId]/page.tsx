@@ -11,7 +11,8 @@ import useRiderStore from "@/stores/ridersStore";
 import useCategoryStore from "@/stores/categoryStore";
 import { useVoiceSettingsStore } from "@/stores/voiceSettingsStore";
 import { RiderProps } from "@/types/types";
-import { formatTime, formatTimeWithLeadingZeroes } from "../../../../utils/timeUtils";
+import { formatTimeWithLeadingZeroes, parseClockTime } from "../../../../utils/timeUtils";
+import { useLapRecording } from "./useLapRecording";
 import calculatePositions from "../../../../utils/calculatePosition";
 import { buildSchedule, DEFAULT_WAVE_GAP_MINUTES, riderInCategory, withCategoryLaps } from "../../schedule/Schedule";
 import RiderLiveModal from "./RiderLiveModal";
@@ -26,17 +27,6 @@ import { extractNumbers } from "@/utils/numberParser";
 import { recordRaceEvent } from "@/services/cloud/raceEvents";
 import { canForRace } from "@/services/cloud/permissions";
 import useCloudRaceSync from "@/hooks/useCloudRaceSync";
-
-function parseTimeStr(t: string | null | undefined): Date | null {
-  if (!t) return null;
-  if (t.includes("T")) return new Date(t);
-  const today = new Date();
-  const [h, m, s = 0] = t.split(":").map(Number);
-  today.setHours(h, m, s, 0);
-  return today;
-}
-
-const MIN_LAP_MS = 60 * 1000; // 1 minute minimum between laps
 
 // Category identity is name + subCategory: the same name can exist in several
 // waves with different subcategories (e.g. Master Men 19-29 vs 30-49).
@@ -69,17 +59,7 @@ const Heat: React.FC = () => {
   const [voiceAudioLevel, setVoiceAudioLevel] = useState(0);
   const [voiceIsListening, setVoiceIsListening] = useState(false);
   const [detectedNumbers, setDetectedNumbers] = useState<Array<{ bib: string; categoryColor?: string; timestamp: number }>>([]);
-  // `prevRider` / `prevOrderIndex` are the rider exactly as they were BEFORE the
-  // tap, so Cancel can put them back untouched — same data, same place in the
-  // queue (BUGS.md #10). Reconstructing from lapsDetails alone loses
-  // elapsedTimeFromStart, position and the rider's slot in the list.
-  const [riderActions, setRiderActions] = useState<Array<{ id: string; rider: RiderProps; prevRider?: RiderProps; prevOrderIndex?: number; timestamp: number; source: 'click' | 'voice'; categoryColor: string; statusChange?: 'DNF' | 'DSQ' | 'DNS' }>>([]);
-  // Pending "drop to end of queue" timers, so a Cancel within the 1s delay can
-  // stop the rider being moved at all.
-  const reorderTimersRef = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map());
   const [showActionLog, setShowActionLog] = useState(false);
-  const [flashingRiderId, setFlashingRiderId] = useState<number | null>(null);
-  const flashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Always-fresh refs so setTimeout callbacks can see latest store + handler
   const ridersRef = useRef(riders);
   const handleRiderClickRef = useRef<((rider: RiderProps, source?: 'click' | 'voice') => void) | null>(null);
@@ -147,144 +127,48 @@ const Heat: React.FC = () => {
   const isOnTrackAfterEnd = (rider: RiderProps): boolean =>
     categories.find((c) => riderInCategory(rider, c))?.status === "finished";
 
+
+  // Lap recording + rollback live in a dedicated hook (BUGS.md #29). Same rules
+  // and side effects as before — this component just drives it.
+  const {
+    riderActions,
+    setRiderActions,
+    flashingRiderId,
+    recordLap,
+    revertLap,
+    cancelAction,
+    logStatusChange,
+    clearTimers,
+  } = useLapRecording({
+    raceUuid,
+    riders,
+    updateRider,
+    updateAllRiders,
+    circuitKm,
+    isOnTrackAfterEnd,
+    getCatColor,
+    displayOrder,
+    setDisplayOrder,
+    // The voice path renders its own detected-number chip, so only the tap path
+    // adds one here — exactly as before the extraction.
+    onLapRecorded: (rider, catColor, source) => {
+      if (source !== "voice") {
+        setDetectedNumbers((prev) => [
+          ...prev,
+          { bib: String(rider.bibNumber), categoryColor: catColor, timestamp: Date.now() },
+        ]);
+      }
+      setSearchTerm("");
+    },
+  });
+
   const handleRiderClick = (rider: RiderProps, source: 'click' | 'voice' = 'click') => {
-    if ((rider.totalLaps > 0 && rider.lapsCounter >= rider.totalLaps) || rider.raceStatus === "finished") return;
+    recordLap(rider, source);
+  };
 
-    if (!canForRace(raceUuid, "MARK_LAP")) {
-      toast.warn("No permission to mark laps");
-      return;
-    }
-
-    const clickTime = new Date();
-
-    // Prevent duplicate actions within 500ms (debounce rapid clicks/voice detections)
-    if (lastActionRef.current && lastActionRef.current.riderId === rider.id) {
-      const timeSinceLastAction = clickTime.getTime() - lastActionRef.current.timestamp;
-      if (timeSinceLastAction < 500) {
-        return; // Ignore duplicate action
-      }
-    }
-
-    // Enforce 1-minute minimum between laps
-    if (rider.timeArrive) {
-      const msSinceLast = clickTime.getTime() - new Date(rider.timeArrive).getTime();
-      if (msSinceLast < MIN_LAP_MS) {
-        const remaining = Math.ceil((MIN_LAP_MS - msSinceLast) / 1000);
-        toast.info(`Wait ${remaining}s before next lap`);
-        return;
-      }
-    }
-
-    const lapsCounter = (rider.lapsCounter || 0) + 1;
-    const raceStart = parseTimeStr(rider.timeStartRace) ?? clickTime;
-    const lastLapStart = rider.timeArrive ? new Date(rider.timeArrive) : raceStart;
-    const lapMs = clickTime.getTime() - lastLapStart.getTime();
-    const lapTime = formatTime(lapMs / 1000);
-    // A rider whose category race already ended finishes on their next crossing,
-    // regardless of remaining laps — the flag is out, this lap is their last.
-    const isFinished =
-      (rider.totalLaps > 0 && lapsCounter >= rider.totalLaps) || isOnTrackAfterEnd(rider);
-    const speed_kph = circuitKm
-      ? Math.round((circuitKm / (lapMs / 3600000)) * 10) / 10
-      : undefined;
-
-    // Build intermediate rider to run calculatePositions and get accurate position
-    const intermediateRider: RiderProps = {
-      ...rider,
-      lapsCounter,
-      elapsedLastLap: lapTime,
-      elapsedTimeFromStart: formatTime((clickTime.getTime() - raceStart.getTime()) / 1000),
-      timeArrive: clickTime.toISOString(),
-      raceStatus: isFinished ? "finished" : "running",
-    };
-
-    const allWithUpdated = riders.map((r) => (r.id === intermediateRider.id ? intermediateRider : r));
-    const sorted = calculatePositions(allWithUpdated);
-    const positionAtLap = sorted.find((r) => r.id === rider.id)?.position_category ?? rider.position_category;
-
-    // Final rider: include position and speed in the new lap detail
-    const updatedRider: RiderProps = {
-      ...intermediateRider,
-      position_category: positionAtLap,
-      lapsDetails: [
-        ...(rider.lapsDetails ?? []),
-        { lap: lapsCounter, startTime: lastLapStart, endTime: clickTime, lapTime, position: positionAtLap, speed_kph },
-      ],
-    };
-
-    const finalSorted = sorted.map((r) => (r.id === updatedRider.id ? updatedRider : r));
-    lastActionRef.current = { riderId: rider.id, timestamp: clickTime.getTime() }; // track last action for debouncing
-    updateRider(updatedRider);
-    updateAllRiders(finalSorted);
-    setSearchTerm(""); // clear search after registering a lap
-
-    // Cloud event log (local-first; no-op side effects for local-only races)
-    void recordRaceEvent({
-      raceUuid,
-      riderId: rider.id,
-      bibNumber: rider.bibNumber,
-      eventType: "LAP_MARKED",
-      lapNumber: lapsCounter,
-      payload: {
-        riderLocalId: rider.id,
-        riderPatch: {
-          lapsCounter: updatedRider.lapsCounter,
-          lapsDetails: updatedRider.lapsDetails,
-          elapsedLastLap: updatedRider.elapsedLastLap,
-          elapsedTimeFromStart: updatedRider.elapsedTimeFromStart,
-          timeArrive: updatedRider.timeArrive,
-          raceStatus: updatedRider.raceStatus,
-          position_category: updatedRider.position_category,
-        },
-      },
-    });
-
-    // Trigger flash animation on the rider card
-    if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
-    setFlashingRiderId(rider.id);
-    flashTimerRef.current = setTimeout(() => setFlashingRiderId(null), 1200);
-
-    // After the flash, deterministically drop this rider to the literal end of the
-    // queue (or off it entirely if they just finished) — no lap-count/time guesswork,
-    // so "tap it, it goes last" always means last, full stop.
-    const pendingReorder = reorderTimersRef.current.get(rider.id);
-    if (pendingReorder) clearTimeout(pendingReorder);
-    reorderTimersRef.current.set(
-      rider.id,
-      setTimeout(() => {
-        reorderTimersRef.current.delete(rider.id);
-        setDisplayOrder((prev) => {
-          const rest = prev.filter((id) => id !== rider.id);
-          return isFinished ? rest : [...rest, rider.id];
-        });
-      }, 1000)
-    );
-
-    // Add to detected numbers display (voice path adds this via the queue processor)
-    const catColor = getCatColor(rider);
-    const actionTimestamp = Date.now();
-    if (source !== 'voice') {
-      setDetectedNumbers((prev) => [
-        ...prev,
-        { bib: String(rider.bibNumber), categoryColor: catColor, timestamp: actionTimestamp },
-      ]);
-    }
-
-    // Add to action log with unique ID (rider + lap + timestamp).
-    // `rider` here is still the pre-tap snapshot — keep it for an exact undo.
-    const prevOrderIndex = displayOrder.indexOf(rider.id);
-    setRiderActions((prev) => [
-      {
-        id: `${rider.id}-${lapsCounter}-${actionTimestamp}`,
-        rider: updatedRider,
-        prevRider: rider,
-        prevOrderIndex: prevOrderIndex === -1 ? undefined : prevOrderIndex,
-        timestamp: actionTimestamp,
-        source,
-        categoryColor: catColor
-      },
-      ...prev,
-    ]);
+  const handleRevertLap = (rider: RiderProps) => {
+    revertLap(rider);
+    setContextRider(null);
   };
 
   // Keep refs in sync every render so async callbacks see fresh data
@@ -349,73 +233,6 @@ const Heat: React.FC = () => {
     processNext();
   };
 
-  const handleRevertLap = (rider: RiderProps) => {
-    if (rider.lapsCounter <= 0) { setContextRider(null); return; }
-    if (!canForRace(raceUuid, "UNDO_EVENT")) {
-      toast.warn("No permission to undo laps");
-      setContextRider(null);
-      return;
-    }
-    // Prefer the exact pre-tap snapshot from the action log, so an undo restores
-    // the rider's full previous state and queue slot rather than an
-    // approximation rebuilt from lapsDetails (BUGS.md #10).
-    const snapshot = riderActions.find(
-      (a) => a.prevRider && a.prevRider.id === rider.id && a.rider.lapsCounter === rider.lapsCounter
-    );
-
-    const newDetails = (rider.lapsDetails ?? []).slice(0, -1);
-    const prevArrive = newDetails.length > 0
-      ? new Date(newDetails[newDetails.length - 1].endTime).toISOString()
-      : null;
-    const revertedRider: RiderProps = snapshot?.prevRider
-      ? { ...snapshot.prevRider }
-      : {
-          ...rider,
-          lapsCounter: rider.lapsCounter - 1,
-          lapsDetails: newDetails,
-          timeArrive: prevArrive,
-          raceStatus: "running",
-          elapsedLastLap: newDetails.length > 0 ? newDetails[newDetails.length - 1].lapTime : null,
-        };
-    updateRider(revertedRider);
-
-    // Stop any pending drop-to-end, and put them back where they were.
-    const pendingReorder = reorderTimersRef.current.get(rider.id);
-    if (pendingReorder) {
-      clearTimeout(pendingReorder);
-      reorderTimersRef.current.delete(rider.id);
-    }
-    if (snapshot?.prevOrderIndex !== undefined) {
-      const at = snapshot.prevOrderIndex;
-      setDisplayOrder((prev) => {
-        const rest = prev.filter((id) => id !== rider.id);
-        const idx = Math.min(at, rest.length);
-        return [...rest.slice(0, idx), rider.id, ...rest.slice(idx)];
-      });
-    }
-    if (snapshot) {
-      setRiderActions((prev) => prev.filter((a) => a.id !== snapshot.id));
-    }
-    void recordRaceEvent({
-      raceUuid,
-      riderId: rider.id,
-      bibNumber: rider.bibNumber,
-      eventType: "UNDO",
-      lapNumber: rider.lapsCounter,
-      payload: {
-        riderLocalId: rider.id,
-        riderPatch: {
-          lapsCounter: revertedRider.lapsCounter,
-          lapsDetails: revertedRider.lapsDetails,
-          timeArrive: revertedRider.timeArrive,
-          raceStatus: revertedRider.raceStatus,
-          elapsedLastLap: revertedRider.elapsedLastLap,
-        },
-      },
-    });
-    setContextRider(null);
-  };
-
   const handleStatusChange = (rider: RiderProps, status: RiderProps["status"]) => {
     const isOut = ["DNF", "DSQ", "DNS"].includes(status);
     if (isOut && !canForRace(raceUuid, status === "DNS" ? "MARK_DNS" : "MARK_DNF")) {
@@ -445,19 +262,7 @@ const Heat: React.FC = () => {
 
     // Add status change to action log for DNF/DSQ/DNS
     if (isOut) {
-      const catColor = getCatColor(rider);
-      const statusTimestamp = Date.now();
-      setRiderActions((prev) => [
-        {
-          id: `${rider.id}-status-${status}-${statusTimestamp}`,
-          rider: updatedRider,
-          timestamp: statusTimestamp,
-          source: 'click',
-          categoryColor: catColor,
-          statusChange: status as 'DNF' | 'DSQ' | 'DNS'
-        },
-        ...prev,
-      ]);
+      logStatusChange(updatedRider, status as 'DNF' | 'DSQ' | 'DNS');
     }
 
     setContextRider(null);
@@ -468,7 +273,28 @@ const Heat: React.FC = () => {
   };
 
   const [showFilterPanel, setShowFilterPanel] = useState(false);
-  const lastActionRef = useRef<{ riderId: number; timestamp: number } | null>(null);
+
+  // Clear state (BUGS.md #14): once a wave is fully stopped the commissaire can
+  // wipe the live board to a clean 00:00:00 before the next wave. View-only —
+  // rider results stay in the Results tab. Reset whenever the wave changes.
+  const [clearedWave, setClearedWave] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
+  useEffect(() => {
+    setClearedWave(false);
+    setConfirmClear(false);
+  }, [heatId]);
+
+  // Started categories in this wave, and whether the wave has been stopped
+  // (every started category finished). Drives both the frozen timer and the
+  // Clear button's visibility.
+  const startedWaveCats = useMemo(
+    () => waveCategories.filter((c) => c.status === "running" || c.status === "finished"),
+    [waveCategories]
+  );
+  const waveStopped = useMemo(
+    () => startedWaveCats.length > 0 && startedWaveCats.every((c) => c.status === "finished"),
+    [startedWaveCats]
+  );
 
   const toggleCatFilter = (key: string) => {
     setFilterCats((prev) => {
@@ -533,6 +359,7 @@ const Heat: React.FC = () => {
 
   // Build displayed riders: stable order from displayOrder, live data from activeRiders
   const displayedRiders = useMemo(() => {
+    if (clearedWave) return [] as RiderProps[];
     const riderMap = new Map(activeRiders.map((r) => [r.id, r]));
     const ordered: RiderProps[] = [];
     for (const id of displayOrder) {
@@ -553,7 +380,7 @@ const Heat: React.FC = () => {
       ...ordered.filter((r) => !endedCats.has(riderCatKey(r))),
       ...ordered.filter((r) => endedCats.has(riderCatKey(r))),
     ];
-  }, [activeRiders, displayOrder, categories]);
+  }, [activeRiders, displayOrder, categories, clearedWave]);
 
   // Per-category cascade bell: if linkedFinish AND the leader has finished,
   // all remaining running riders in that category should show the last-lap bell
@@ -571,6 +398,7 @@ const Heat: React.FC = () => {
   }, [waveCategories, filteredRiders]);
 
   const finishedRiders = useMemo(() => {
+    if (clearedWave) return [] as RiderProps[];
     const outOrder = (r: RiderProps) => {
       if (r.status === "DNF") return 1;
       if (r.status === "DSQ") return 2;
@@ -584,7 +412,7 @@ const Heat: React.FC = () => {
         if (oa !== ob) return oa - ob;
         return (a.position_category ?? 999) - (b.position_category ?? 999);
       });
-  }, [filteredRiders, filterCats]);
+  }, [filteredRiders, filterCats, clearedWave]);
 
   const validBibs = useMemo(() => {
     const set = new Set<string>();
@@ -617,15 +445,8 @@ const Heat: React.FC = () => {
     setVoiceIsListening(isListening);
   }, [isListening]);
 
-  // Cleanup timers on unmount
-  useEffect(() => {
-    const reorderTimers = reorderTimersRef.current;
-    return () => {
-      if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
-      reorderTimers.forEach((t) => clearTimeout(t));
-      reorderTimers.clear();
-    };
-  }, []);
+  // Cleanup timers on unmount (the hook owns them)
+  useEffect(() => clearTimers, [clearTimers]);
 
   // Auto-clear detected numbers after 3 seconds
   useEffect(() => {
@@ -638,11 +459,25 @@ const Heat: React.FC = () => {
   }, [detectedNumbers.length]);
 
   const elapsedTime = useMemo(() => {
-    const startRider = filteredRiders.find((r) => r.raceStatus === "running" && r.timeStartRace);
-    const startDate = parseTimeStr(startRider?.timeStartRace);
-    if (!startDate) return "00:00:00";
-    return formatTimeWithLeadingZeroes(Math.max(0, now.getTime() - startDate.getTime()) / 1000);
-  }, [filteredRiders, now]);
+    if (clearedWave) return "00:00:00";
+
+    // Wave start = earliest actual rider start in this wave. Use timeStartRace
+    // from ANY started rider (not just currently-running) so the clock survives
+    // the wave being stopped, when every rider flips to "finished" (BUGS.md #14).
+    const startMsList = filteredRiders
+      .map((r) => parseClockTime(r.timeStartRace)?.getTime())
+      .filter((t): t is number => t != null);
+    if (startMsList.length === 0) return "00:00:00";
+    const startMs = Math.min(...startMsList);
+
+    // If the wave has been stopped, FREEZE at the stop moment (the latest
+    // category finishedAt) instead of resetting to 0.
+    const endMs = waveStopped
+      ? Math.max(...startedWaveCats.map((c) => c.finishedAt ?? now.getTime()))
+      : now.getTime();
+
+    return formatTimeWithLeadingZeroes(Math.max(0, endMs - startMs) / 1000);
+  }, [filteredRiders, now, clearedWave, waveStopped, startedWaveCats]);
 
   // Turn voice on/off. When turning on, make sure we have mic permission first,
   // showing a friendly pre-prompt before the browser's native permission dialog.
@@ -715,6 +550,33 @@ const Heat: React.FC = () => {
         </div>
       )}
 
+      {/* Clear-board confirmation (BUGS.md #14) */}
+      {confirmClear && (
+        <div className={styles.contextOverlay} onClick={() => setConfirmClear(false)}>
+          <div className={styles.waveModal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.waveModalHeader}>
+              <span>Clear the board?</span>
+              <button className={styles.contextClose} onClick={() => setConfirmClear(false)}>✕</button>
+            </div>
+            <p className={styles.clearConfirmText}>
+              This resets the timer to 00:00:00 and removes every rider card from the
+              live view. Race results are kept in the Results tab.
+            </p>
+            <div className={styles.clearConfirmActions}>
+              <button className={styles.clearCancelBtn} onClick={() => setConfirmClear(false)}>
+                Cancel
+              </button>
+              <button
+                className={styles.clearConfirmBtn}
+                onClick={() => { setClearedWave(true); setConfirmClear(false); }}
+              >
+                Clear board
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className={styles.wrapper}>
         {/* Timer row with wave-info button: which wave is live + its started categories */}
         <div className={styles.timerRow}>
@@ -729,6 +591,16 @@ const Heat: React.FC = () => {
               ))}
           </button>
         </div>
+
+        {/* Clear the board once the wave is fully stopped (BUGS.md #14) —
+            resets the clock to 0 and removes every card. Results are untouched. */}
+        {waveStopped && !clearedWave && (
+          <div className={styles.clearRow}>
+            <button className={styles.clearBtn} onClick={() => setConfirmClear(true)}>
+              Clear board
+            </button>
+          </div>
+        )}
 
         <div className={styles.searchWrapper}>
           <div className={styles.inputContainer}>
@@ -921,53 +793,9 @@ const Heat: React.FC = () => {
         isOpen={showActionLog}
         onToggle={() => setShowActionLog(!showActionLog)}
         onCancel={(actionId, riderName) => {
-          const action = riderActions.find((a) => a.id === actionId);
-          if (!action) return;
-
-          // Extract rider ID from action ID (format: ${rider.id}-${lapsCounter}-${timestamp})
-          const riderIdStr = actionId.split('-')[0];
-          const rider = riders.find((r) => r.id === Number(riderIdStr));
-          if (!rider || rider.lapsCounter <= 0) return;
-
-          // The tap may not have dropped them to the end yet — stop it happening.
-          const pendingReorder = reorderTimersRef.current.get(rider.id);
-          if (pendingReorder) {
-            clearTimeout(pendingReorder);
-            reorderTimersRef.current.delete(rider.id);
-          }
-
-          if (action.prevRider) {
-            // Exact undo: restore the rider byte-for-byte as they were before the
-            // tap. Rebuilding from lapsDetails would silently drop
-            // elapsedTimeFromStart and position_category (BUGS.md #10).
-            updateRider({ ...action.prevRider });
-          } else {
-            // Older action logged before snapshots existed — best-effort revert.
-            const newDetails = (rider.lapsDetails ?? []).slice(0, -1);
-            const prevArrive = newDetails.length > 0
-              ? new Date(newDetails[newDetails.length - 1].endTime).toISOString()
-              : null;
-            updateRider({
-              ...rider,
-              lapsCounter: rider.lapsCounter - 1,
-              lapsDetails: newDetails,
-              timeArrive: prevArrive,
-              raceStatus: "running",
-              elapsedLastLap: newDetails.length > 0 ? newDetails[newDetails.length - 1].lapTime : null,
-            });
-          }
-
-          // Put them back where they were standing in the queue.
-          if (action.prevOrderIndex !== undefined) {
-            setDisplayOrder((prev) => {
-              const rest = prev.filter((id) => id !== rider.id);
-              const at = Math.min(action.prevOrderIndex as number, rest.length);
-              return [...rest.slice(0, at), rider.id, ...rest.slice(at)];
-            });
-          }
-
-          // Remove from action log
-          setRiderActions((prev) => prev.filter((a) => a.id !== actionId));
+          // The hook owns the undo: exact snapshot restore, queue slot restore,
+          // and cancelling any pending drop-to-end (BUGS.md #10, #29).
+          if (!cancelAction(actionId)) return;
           toast.success(`Cancelled: ${riderName}`);
         }}
       />

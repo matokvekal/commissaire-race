@@ -281,6 +281,28 @@
   color: #e05585;
 }
 
+/* One-tap DNS on the row (BUGS.md #25) — same chip as .statusTrigger, tinted
+   so the destructive action reads as distinct from the neutral Status menu. */
+.dnsTrigger {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 7px;
+  border: 1.5px solid #e0c0cc;
+  border-radius: 6px;
+  background: #fff;
+  color: #c2456f;
+  cursor: pointer;
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.dnsTrigger:hover {
+  background: #e05585;
+  border-color: #e05585;
+  color: #fff;
+}
+
 /* Status inline badge — replaces circle when DNS/DNF/DSQ set */
 .statusInlineBadge {
   padding: 5px 11px;

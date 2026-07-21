@@ -66,6 +66,10 @@
 /* Actions dropdown (Import / Scan / Edit) — matches the sort control */
 .actionsMenu {
   position: relative;
+  /* Stay right-aligned even when the bar wraps on a phone. Without this a
+     wrapped Actions button falls to the LEFT of its row, and its right-anchored
+     menu then opens off the left edge and gets clipped (BUGS.md #4). */
+  margin-left: auto;
 }
 
 .actionsTrigger {
@@ -99,6 +103,8 @@
   right: 0; /* trigger sits at the bar's right end — anchor the menu right so it stays on-screen */
   z-index: 20;
   min-width: 190px;
+  /* Never wider than the viewport, so it can't be clipped on small phones. */
+  max-width: calc(100vw - 24px);
   display: flex;
   flex-direction: column;
   padding: 6px;

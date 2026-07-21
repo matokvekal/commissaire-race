@@ -3,6 +3,7 @@ import styles from "./liveBoard.module.css";
 import { CategoryProps, RiderProps } from "@/types/types";
 import useRiderStore from "@/stores/ridersStore";
 import calculatePositions from "@/utils/calculatePosition";
+import { parseClockTime } from "@/utils/timeUtils";
 import { riderInCategory, withCategoryLaps } from "../schedule/Schedule";
 import { Trophy, Flag, Zap } from "lucide-react";
 
@@ -14,17 +15,8 @@ interface Props {
 
 const MEDAL = ["🥇", "🥈", "🥉"];
 
-function parseTimeStr(t: string | null | undefined): Date | null {
-  if (!t) return null;
-  if (t.includes("T")) return new Date(t);
-  const today = new Date();
-  const [h, m, s = 0] = t.split(":").map(Number);
-  today.setHours(h, m, s, 0);
-  return today;
-}
-
 function elapsed(rider: RiderProps): string {
-  const start = parseTimeStr(rider.timeStartRace);
+  const start = parseClockTime(rider.timeStartRace);
   if (!start) return "—";
   const end = rider.timeArrive ? new Date(rider.timeArrive) : new Date();
   const s = Math.max(0, Math.floor((end.getTime() - start.getTime()) / 1000));

@@ -134,6 +134,7 @@
 .tabCheckin { background: linear-gradient(180deg, #d24dff 0%, #8a10c9 100%); }
 .tabCards   { background: linear-gradient(180deg, #d24dff 0%, #8a10c9 100%); }
 .tabBoard   { background: linear-gradient(180deg, #34a1ff 0%, #0b5ecc 100%); }
+.tabStatus  { background: linear-gradient(180deg, #7a6cf0 0%, #4a3ec8 100%); }
 
 /* Diagonal glossy shine streak */
 .subTab::after {

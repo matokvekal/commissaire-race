@@ -59,12 +59,17 @@ const useRaceStore = create<RaceState>()(
          insertRace: async (newRace: RaceProps) => {
             try {
                const { races } = get();
-               const updatedRaces = [...races, newRace];
+               // Replace if the same race is already cached (e.g. a re-save)
+               const updatedRaces = races.some((r) => r.id === newRace.id)
+                  ? races.map((r) => (r.id === newRace.id ? newRace : r))
+                  : [...races, newRace];
 
                set({ races: updatedRaces });
 
                const db = await initIndexedDB();
-               await db.add("races", newRace);
+               // put, not add: add throws ConstraintError if the id already
+               // exists, which crashed the save when the row was written twice.
+               await db.put("races", newRace);
                db.close();
             } catch (error) {
                console.error("Error inserting race:", error);

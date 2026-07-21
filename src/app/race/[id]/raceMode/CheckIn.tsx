@@ -108,6 +108,23 @@ const CheckIn: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
     if (selectedRider) updateRider({ ...selectedRider, status });
   };
 
+  /**
+   * One-tap DNS straight from the row (BUGS.md #25). Marking a rider DNS is the
+   * commonest pre-start action on this screen and used to cost three taps
+   * (Status → modal → DNS). Toggles back to "standing" so it's undoable, and
+   * writes the same field the Status menu does, so the two stay in step.
+   */
+  const toggleDns = (rider: RiderProps) => {
+    if (!canForRace(raceUuid, "MARK_DNS")) return;
+    const nowDns = rider.status !== "DNS";
+    updateRider({
+      ...rider,
+      status: nowDns ? "DNS" : "standing",
+      // A DNS rider never takes the line, so they can't stay checked in.
+      checked: nowDns ? false : rider.checked,
+    });
+  };
+
   const catMetaOf = (name: string, sub: string | null) =>
     categories.find((c) => c.name === name && (c.subCategory ?? null) === sub);
 
@@ -139,7 +156,13 @@ const CheckIn: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
       ? styles.dsqBadge
       : "";
     return (
-      <div key={rider.id} className={`${styles.row} ${rider.checked ? styles.checked : ""} ${hasStatus ? styles.out : ""}`}>
+      <div
+        key={rider.id}
+        data-testid={`checkin-row-${rider.bibNumber}`}
+        data-checked={rider.checked ? "yes" : "no"}
+        data-status={rider.status}
+        className={`${styles.row} ${rider.checked ? styles.checked : ""} ${hasStatus ? styles.out : ""}`}
+      >
         <span className={styles.rowColorBar} style={{ background: catColorOfRider(rider) }} title={rider.category} />
         <div className={styles.leftArea}>
           {hasStatus ? (
@@ -162,6 +185,14 @@ const CheckIn: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
                 onClick={() => toggleCheck(rider)}
                 title={rider.checked ? "Uncheck" : "Check in"}
               />
+              <button
+                className={styles.dnsTrigger}
+                onClick={() => toggleDns(rider)}
+                title="Mark as DNS (did not start)"
+                aria-label={`Mark #${rider.bibNumber} DNS`}
+              >
+                DNS
+              </button>
               <button className={styles.statusTrigger} onClick={() => { setSelectedRider(rider); openModal("modalStatus"); }}>Status</button>
             </>
           )}

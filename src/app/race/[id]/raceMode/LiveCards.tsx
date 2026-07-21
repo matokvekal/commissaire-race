@@ -6,19 +6,10 @@ import RacingRider from "../categories/racingRider/RacingRider";
 import FinishRider from "../categories/finishRider/FinishRider";
 import calculatePositions from "@/utils/calculatePosition";
 import { riderInCategory, withCategoryLaps } from "../schedule/Schedule";
-import { formatTime } from "@/utils/timeUtils";
+import { formatTime, parseClockTime } from "@/utils/timeUtils";
 import { toast } from "react-toastify";
 
 const MIN_LAP_MS = 60 * 1000;
-
-function parseTimeStr(t: string | null | undefined): Date | null {
-  if (!t) return null;
-  if (t.includes("T")) return new Date(t);
-  const today = new Date();
-  const [h, m, s = 0] = t.split(":").map(Number);
-  today.setHours(h, m, s, 0);
-  return today;
-}
 
 interface Props {
   raceUuid: string;
@@ -68,7 +59,7 @@ const LiveCards: React.FC<Props> = ({ raceUuid, categories }) => {
     }
 
     const lapsCounter = (rider.lapsCounter || 0) + 1;
-    const raceStart = parseTimeStr(rider.timeStartRace) ?? clickTime;
+    const raceStart = parseClockTime(rider.timeStartRace) ?? clickTime;
     const lastLapStart = rider.timeArrive ? new Date(rider.timeArrive) : raceStart;
     const lapMs = clickTime.getTime() - lastLapStart.getTime();
     const lapTime = formatTime(lapMs / 1000);

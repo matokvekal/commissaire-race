@@ -15,6 +15,9 @@ export default defineConfig({
   expect: { timeout: 10_000 },
   use: {
     baseURL: "http://localhost:3000",
+    // Bound each action so a wrong selector fails in seconds instead of eating
+    // the whole test timeout (the full-race spec runs for minutes).
+    actionTimeout: 15_000,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     // The app registers a service worker; block it so tests always hit fresh code.

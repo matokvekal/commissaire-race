@@ -1,4 +1,3 @@
-import { initIndexedDB } from "@/stores/indexDb/indexedDbHelper";
 import useRaceStore from "@/stores/racesStore";
 import { RaceProps } from "@/types/types";
 import { FormEvent } from "react";
@@ -82,27 +81,26 @@ export const saveRace = async (
       map: "",
       distance: 0,
     };
-    //save to db
-    const db = await initIndexedDB();
-    await db.add("races", newRace);
-    db.close();
-    //save to state
+    // Single writer: insertRace owns both the Zustand cache and the IDB row.
+    // (Previously this ALSO did db.add("races") here, then insertRace added the
+    // same id again → duplicate-key ConstraintError on every save.)
     const { insertRace } = useRaceStore.getState();
     await insertRace(newRace);
 
     if (file) {
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        if (!event.target?.result) return;
-        const csvData = event.target.result as string;
-
-        try {
-          await saveRidersFromCsv(csvData, newRace.uuid);
-        } catch (error) {
-          console.error("Error saving riders at saveRidersFromCsv", error);
-        }
-      };
-      reader.readAsText(file); // ✅ Read the file as text (CSV/XLSX)
+      // Must finish BEFORE the create screen closes (BUGS.md #18). This used to
+      // fire a FileReader and return immediately, so opening the new race could
+      // race the import: `createCategoriesFromRiders` runs once, on mount, only
+      // when there are no categories yet — if it won that race you ended up with
+      // a race that had riders but no categories, and therefore no schedule and
+      // no way to start.
+      const csvData = await file.text();
+      try {
+        await saveRidersFromCsv(csvData, newRace.uuid);
+      } catch (error) {
+        console.error("Error saving riders at saveRidersFromCsv", error);
+        throw error;
+      }
     }
     setAddNewwRace(false);
   } catch (error) {

@@ -627,6 +627,37 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
     }
   };
 
+  /**
+   * Close out one category's riders when its race is flagged off (BUGS.md #31).
+   *
+   * Riders who already crossed for the last time, or who are classified out
+   * (DNF/DSQ/DNS), are done — they only get a backfilled elapsed time.
+   *
+   * Riders still ON THE ROAD are deliberately left `raceStatus: "running"`. The
+   * category is what closes, not the rider. Marking them "finished" here
+   * recorded them as finishers of a distance they never completed, and made the
+   * whole ON TRACK feature unreachable. Leaving them running is what the live
+   * screen's `isOnTrackAfterEnd` expects (ribbon + "still on track" counter),
+   * and what makes them finish on their next crossing. `startGroup` already
+   * sweeps up any who never come back, when the next wave starts.
+   */
+  const closeOutCategoryRiders = (cat: CategoryProps, now: Date): RiderProps[] => {
+    const catRiders = riders.filter(
+      (r) => riderInCategory(r, cat) && r.raceUuid === raceUuid && r.status !== "DNS"
+    );
+    return catRiders
+      .filter((r) => {
+        const isOut = r.status === "DNF" || r.status === "DSQ" || r.status === "DNS";
+        return isOut || r.raceStatus === "finished";
+      })
+      .map((r) => ({
+        ...r,
+        raceStatus: "finished" as const,
+        elapsedTimeFromStart:
+          r.elapsedTimeFromStart ?? formatElapsed(now, r.timeStartRace),
+      }));
+  };
+
   const endRace = async (group: StartGroup) => {
     const now = new Date();
     if (countdown?.groupId === group.id) setCountdown(null);
@@ -641,21 +672,7 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
       if (cat.status === "running") {
         await updateCategory({ ...cat, status: "finished" as const, finishedAt: now.getTime() });
       }
-      const catRiders = riders.filter(
-        (r) => riderInCategory(r, cat) && r.raceUuid === raceUuid && r.status !== "DNS"
-      );
-      const updatedRiders = catRiders.map((r) => {
-        const isOut = r.status === "DNF" || r.status === "DSQ" || r.status === "DNS";
-        return {
-          ...r,
-          // Ending the race finalizes EVERY rider — including those still on the
-          // track — so Live is clean and the next wave starts from a blank slate.
-          raceStatus: "finished" as const,
-          status: isOut ? r.status : ("finished" as const),
-          elapsedTimeFromStart:
-            r.elapsedTimeFromStart ?? formatElapsed(now, r.timeStartRace),
-        };
-      });
+      const updatedRiders = closeOutCategoryRiders(cat, now);
       if (updatedRiders.length > 0) await updateAllRiders(updatedRiders);
     }
 
@@ -675,19 +692,8 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
       // Categories that never started have no riders on the road to finalize.
       if (!wasStarted) continue;
 
-      const catRiders = riders.filter(
-        (r) => riderInCategory(r, cat) && r.raceUuid === raceUuid && r.status !== "DNS"
-      );
-      const updatedRiders = catRiders.map((r) => {
-        const isOut = r.status === "DNF" || r.status === "DSQ" || r.status === "DNS";
-        return {
-          ...r,
-          raceStatus: "finished" as const,
-          status: isOut ? r.status : ("finished" as const),
-          elapsedTimeFromStart:
-            r.elapsedTimeFromStart ?? formatElapsed(now, r.timeStartRace),
-        };
-      });
+      // Same rule as endRace: riders still out keep running (BUGS.md #31).
+      const updatedRiders = closeOutCategoryRiders(cat, now);
       if (updatedRiders.length > 0) await updateAllRiders(updatedRiders);
     }
   };
@@ -874,6 +880,7 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
                   <div className={styles.confirmInline}>
                     <span className={styles.confirmText}>Finish whole wave?</span>
                     <button
+                      data-testid="confirm-yes-wave"
                       className={styles.confirmYes}
                       onClick={() => { finishWave(); setConfirmFinishWave(false); }}
                     >
@@ -888,6 +895,7 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
                   </div>
                 ) : (
                   <button
+                    data-testid="finish-wave"
                     className={styles.finishWaveBtn}
                     onClick={() => setConfirmFinishWave(true)}
                     title="Finish all starts in this wave and close it"
@@ -1011,6 +1019,16 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
           );
           const actualStart = runningRider?.timeStartRace ?? group.time;
 
+          // Riders who would still be out on course if this group is flagged off
+          // now — the confirmation has to say what happens to them (BUGS.md #23).
+          const stillOnCourse = riders.filter(
+            (r) =>
+              r.raceUuid === raceUuid &&
+              cats.some((c) => riderInCategory(r, c)) &&
+              r.raceStatus === "running" &&
+              !["DNF", "DSQ", "DNS"].includes(r.status)
+          ).length;
+
           return (
             <div key={group.id} className={`${styles.startBlock} ${styles.startBlockRunning}`}>
               <div className={`${styles.startHeader} ${styles.startHeaderRunning}`}>
@@ -1055,8 +1073,19 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
                 </div>
                 {confirmFinishId === group.id ? (
                   <div className={styles.confirmInline}>
-                    <span className={styles.confirmText}>End race?</span>
+                    <span className={styles.confirmText}>
+                      {stillOnCourse > 0 ? (
+                        <>
+                          End race? {stillOnCourse} rider{stillOnCourse > 1 ? "s" : ""} still
+                          on course — they stay on Live marked{" "}
+                          <strong>ON TRACK</strong> and finish on their next crossing.
+                        </>
+                      ) : (
+                        "End race? Everyone is in."
+                      )}
+                    </span>
                     <button
+                      data-testid="confirm-yes"
                       className={styles.confirmYes}
                       onClick={() => { endRace(group); setConfirmFinishId(null); }}
                     >
@@ -1071,6 +1100,7 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
                   </div>
                 ) : (
                   <button
+                    data-testid="finish-start-group"
                     className={styles.endRaceBtn}
                     onClick={() => setConfirmFinishId(group.id)}
                     title="Finish race"
@@ -1211,6 +1241,7 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
                     </button>
                   ))}
                   <button
+                    data-testid="start-all"
                     className={`${styles.startBtn} ${totalIssues > 0 ? styles.btnBlocked : ""}`}
                     disabled={otherWaveRunning}
                     aria-disabled={totalIssues > 0}

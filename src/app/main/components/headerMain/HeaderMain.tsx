@@ -6,7 +6,9 @@ import Version from "@/components/Version/Version";
 import { useNavigate } from "react-router-dom";
 import { useDataStore } from "@/stores/appStore";
 import Cookies from "js-cookie";
-import { Bike, Download, Gamepad2, LogOut, Menu, MessageCircle, Palette, UserRound, X } from "lucide-react";
+import { Bike, Download, Gamepad2, LogOut, Mail, Menu, MessageCircle, Palette, UserRound, X } from "lucide-react";
+// Relative: tsconfig only aliases specific "@/…" prefixes, and config isn't one.
+import { VERSION } from "../../../config/index";
 import { useTheme, type Theme } from "@/hooks/useTheme";
 import { useSkin, type Skin } from "@/hooks/useSkin";
 import { usePwaInstall } from "@/components/pwa/usePwaInstall";
@@ -18,6 +20,9 @@ const THEME_OPTIONS: { value: Theme; label: string; bg: string; accent: string; 
   { value: 'warm',     label: 'Warm',     bg: '#fbf3e0', accent: '#c87400', text: '#2d1810' },
   { value: 'night',    label: 'Night',    bg: '#040812', accent: '#00c8ff', text: '#d2ebff' },
 ];
+
+/** Where side-menu feedback lands. */
+const FEEDBACK_EMAIL = "mictavim@gmail.com";
 
 const SKIN_OPTIONS: { value: Skin; label: string; bg: string; radius: string }[] = [
   { value: 'classic', label: 'Classic', bg: 'linear-gradient(145deg, #63a6fc, #4a8ee7)', radius: '10px' },
@@ -246,6 +251,25 @@ function HeaderMain() {
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Direct line to the author — feedback goes to a person, not a form */}
+        <div className={styles.feedbackSection}>
+          <div className={styles.feedbackTitle}>
+            <Mail className={styles.feedbackIcon} aria-hidden="true" />
+            Comments? Bugs?
+          </div>
+          <p className={styles.feedbackText}>
+            Please write me — I read everything. Thanks!
+          </p>
+          <a
+            className={styles.feedbackLink}
+            href={`mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent(
+              `Commissaire ${VERSION} — feedback`
+            )}`}
+          >
+            {FEEDBACK_EMAIL}
+          </a>
         </div>
 
         {/* Version lives here in the side menu */}

@@ -6,8 +6,14 @@ import DeleteConfirmModal from "@/components/ui/DeleteConfirmModal";
 import useRaceStore from "@/stores/racesStore";
 import useRiderStore from "@/stores/ridersStore";
 import useCategoryStore from "@/stores/categoryStore";
-import { Edit2, Check, X, ExternalLink, Download, Upload } from "lucide-react";
-import { exportRaceToXlsx } from "@/utils/raceExport";
+import { useAuthStore } from "@/stores/authStore";
+import { Edit2, Check, X, ExternalLink, Download, Upload, ShieldCheck } from "lucide-react";
+import * as XLSX from "xlsx";
+import {
+  exportRaceToXlsx,
+  verifyRaceWorkbook,
+  VerificationResult,
+} from "@/utils/raceExport";
 import {
   importRaceFromXlsx,
   replaceCategoriesForRace,
@@ -39,22 +45,66 @@ const Info: React.FC<Props> = ({ race, onDeleteRace }) => {
   const [showExportModal, setShowExportModal] = useState(false);
   const [pendingImport, setPendingImport] = useState<ImportResult | null>(null);
   const importRef = useRef<HTMLInputElement>(null);
+  const verifyRef = useRef<HTMLInputElement>(null);
+  const [verifying, setVerifying] = useState(false);
+  const [verification, setVerification] = useState<VerificationResult | null>(null);
   const updateRace = useRaceStore((s) => s.updateRace);
+  const currentUser = useAuthStore((s) => s.currentUser);
   const { riders, deleteRidersByRace, insertRiders } = useRiderStore();
   const { categories } = useCategoryStore();
 
   const raceRiders = riders.filter((r) => r.raceUuid === race.uuid);
   const raceCats = categories.filter((c) => c.raceUuid === race.uuid);
 
-  const handleExportConfirm = (selected: CategoryProps[]) => {
+  const handleExportConfirm = async (selected: CategoryProps[]) => {
     const partial = selected.length !== raceCats.length;
     // Full export keeps every rider (even ones without a category);
     // partial export only takes riders of the chosen categories.
     const exportRiders = partial
       ? raceRiders.filter((r) => selected.some((c) => riderInCategory(r, c)))
       : raceRiders;
-    exportRaceToXlsx(race, selected, exportRiders, partial ? "partial" : undefined);
+    // Stamp the file with whoever is signed in, so a results sheet arriving at
+    // the main commissaire can be traced back and checked for edits.
+    const exportedBy = currentUser?.email || currentUser?.id || "anonymous";
+    try {
+      await exportRaceToXlsx(
+        race,
+        selected,
+        exportRiders,
+        partial ? "partial" : undefined,
+        exportedBy
+      );
+    } catch (err) {
+      toast.error(
+        `Export failed: ${err instanceof Error ? err.message : "Unknown error"}`
+      );
+      return;
+    }
     setShowExportModal(false);
+  };
+
+  /**
+   * Check a received workbook against its own Signature sheet (BUGS.md #28).
+   * Read-only — it never imports anything, so a tampered file can be inspected
+   * safely before deciding what to do with it.
+   */
+  const handleVerifyFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+    setVerifying(true);
+    setVerification(null);
+    try {
+      const wb = XLSX.read(await file.arrayBuffer(), { type: "array" });
+      setVerification(await verifyRaceWorkbook(wb));
+    } catch (err) {
+      setVerification({
+        status: "invalid",
+        message: `Could not read that file: ${err instanceof Error ? err.message : "unsupported format"}`,
+      });
+    } finally {
+      setVerifying(false);
+    }
   };
 
   const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -297,7 +347,38 @@ const Info: React.FC<Props> = ({ race, onDeleteRace }) => {
               <Upload size={14} />
               {importing ? "Importing…" : "Import from Excel"}
             </button>
+            <button
+              className={styles.importBtn}
+              onClick={() => verifyRef.current?.click()}
+              disabled={verifying}
+            >
+              <ShieldCheck size={14} />
+              {verifying ? "Checking…" : "Verify signature"}
+            </button>
           </div>
+
+          {/* Signature check result (BUGS.md #28) */}
+          {verification && (
+            <div
+              className={`${styles.verifyBox} ${styles[`verify_${verification.status}`] ?? ""}`}
+              data-testid="verify-result"
+              data-status={verification.status}
+            >
+              <div className={styles.verifyHeadline}>
+                {verification.status === "valid" && "✓ Signature valid"}
+                {verification.status === "results-modified" && "⚠ Results were changed"}
+                {verification.status === "invalid" && "✕ Signature invalid"}
+                {verification.status === "unsigned" && "• Not signed"}
+              </div>
+              <div className={styles.verifyMessage}>{verification.message}</div>
+              {verification.exportedBy && (
+                <div className={styles.verifyMeta}>
+                  Exported by <strong>{verification.exportedBy}</strong>
+                  {verification.exportedAt ? ` on ${verification.exportedAt}` : ""}
+                </div>
+              )}
+            </div>
+          )}
         </div>
         <input
           ref={importRef}
@@ -305,6 +386,13 @@ const Info: React.FC<Props> = ({ race, onDeleteRace }) => {
           accept=".xlsx,.xls"
           style={{ display: "none" }}
           onChange={handleImportFile}
+        />
+        <input
+          ref={verifyRef}
+          type="file"
+          accept=".xlsx,.xls"
+          style={{ display: "none" }}
+          onChange={handleVerifyFile}
         />
       </div>
 

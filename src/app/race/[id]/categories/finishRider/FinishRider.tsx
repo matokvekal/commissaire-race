@@ -28,6 +28,8 @@ const FinishRider: React.FC<Props> = ({ rider, color, onDoubleClick }) => {
 
   return (
     <div
+      data-testid={`finish-rider-${rider.bibNumber}`}
+      data-status={label}
       className={`${styles.rider} ${isOut ? styles.out : styles.fin}`}
       style={{ borderColor: color, borderTopColor: color }}
       onDoubleClick={(e) => { e.preventDefault(); onDoubleClick(); }}

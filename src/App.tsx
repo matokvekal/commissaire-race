@@ -7,6 +7,8 @@ import OtpPage from "./app/otp/page";
 import LoginErrorPage from "./app/loginerror/page";
 import MainPage from "./app/main/page";
 import ContactPage from "./app/contact/page";
+import TermsPage from "./app/terms/page";
+import TermsGate from "./app/components/legal/TermsGate";
 import RacePage from "./app/race/[id]/page";
 import HeatPage from "./app/race/[id]/heat/[heatId]/page";
 import StandingPage from "./app/race/[id]/standing/[heatId]/page";
@@ -35,6 +37,7 @@ export default function App() {
         <Route path="/loginerror" element={<LoginErrorPage />} />
         <Route path="/main" element={<MainPage />} />
         <Route path="/contact" element={<ContactPage />} />
+        <Route path="/terms" element={<TermsPage />} />
         <Route path="/race" element={<Navigate to="/main" replace />} />
         <Route path="/race/:id" element={<RacePage />} />
         <Route path="/race/:id/heat/:heatId" element={<HeatPage />} />
@@ -43,6 +46,7 @@ export default function App() {
       </Routes>
       <InstallPrompt />
       <UpdatePrompt />
+      <TermsGate />
     </>
   );
 }

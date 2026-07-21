@@ -4,6 +4,7 @@ import { CategoryProps } from "@/types/types";
 import StartManager from "./StartManager";
 import CheckIn from "./CheckIn";
 import LiveBoard from "./LiveBoard";
+import WaveStatus from "./WaveStatus";
 import { buildSchedule, DEFAULT_WAVE_GAP_MINUTES, riderInCategory } from "../schedule/Schedule";
 import useRiderStore from "@/stores/ridersStore";
 import useUIStore from "@/stores/uiStore";
@@ -14,7 +15,7 @@ interface Props {
   categories: CategoryProps[];
 }
 
-type SubTab = "start" | "checkin" | "board";
+type SubTab = "start" | "checkin" | "board" | "status";
 
 const RaceMode: React.FC<Props> = ({ raceUuid, categories }) => {
   // Group categories by time gap (same logic as Schedule view)
@@ -115,12 +116,20 @@ const RaceMode: React.FC<Props> = ({ raceUuid, categories }) => {
         <button className={`${styles.subTab} ${styles.tabBoard} ${subTab === "board" ? styles.subTabActive : ""}`} onClick={() => setSubTab("board")}>
           Board
         </button>
+        {/* Everyone in the wave with their current status (BUGS.md #24) */}
+        <button
+          className={`${styles.subTab} ${styles.tabStatus} ${subTab === "status" ? styles.subTabActive : ""}`}
+          onClick={() => setSubTab("status")}
+        >
+          All Riders
+        </button>
       </div>
 
       <div className={styles.content}>
         {subTab === "start"   && <StartManager raceUuid={raceUuid} waveNum={selectedWave} categories={waveCategories} />}
         {subTab === "checkin" && <CheckIn raceUuid={raceUuid} waveNum={selectedWave} categories={waveCategories} />}
         {subTab === "board"   && <LiveBoard raceUuid={raceUuid} waveNum={selectedWave} categories={waveCategories} />}
+        {subTab === "status"  && <WaveStatus raceUuid={raceUuid} waveNum={selectedWave} categories={waveCategories} />}
       </div>
     </div>
   );

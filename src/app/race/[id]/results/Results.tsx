@@ -8,6 +8,7 @@ import RiderDetailModal from "../../components/riderDetailModal/RiderDetailModal
 import { buildSchedule, DEFAULT_WAVE_GAP_MINUTES, catWaveKey, withCategoryLaps } from "../schedule/Schedule";
 import { Trophy } from "lucide-react";
 import { getRiderStatusInfo, getCategoryStatusInfo } from "@/utils/statusChip";
+import { parseClockTime } from "@/utils/timeUtils";
 
 interface Props {
   raceUuid: string;
@@ -27,10 +28,16 @@ function fmtTime(ms: number) {
 }
 
 function riderElapsed(rider: RiderProps): number {
-  if (!rider.timeStartRace) return Infinity;
-  const start = new Date(rider.timeStartRace).getTime();
+  // `timeStartRace` is a wall-clock string ("08:04:31"), NOT a date — feeding it
+  // to `new Date()` yields Invalid Date, so every elapsed time came out NaN and
+  // rendered as "—" (and the Time sort silently compared NaN). Parse it with the
+  // shared helper that already handles this format (BUGS.md #30).
+  const start = parseClockTime(rider.timeStartRace);
+  if (!start) return Infinity;
   const end = rider.timeArrive ? new Date(rider.timeArrive).getTime() : Date.now();
-  return end - start;
+  if (isNaN(end)) return Infinity;
+  const ms = end - start.getTime();
+  return ms >= 0 ? ms : Infinity;
 }
 
 const Results: React.FC<Props> = ({ raceUuid }) => {

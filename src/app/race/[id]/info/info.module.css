@@ -441,3 +441,42 @@
   background: #ffebee;
   border-color: #c62828;
 }
+
+/* ── Signature verification result (BUGS.md #28) ───────────────────── */
+.verifyBox {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border, #d8dde8);
+  background: var(--surface-2, #f6f8fb);
+}
+
+.verifyHeadline {
+  font-size: 13px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.verifyMessage {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-muted, #5d6577);
+}
+
+.verifyMeta {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--text-muted, #5d6577);
+}
+
+.verify_valid          { border-color: #2fbf71; background: rgba(47, 191, 113, 0.10); }
+.verify_valid .verifyHeadline { color: #1e8a50; }
+
+.verify_results-modified { border-color: #e8a33d; background: rgba(232, 163, 61, 0.12); }
+.verify_results-modified .verifyHeadline { color: #a96a10; }
+
+.verify_invalid        { border-color: #e05585; background: rgba(224, 85, 133, 0.12); }
+.verify_invalid .verifyHeadline { color: #b32b5c; }
+
+.verify_unsigned       { border-color: #b9c0cf; background: rgba(185, 192, 207, 0.15); }
+.verify_unsigned .verifyHeadline { color: #5d6577; }

@@ -54,19 +54,29 @@ const Standing: React.FC = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRider, setSelectedRider] = useState<RiderProps | null>(null);
+  // The category filter the list is showing. Seeded from the ?category= param
+  // the caller arrived with; the filter modal then drives it. It used to be read
+  // straight off the URL and the modal's choice was thrown away (BUGS.md #22).
+  const [selectedCategory, setSelectedCategory] = useState(categoryName);
+
+  // Keep in step if the route's category changes underneath us.
+  useEffect(() => setSelectedCategory(categoryName), [categoryName]);
+
+  const isAllCategories = !selectedCategory || selectedCategory === "All";
 
   // Subscribe & filter riders from store directly
   const filteredRiders = useRiderStore(
     (s) =>
-      s
-        .getRidersByCategory(raceUuid, categoryName)
-        .filter((r) =>
-          [
-            r.bibNumber.toString(),
-            r.firstName.toLowerCase(),
-            r.lastName.toLowerCase()
-          ].some((f) => f.includes(searchTerm.toLowerCase()))
-        ),
+      (isAllCategories
+        ? s.riders.filter((r) => r.raceUuid === raceUuid)
+        : s.getRidersByCategory(raceUuid, selectedCategory)
+      ).filter((r) =>
+        [
+          r.bibNumber.toString(),
+          r.firstName.toLowerCase(),
+          r.lastName.toLowerCase()
+        ].some((f) => f.includes(searchTerm.toLowerCase()))
+      ),
     shallow
   );
 
@@ -99,7 +109,7 @@ const Standing: React.FC = () => {
       <div className={styles.wrapper}>
         <div className={styles.left} onClick={handleGoBack}>
           <img src={Icons.arrowBackBlack} alt="back" width={14} height={14} />
-          <div>Category: {categoryName}</div>
+          <div>Category: {isAllCategories ? "All" : selectedCategory}</div>
         </div>
 
         <div className={styles.standing}>
@@ -163,7 +173,9 @@ const Standing: React.FC = () => {
                 <p className={styles.emptyMessage}>
                   {searchTerm
                     ? "No riders match your search."
-                    : `There are no riders assigned to "${categoryName}" yet.`}
+                    : isAllCategories
+                      ? "There are no riders in this race yet."
+                      : `There are no riders assigned to "${selectedCategory}" yet.`}
                 </p>
                 {!searchTerm && (
                   <div className={styles.emptyActions}>
@@ -189,11 +201,20 @@ const Standing: React.FC = () => {
 
       {modals.showModalCategory && (
         <CategoryModal
+          // Every category in the race — deriving them from the already-filtered
+          // list only ever offered the one category we were showing.
           categories={[
             "All",
-            ...Array.from(new Set(filteredRiders.map((r) => r.category)))
+            ...Array.from(
+              new Set(
+                categories
+                  .filter((c) => c.raceUuid === raceUuid)
+                  .map((c) => c.name)
+              )
+            )
           ]}
           selectCategory={(cat) => {
+            setSelectedCategory(cat === "All" ? "" : cat);
             useUIStore.getState().closeModal("showModalCategory");
           }}
         />

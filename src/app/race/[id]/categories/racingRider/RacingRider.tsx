@@ -1,17 +1,8 @@
 import React, { useRef, useState, useEffect } from "react";
 import styles from "./racingRider.module.css";
 import { RiderProps } from "@/types/types";
-import { formatTime } from "@/utils/timeUtils";
+import { formatTime, parseClockTimeMs } from "@/utils/timeUtils";
 import { Bell } from "lucide-react";
-
-function parseTimeToMs(t: string | null | undefined): number | null {
-  if (!t) return null;
-  if (t.includes("T")) return new Date(t).getTime();
-  const today = new Date();
-  const [h, m, s = 0] = t.split(":").map(Number);
-  today.setHours(h, m, s, 0);
-  return today.getTime();
-}
 
 interface Props {
   rider: RiderProps;
@@ -40,7 +31,7 @@ const RacingRider: React.FC<Props> = ({ rider, color, forceBell = false, isFlash
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
   }, [hasStarted]);
-  const sinceArriveBaseline = parseTimeToMs(rider.timeArrive) ?? parseTimeToMs(rider.timeStartRace);
+  const sinceArriveBaseline = parseClockTimeMs(rider.timeArrive) ?? parseClockTimeMs(rider.timeStartRace);
   const sinceArrive = hasStarted && sinceArriveBaseline != null
     ? formatTime((now - sinceArriveBaseline) / 1000)
     : null;
@@ -85,6 +76,8 @@ const RacingRider: React.FC<Props> = ({ rider, color, forceBell = false, isFlash
 
   return (
     <div
+      data-testid={`racing-rider-${rider.bibNumber}`}
+      data-laps={`${rider.lapsCounter}/${rider.totalLaps}`}
       className={`${styles.rider} ${glowClass} ${raceEnded ? styles.onTrack : ""}`}
       style={{ background: bgStyle, "--glow-color": color } as React.CSSProperties}
       onClick={handleClick}
