@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense, lazy } from "react";
 import type {
   CSVParseResult,
   ColumnMapping,
@@ -10,7 +10,8 @@ import type {
 } from "@/types/csv.types";
 import type { RiderProps, RaceProps } from "@/types/types";
 import { parseCSVFile } from "@/utils/csvParser";
-import { parseXLSXFile } from "@/utils/xlsxParser";
+// parseXLSXFile pulls in xlsx (~430 kB) — loaded only when an Excel file is
+// actually uploaded (BUGS.md #1). CSV uploads never touch it.
 import { autoMapColumns } from "@/services/csvMapper";
 import { rowToRider } from "@/services/riderRowMapper";
 import { touchTemplate } from "@/services/templateStorage";
@@ -23,7 +24,9 @@ import ColumnMappingStep from "./ColumnMappingStep";
 import PreviewStep from "./PreviewStep";
 import ImportProgressStep from "./ImportProgressStep";
 import MultiDayDialog from "./MultiDayDialog";
-import ImageCapture from "@/components/importImage/ImageCapture";
+// The photo-OCR capture pulls in tesseract.js — load it only when the user
+// actually chooses "scan" (BUGS.md #1).
+const ImageCapture = lazy(() => import("@/components/importImage/ImageCapture"));
 import styles from "./csvImportWizard.module.css";
 
 type WizardStep = "upload" | "mapping" | "preview" | "importing";
@@ -65,7 +68,9 @@ export default function CSVImportWizard({
   const handleFileUpload = async (file: File, template?: MappingTemplate) => {
     try {
       const isExcel = /\.(xlsx|xls)$/i.test(file.name);
-      const result = isExcel ? await parseXLSXFile(file) : await parseCSVFile(file);
+      const result = isExcel
+        ? await (await import("@/utils/xlsxParser")).parseXLSXFile(file)
+        : await parseCSVFile(file);
       setParseResult(result);
       const autoMappings = await autoMapColumns(result.headers);
       setSuggestedName(file.name.replace(/\.(xlsx?|csv)$/i, ""));
@@ -331,10 +336,12 @@ export default function CSVImportWizard({
       <div className={styles.content}>
         {currentStep === "upload" &&
           (scanMode ? (
-            <ImageCapture
-              onComplete={handleOcrParsed}
-              onCancel={() => setScanMode(false)}
-            />
+            <Suspense fallback={<div className={styles.content}>Loading camera…</div>}>
+              <ImageCapture
+                onComplete={handleOcrParsed}
+                onCancel={() => setScanMode(false)}
+              />
+            </Suspense>
           ) : (
             <UploadStep
               onFileUpload={(file, tpl) => handleFileUpload(file, tpl)}

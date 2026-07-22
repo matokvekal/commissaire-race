@@ -8,18 +8,10 @@ import useRiderStore from "@/stores/ridersStore";
 import useCategoryStore from "@/stores/categoryStore";
 import { useAuthStore } from "@/stores/authStore";
 import { Edit2, Check, X, ExternalLink, Download, Upload, ShieldCheck } from "lucide-react";
-import * as XLSX from "xlsx";
-import {
-  exportRaceToXlsx,
-  verifyRaceWorkbook,
-  VerificationResult,
-} from "@/utils/raceExport";
-import {
-  importRaceFromXlsx,
-  replaceCategoriesForRace,
-  mergeCategoriesIntoRace,
-  ImportResult,
-} from "@/utils/raceImport";
+// xlsx (~430 kB) and its wrappers load on demand from the handlers below so they
+// stay out of the Race page's initial chunk (BUGS.md #1). Types are erased.
+import type { VerificationResult } from "@/utils/raceExport";
+import type { ImportResult } from "@/utils/raceImport";
 import { riderInCategory, catWaveKey } from "../schedule/Schedule";
 import ExportCategoriesModal from "./ExportCategoriesModal";
 import MergeImportModal, { ImportMode } from "./MergeImportModal";
@@ -67,6 +59,7 @@ const Info: React.FC<Props> = ({ race, onDeleteRace }) => {
     // the main commissaire can be traced back and checked for edits.
     const exportedBy = currentUser?.email || currentUser?.id || "anonymous";
     try {
+      const { exportRaceToXlsx } = await import("@/utils/raceExport");
       await exportRaceToXlsx(
         race,
         selected,
@@ -95,6 +88,10 @@ const Info: React.FC<Props> = ({ race, onDeleteRace }) => {
     setVerifying(true);
     setVerification(null);
     try {
+      const [XLSX, { verifyRaceWorkbook }] = await Promise.all([
+        import("xlsx"),
+        import("@/utils/raceExport"),
+      ]);
       const wb = XLSX.read(await file.arrayBuffer(), { type: "array" });
       setVerification(await verifyRaceWorkbook(wb));
     } catch (err) {
@@ -112,6 +109,7 @@ const Info: React.FC<Props> = ({ race, onDeleteRace }) => {
     if (!file) return;
     e.target.value = "";
     try {
+      const { importRaceFromXlsx } = await import("@/utils/raceImport");
       const data = await importRaceFromXlsx(file);
       setPendingImport(data);
     } catch (err) {
@@ -123,6 +121,9 @@ const Info: React.FC<Props> = ({ race, onDeleteRace }) => {
     if (!pendingImport) return;
     setImporting(true);
     try {
+      const { replaceCategoriesForRace, mergeCategoriesIntoRace } = await import(
+        "@/utils/raceImport"
+      );
       // Remap to current race UUID (supports cross-device import)
       const remappedCats = pendingImport.categories.map((c) => ({ ...c, raceUuid: race.uuid }));
       const remappedRiders = pendingImport.riders.map((r) => ({ ...r, raceUuid: race.uuid }));

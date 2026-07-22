@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, Suspense, lazy } from "react";
 import styles from "./race.module.css";
 import HeaderRace from "../components/headerRace/HeaderRace";
 import Button from "@/components/ui/Button";
+import Loader from "@/components/Loader";
 import { resolveRaceImage } from "@/utils/resolveRaceImage";
 import RaceInfo from "../components/raceInfo/RaceInfo";
 import useCategoryStore from "@/stores/categoryStore";
@@ -9,7 +10,8 @@ import useRaceStore from "@/stores/racesStore";
 import useRiderStore from "@/stores/ridersStore";
 import useUIStore from "@/stores/uiStore";
 import Riders from "./riders/Riders";
-import Map from "./map/Map";
+// The Map tab pulls in Leaflet (~150 kB); load it only when opened (BUGS.md #1).
+const Map = lazy(() => import("./map/Map"));
 import Schedule from "./schedule/Schedule";
 import Categories from "./categories/Categories";
 import Results from "./results/Results";
@@ -169,7 +171,11 @@ const Race: React.FC = () => {
                   />
                 ))}
               {activeTabSafe === "results" && <Results raceUuid={raceUuid} />}
-              {activeTabSafe === "map" && <Map raceUuid={raceUuid} />}
+              {activeTabSafe === "map" && (
+                <Suspense fallback={<Loader />}>
+                  <Map raceUuid={raceUuid} />
+                </Suspense>
+              )}
               {/* Cloud tab hidden for now */}
               {activeTabSafe === "info" && (
                 <Info
