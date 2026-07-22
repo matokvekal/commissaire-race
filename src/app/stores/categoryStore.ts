@@ -15,6 +15,7 @@ interface CategoryState {
   rebuildCategoriesFromRiders: (raceUuid: string) => Promise<void>;
   updateRiderColor: (categoryName: string, color: string, raceUuid: string) => Promise<void>;
   updateCategory: (updatedCategory: CategoryProps) => void;
+  upsertCategories: (cats: CategoryProps[]) => Promise<void>;
 }
 
 const useCategoryStore = create<CategoryState>()(
@@ -205,6 +206,36 @@ const useCategoryStore = create<CategoryState>()(
 
         } catch (error) {
           console.error("Error updating rider color:", error);
+        }
+      },
+
+      /**
+       * Write a batch of categories in ONE store set and ONE IDB transaction.
+       *
+       * Use this whenever a whole set of categories arrives at once (race
+       * download / import). Looping `updateCategory` instead opens a separate
+       * DB connection per category and, because it is async, callers that
+       * forget to await it navigate away while the writes are still in flight —
+       * the race screen then reads a half-written category list and shows no
+       * rider cards until the writes catch up.
+       */
+      upsertCategories: async (cats: CategoryProps[]) => {
+        if (cats.length === 0) return;
+        set((state) => {
+          const byId = new Map(state.categories.map((c) => [c.id, c]));
+          for (const cat of cats) byId.set(cat.id, cat);
+          return { categories: [...byId.values()] };
+        });
+
+        try {
+          const db = await initIndexedDB();
+          const tx = db.transaction("categories", "readwrite");
+          const store = tx.objectStore("categories");
+          await Promise.all(cats.map((cat) => store.put(cat)));
+          await tx.done;
+          db.close();
+        } catch (error) {
+          console.error("Error upserting categories in IDB:", error);
         }
       },
 
