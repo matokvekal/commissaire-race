@@ -174,6 +174,17 @@ function HeaderMain() {
             <Bike className={styles.navItemIcon} aria-hidden="true" />
             My Races
           </Button>
+          {/* Downloadable Excel start-list template — fill in your riders, then
+              import it. Served from public/ so it must go through BASE_URL. */}
+          <a
+            className={`${styles.navItem} ${styles.navItemLink}`}
+            href={`${import.meta.env.BASE_URL}start-list-template.xlsx`}
+            download="start-list-template.xlsx"
+            onClick={() => setDrawerOpen(false)}
+          >
+            <Download className={styles.navItemIcon} aria-hidden="true" />
+            Download start-list template
+          </a>
           {canInstall && (
             <Button
               variant="ghost"
