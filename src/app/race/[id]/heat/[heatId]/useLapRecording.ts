@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { RiderProps } from "@/types/types";
 import { formatTime, parseClockTime } from "@/utils/timeUtils";
@@ -316,12 +316,20 @@ export function useLapRecording({
     ]);
   };
 
-  /** Clear pending timers — call from the component's unmount effect. */
-  const clearTimers = (): void => {
+  /**
+   * Clear pending timers — call from the component's unmount effect.
+   *
+   * MUST be a stable reference: the page wires it as
+   * `useEffect(() => clearTimers, [clearTimers])`. If its identity changed each
+   * render, that effect's cleanup would fire on EVERY render and kill the
+   * pending "drop to end" timer before its 1s elapsed — so tapped cards never
+   * moved to the end (live regression). It only touches refs, so `[]` is safe.
+   */
+  const clearTimers = useCallback((): void => {
     if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
     reorderTimersRef.current.forEach((t) => clearTimeout(t));
     reorderTimersRef.current.clear();
-  };
+  }, []);
 
   return {
     riderActions,

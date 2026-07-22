@@ -50,6 +50,9 @@ const RiderLiveModal: React.FC<Props> = ({
                 {rider.category}
                 {rider.subCategory && <span className={styles.sub}> · {rider.subCategory}</span>}
               </span>
+              {rider.team && (
+                <span className={styles.club} dir="auto">🏳️ {rider.team}</span>
+              )}
             </div>
           </div>
           <button className={styles.closeBtn} onClick={onClose}>✕</button>

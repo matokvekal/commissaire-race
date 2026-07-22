@@ -1,7 +1,7 @@
 import React from "react";
 import styles from "./raceCard.module.css";
 import { RaceCardProps } from "@/types/types";
-import Images from "@/constants/Images";
+import { resolveRaceImage } from "@/utils/resolveRaceImage";
 import { useNavigate } from "react-router-dom";
 import {
   CalendarDays,
@@ -32,12 +32,7 @@ const RaceCard: React.FC<RaceCardProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  const resolvedImage = (() => {
-    if (!image) return Images.defaultRaceBike;
-    if (image.startsWith("data:") || image.startsWith("http") || image.startsWith("/")) return image;
-    if (image.startsWith("images/")) return import.meta.env.BASE_URL + image;
-    return Images[image as keyof typeof Images] ?? Images.defaultRaceBike;
-  })();
+  const resolvedImage = resolveRaceImage(image);
 
   const statusKey = status ?? "upcoming";
 

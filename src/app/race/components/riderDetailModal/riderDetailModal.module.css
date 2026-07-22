@@ -230,6 +230,33 @@
   color: #1a304f;
 }
 
+/* Reference-only imported columns (BUGS.md #A) */
+.extraGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.extraRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.extraKey {
+  color: #7a8aa8;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.extraVal {
+  color: #1a304f;
+  font-weight: 600;
+  text-align: right;
+  word-break: break-word;
+}
+
 /* Inputs */
 .input {
   width: 100%;

@@ -93,6 +93,9 @@ export function rowToRider(
       case "points":
         data.points = parseFloat(value) || null;
         break;
+      case "uciPoints":
+        data.uciPoints = parseFloat(value) || null;
+        break;
       case "federation":
         data.federation = value || null;
         break;
@@ -132,6 +135,28 @@ export function rowToRider(
     }
   });
 
+  // Reference-only columns: kept on the rider and shown on the full card, but not
+  // used by the app (BUGS.md #A — e.g. UCI number, ID, road number). Previously
+  // these were parsed then dropped.
+  const extraFields: Record<string, string> = {};
+  const EXTRA_LABELS: Array<[string, string]> = [
+    ["uciNumber", "UCI Number"],
+    ["uciPoints", "UCI Points"],
+    ["idNumber", "ID Number"],
+    ["birthDate", "Birth Date"],
+    ["federationNumber", "Federation Number"],
+    ["federationChip", "Federation Chip"],
+    ["roadNumber", "Road Number"],
+    ["chip", "Chip"],
+    ["notes", "Notes"],
+    ["firstNameEnglish", "First Name (EN)"],
+    ["lastNameEnglish", "Last Name (EN)"],
+  ];
+  for (const [key, label] of EXTRA_LABELS) {
+    const v = data[key];
+    if (v != null && String(v).trim() !== "") extraFields[label] = String(v);
+  }
+
   return {
     id: Date.now() + index,
     raceUuid,
@@ -163,6 +188,9 @@ export function rowToRider(
     image: null,
     comment: null,
     points: data.points ?? null,
-    federation: data.federation ?? null
+    uciPoints: data.uciPoints ?? null,
+    federation: data.federation ?? null,
+    uciNumber: data.uciNumber ?? null,
+    extraFields: Object.keys(extraFields).length > 0 ? extraFields : undefined
   };
 }

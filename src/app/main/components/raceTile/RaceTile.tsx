@@ -1,6 +1,6 @@
 import React from "react";
 import styles from "./raceTile.module.css";
-import Images from "@/constants/Images";
+import { resolveRaceImage } from "@/utils/resolveRaceImage";
 import { useNavigate } from "react-router-dom";
 import { Heart } from "lucide-react";
 import type { RaceCardProps } from "@/types/types";
@@ -29,12 +29,7 @@ const RaceTile: React.FC<RaceCardProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  const resolvedImage =
-    image?.startsWith("data:") ||
-    image?.startsWith("/") ||
-    image?.startsWith("http")
-      ? image
-      : (Images[image as keyof typeof Images] ?? Images.defaultRaceBike);
+  const resolvedImage = resolveRaceImage(image);
 
   const statusKey = status ?? "upcoming";
 

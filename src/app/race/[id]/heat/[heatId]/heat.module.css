@@ -610,6 +610,47 @@
   border-radius: 8px;
 }
 
+/* Not-started categories: greyed out, at the end of the list, not selectable
+   — you can only filter to categories that have started (BUGS.md #R3). */
+.filterRowNotStarted,
+.filterRowNotStarted:hover {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: transparent;
+}
+
+.filterRowNotStarted input[type="checkbox"] {
+  cursor: not-allowed;
+}
+
+.filterRowFinished {
+  opacity: 0.8;
+}
+
+.filterStatusTag {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--text-muted);
+  background: var(--bg-surface);
+  padding: 2px 7px;
+  border-radius: 8px;
+}
+
+.filterStatusTagDone {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: #2f8a63;
+  background: rgba(62, 221, 164, 0.15);
+  padding: 2px 7px;
+  border-radius: 8px;
+}
+
 /* ── Search clear button ── */
 .clearSearch {
   position: absolute;

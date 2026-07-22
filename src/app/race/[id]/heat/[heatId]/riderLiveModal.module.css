@@ -90,6 +90,13 @@
 
 .sub { opacity: 0.75; }
 
+.club {
+  font-size: 12px;
+  color: #7a8aa8;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
 .closeBtn {
   background: #f0f2f6;
   border: none;

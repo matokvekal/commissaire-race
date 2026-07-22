@@ -51,6 +51,7 @@ export type RiderFieldKey =
    | 'standing'
    | 'raceDay'
    | 'points'
+   | 'uciPoints'
    | 'federation'
    | 'uciNumber'
    | 'idNumber'
@@ -372,6 +373,14 @@ export const FIELD_KEYWORDS: FieldKeywords[] = [
       hebrew: ['ניקוד', 'נקודות', 'ניקוד כולל', 'נקודות כולל'],
       english: ['points', 'score', 'pts', 'total points', 'ranking points'],
       priority: 5
+   },
+   {
+      // UCI points — kept distinct from plain points. Keywords all require "UCI"
+      // so a generic "points" column never lands here.
+      field: 'uciPoints',
+      hebrew: ['נקודות UCI', 'ניקוד UCI', 'נקודות יו סי איי'],
+      english: ['uci points', 'uci pts', 'uci score', 'uci ranking points', 'points uci'],
+      priority: 6
    },
    {
       field: 'federation',

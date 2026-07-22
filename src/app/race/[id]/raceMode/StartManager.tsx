@@ -332,6 +332,7 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [waveBaseTime, setWaveBaseTime] = useState<string>("");
   const [confirmFinishId, setConfirmFinishId] = useState<string | null>(null);
+  const [confirmFinishCatId, setConfirmFinishCatId] = useState<number | null>(null);
   const [confirmFinishWave, setConfirmFinishWave] = useState(false);
   const [expandedFinished, setExpandedFinished] = useState<Set<string>>(new Set());
   const [startError, setStartError] = useState<string[] | null>(null);
@@ -676,6 +677,21 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
       if (updatedRiders.length > 0) await updateAllRiders(updatedRiders);
     }
 
+  };
+
+  /**
+   * Finish a SINGLE category while its siblings in the same start keep racing.
+   * The category closes (status → finished); riders already in are finalized,
+   * and riders still on the road stay "running" so — exactly like a whole-start
+   * finish — they record time+lap on their NEXT tap at Live and are then marked
+   * finished and drop off the active grid, no longer cluttering it (user req).
+   */
+  const finishCategory = async (cat: CategoryProps) => {
+    if (cat.status !== "running") return;
+    const now = new Date();
+    await updateCategory({ ...cat, status: "finished" as const, finishedAt: now.getTime() });
+    const updatedRiders = closeOutCategoryRiders(cat, now);
+    if (updatedRiders.length > 0) await updateAllRiders(updatedRiders);
   };
 
   // Finish the ENTIRE wave: every category is closed, every started rider is
@@ -1044,6 +1060,14 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
                   const catRider = riders.find(
                     (r) => r.raceUuid === raceUuid && riderInCategory(r, cat) && r.raceStatus === "running" && r.timeStartRace
                   );
+                  const catFinished = cat.status === "finished";
+                  const catOnCourse = riders.filter(
+                    (r) =>
+                      r.raceUuid === raceUuid &&
+                      riderInCategory(r, cat) &&
+                      r.raceStatus === "running" &&
+                      !["DNF", "DSQ", "DNS"].includes(r.status)
+                  ).length;
                   return (
                     <div key={cat.id} className={styles.catRow}>
                       <div className={styles.colorDot} style={{ background: cat.color ?? "#ccc" }} />
@@ -1051,11 +1075,45 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
                         {cat.name}
                         {cat.subCategory && <span className={styles.subCategory}> · {cat.subCategory}</span>}
                       </span>
-                      <span className={`${styles.statusTag} ${styles.running}`}>running</span>
-                      {catRider?.timeStartRace && (
+                      <span className={`${styles.statusTag} ${catFinished ? styles.finished : styles.running}`}>
+                        {catFinished ? "finished" : "running"}
+                      </span>
+                      {catRider?.timeStartRace && !catFinished && (
                         <span className={styles.catElapsed}>
                           {formatElapsed(currentTime, catRider.timeStartRace)}
                         </span>
+                      )}
+                      {/* Finish just THIS category — siblings keep racing (user req) */}
+                      {!catFinished && (
+                        confirmFinishCatId === cat.id ? (
+                          <span className={styles.catFinishConfirm}>
+                            <span className={styles.catFinishConfirmText}>
+                              {catOnCourse > 0
+                                ? `${catOnCourse} still out — stay ON TRACK, finish on next crossing.`
+                                : "Finish this category?"}
+                            </span>
+                            <button
+                              className={styles.catFinishYes}
+                              onClick={() => { finishCategory(cat); setConfirmFinishCatId(null); }}
+                            >
+                              Finish
+                            </button>
+                            <button
+                              className={styles.catFinishNo}
+                              onClick={() => setConfirmFinishCatId(null)}
+                            >
+                              ✕
+                            </button>
+                          </span>
+                        ) : (
+                          <button
+                            className={styles.catFinishBtn}
+                            onClick={() => setConfirmFinishCatId(cat.id)}
+                            title="Finish this category"
+                          >
+                            <Flag size={12} /> Finish
+                          </button>
+                        )
                       )}
                     </div>
                   );
@@ -1076,12 +1134,12 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
                     <span className={styles.confirmText}>
                       {stillOnCourse > 0 ? (
                         <>
-                          End race? {stillOnCourse} rider{stillOnCourse > 1 ? "s" : ""} still
-                          on course — they stay on Live marked{" "}
-                          <strong>ON TRACK</strong> and finish on their next crossing.
+                          Finish this start? {stillOnCourse} rider{stillOnCourse > 1 ? "s" : ""} still
+                          on course will stay on Live marked <strong>ON TRACK</strong> and finish on
+                          their next crossing.
                         </>
                       ) : (
-                        "End race? Everyone is in."
+                        "Finish this start? Everyone is in."
                       )}
                     </span>
                     <button

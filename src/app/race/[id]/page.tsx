@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import styles from "./race.module.css";
 import HeaderRace from "../components/headerRace/HeaderRace";
 import Button from "@/components/ui/Button";
-import Images from "@/constants/Images";
+import { resolveRaceImage } from "@/utils/resolveRaceImage";
 import RaceInfo from "../components/raceInfo/RaceInfo";
 import useCategoryStore from "@/stores/categoryStore";
 import useRaceStore from "@/stores/racesStore";
@@ -93,16 +93,7 @@ const Race: React.FC = () => {
     }
   }, [loading, race, raceUuid, getCategories, createCategoriesFromRiders]);
 
-  const resolvedImage = useMemo(
-    () =>
-      race
-        ? race.image?.startsWith("data:") || race.image?.startsWith("http")
-          ? race.image
-          : (Images[race.image as keyof typeof Images] ??
-            Images.defaultRaceBike)
-        : Images.defaultRaceBike,
-    [race]
-  );
+  const resolvedImage = useMemo(() => resolveRaceImage(race?.image), [race]);
 
   if (loading) return <div className={styles.loading}>Loading race...</div>;
   if (!race) return <div className={styles.loading}>Race not found.</div>;
@@ -190,7 +181,10 @@ const Race: React.FC = () => {
                     }
                     await deleteRidersByRace(raceUuid);
                     await deleteRace(raceUuid);
-                    navigate("/");
+                    // Back to the races list, NOT the marketing landing. /main
+                    // shows the list when races remain, or its Create-Race /
+                    // Use-Demo empty view when this was the last one (user req).
+                    navigate("/main");
                   }}
                 />
               )}

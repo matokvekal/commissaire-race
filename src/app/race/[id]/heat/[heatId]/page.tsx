@@ -99,17 +99,34 @@ const Heat: React.FC = () => {
     return categories;
   }, [categories, heatId]);
 
+  // Category filter list order: RUNNING first (the ones you're actively scoring),
+  // then finished, then not-started LAST. Not-started categories have no cards on
+  // Live, so they're shown greyed-out and can't be selected — you can only filter
+  // to categories that have started (user request).
+  const filterCategories = useMemo(() => {
+    const rank = (status?: string) =>
+      status === "running" ? 0 : status === "finished" ? 1 : 2;
+    return [...waveCategories].sort((a, b) => rank(a.status) - rank(b.status));
+  }, [waveCategories]);
+
   const filteredRiders = useMemo(
     () => {
-      // Live shows only riders whose race has actually begun in this wave —
-      // started or finished. Categories in the wave that haven't been started
-      // yet (and DNS riders) stay "upcoming" and are excluded. Matching is by
-      // name + subCategory so same-named categories in other waves don't bleed in.
+      // Live shows only riders whose CATEGORY has actually started in this wave.
+      // A category in the wave that hasn't been started yet must not show its
+      // cards at all — even though it shares the wave (user request). Gating on
+      // the category's own status (running/finished) is authoritative; the
+      // rider-level `raceStatus` check alone let not-started cards leak on.
+      // Matching is by name + subCategory so same-named categories in other
+      // waves don't bleed in.
       const filtered = riders.filter(
         (r) =>
           r.raceUuid === raceUuid &&
-          waveCategories.some((c) => riderInCategory(r, c)) &&
-          r.raceStatus !== "upcoming"
+          r.raceStatus !== "upcoming" &&
+          waveCategories.some(
+            (c) =>
+              riderInCategory(r, c) &&
+              (c.status === "running" || c.status === "finished")
+          )
       );
       // Laps resolved from the category — the shared rule (BUGS.md #7)
       return withCategoryLaps(filtered, waveCategories);
@@ -639,18 +656,30 @@ const Heat: React.FC = () => {
                 <span>All categories</span>
               </label>
               <div className={styles.filterDivider} />
-              {waveCategories.map((cat) => (
-                <label key={cat.id} className={styles.filterPanelRow}>
-                  <input
-                    type="checkbox"
-                    checked={filterCats.has(catKey(cat.name, cat.subCategory))}
-                    onChange={() => toggleCatFilter(catKey(cat.name, cat.subCategory))}
-                  />
-                  <span className={styles.catDot} style={{ background: cat.color ?? "#ccc" }} />
-                  <span>{cat.name}{cat.subCategory ? ` · ${cat.subCategory}` : ""}</span>
-                  {cat.laps && <span className={styles.filterLapTag}>{cat.laps}L</span>}
-                </label>
-              ))}
+              {filterCategories.map((cat) => {
+                const running = cat.status === "running";
+                const finished = cat.status === "finished";
+                const notStarted = !running && !finished;
+                const key = catKey(cat.name, cat.subCategory);
+                return (
+                  <label
+                    key={cat.id}
+                    className={`${styles.filterPanelRow} ${notStarted ? styles.filterRowNotStarted : ""} ${finished ? styles.filterRowFinished : ""}`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={filterCats.has(key)}
+                      disabled={notStarted}
+                      onChange={() => toggleCatFilter(key)}
+                    />
+                    <span className={styles.catDot} style={{ background: cat.color ?? "#ccc" }} />
+                    <span>{cat.name}{cat.subCategory ? ` · ${cat.subCategory}` : ""}</span>
+                    {notStarted && <span className={styles.filterStatusTag}>not started</span>}
+                    {finished && <span className={styles.filterStatusTagDone}>finished</span>}
+                    {cat.laps && <span className={styles.filterLapTag}>{cat.laps}L</span>}
+                  </label>
+                );
+              })}
             </div>
           </div>
         )}

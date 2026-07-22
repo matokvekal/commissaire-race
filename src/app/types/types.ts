@@ -138,5 +138,13 @@ export interface RiderProps {
   comment: string | null;
   chipNumber?: string;
   points?: number | null;
+  uciPoints?: number | null;
   federation?: string | null;
+  uciNumber?: string | null;
+  /**
+   * Imported columns kept for reference but NOT used by the app (BUGS.md #A).
+   * Shown on the full rider card so a commissaire can see things like UCI
+   * number, ID, road number, etc. Keyed by a human label. Order preserved.
+   */
+  extraFields?: Record<string, string>;
 }

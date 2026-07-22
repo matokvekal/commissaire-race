@@ -212,6 +212,16 @@ export default function RiderDetailModal({ rider, onClose }: Props) {
             />
           )}
 
+          {rider.uciNumber && (
+            <Field label="UCI Number" editMode={false}
+              view={<span dir="auto">{rider.uciNumber}</span>} edit={null} />
+          )}
+
+          {rider.uciPoints != null && (
+            <Field label="UCI Points" editMode={false}
+              view={<span>{rider.uciPoints}</span>} edit={null} />
+          )}
+
           {(rider.position_start != null || rider.position_category > 0) && (
             <Field label="Position" editMode={false}
               view={<span>{rider.raceStatus === "upcoming" ? `Start: ${rider.position_start ?? "—"}` : `Cat: ${rider.position_category}`}</span>}
@@ -226,6 +236,21 @@ export default function RiderDetailModal({ rider, onClose }: Props) {
                 ? <textarea className={`${styles.input} ${styles.textarea}`} value={form.comment} onChange={e => set("comment", e.target.value)} rows={2} />
                 : <div className={styles.fieldValue}>{rider.comment || "—"}</div>
               }
+            </div>
+          )}
+
+          {/* Reference-only imported columns — shown but not used (BUGS.md #A) */}
+          {rider.extraFields && Object.keys(rider.extraFields).length > 0 && (
+            <div className={styles.fieldFull}>
+              <div className={styles.fieldLabel}>More info</div>
+              <div className={styles.extraGrid}>
+                {Object.entries(rider.extraFields).map(([label, value]) => (
+                  <div key={label} className={styles.extraRow}>
+                    <span className={styles.extraKey}>{label}</span>
+                    <span className={styles.extraVal} dir="auto">{value}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
