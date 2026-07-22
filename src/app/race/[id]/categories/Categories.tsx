@@ -8,65 +8,14 @@ import useCategoryStore from "@/stores/categoryStore";
 import useRiderStore from "@/stores/ridersStore";
 import { buildSchedule, DEFAULT_WAVE_GAP_MINUTES, catWaveKey } from "../schedule/Schedule";
 import { getCategoryStatusInfo } from "@/utils/statusChip";
+import { PREDEFINED_CATEGORY_TEMPLATES } from "@/constants/categoryTemplates";
 
 interface CategoriesProps {
   raceUuid: string;
 }
 
-/** Each band is its own standalone category — see MASTERS templates below. */
-const MASTERS_AGE_BANDS = ["19-29", "30-39", "40-49", "50-59", "60+"];
-
-const PREDEFINED_TEMPLATES: CategoryTemplate[] = [
-  {
-    id: "man-juniors",
-    name: "Man Juniors",
-    subCategories: [],
-    color: "#63A6FC",
-    createdAt: new Date(),
-    lastUsed: new Date()
-  },
-  {
-    id: "woman-juniors",
-    name: "Woman Juniors",
-    subCategories: [],
-    color: "#E05585",
-    createdAt: new Date(),
-    lastUsed: new Date()
-  },
-  // Masters are one category per age band — no sub-categories (BUGS.md #2)
-  ...MASTERS_AGE_BANDS.map((band) => ({
-    id: `man-masters-${band}`,
-    name: `Man Masters ${band}`,
-    subCategories: [],
-    color: "#3EDDA4",
-    createdAt: new Date(),
-    lastUsed: new Date()
-  })),
-  ...MASTERS_AGE_BANDS.map((band) => ({
-    id: `woman-masters-${band}`,
-    name: `Woman Masters ${band}`,
-    subCategories: [],
-    color: "#FFC300",
-    createdAt: new Date(),
-    lastUsed: new Date()
-  })),
-  {
-    id: "man-elite",
-    name: "Man Elite",
-    subCategories: [],
-    color: "#9D4EDD",
-    createdAt: new Date(),
-    lastUsed: new Date()
-  },
-  {
-    id: "woman-elite",
-    name: "Woman Elite",
-    subCategories: [],
-    color: "#FF006E",
-    createdAt: new Date(),
-    lastUsed: new Date()
-  }
-];
+// Built-in category bank — single source of truth (BUGS.md #5).
+const PREDEFINED_TEMPLATES = PREDEFINED_CATEGORY_TEMPLATES;
 
 const Categories: React.FC<CategoriesProps> = ({ raceUuid }) => {
   const [templates, setTemplates] = useState<CategoryTemplate[]>([]);

@@ -123,16 +123,22 @@ for tests without weakening the real path; a `TERMS_VERSION` bump still re-promp
 
 ---
 
-### 5. Cleanup: dead files + single source of truth — 🟡 PARTIAL (after #2)
+### 5. Cleanup: dead files + single source of truth — 🟡 PARTIAL (rest after #2)
 
-Two important bugs from this pass already fixed (BUG-02 IDB wipe, BUG-03
-calculatePositions mutation). Still deferred:
-* Dead-file sweep — reachability candidates (ExportCSVButton, ViewModeToggle,
-  RaceCloudPanel [cloud tab hidden], AdminPanel, etc.) + ~64 unused imports/locals
-  (`tsc --noUnusedLocals --noUnusedParameters`). Verify each removal against a
-  build so nothing lazily-referenced breaks.
-* `PREDEFINED_TEMPLATES` duplicated in `Categories.tsx` + `CategoryManager.tsx`.
-* Do AFTER #2 (ESLint) so "unused" is provable.
+Done this pass (the parts provable without ESLint):
+* ✅ Removed dead `ExportCSVButton.tsx` (+ css) and its only consumer
+  `utils/csvExporter.ts` — orphaned since Excel export superseded CSV export.
+* ✅ De-duped the category bank: `Categories.tsx` (`PREDEFINED_TEMPLATES`) and
+  `CategoryManager.tsx` (`PREDEFINED_CATEGORIES`) were byte-identical; both now
+  import `PREDEFINED_CATEGORY_TEMPLATES` from `constants/categoryTemplates.ts`.
+
+Still deferred (needs #2 ESLint, or a product call):
+* ~64 unused imports/locals (`tsc --noUnusedLocals --noUnusedParameters`) — do
+  after ESLint so "unused" is provable, and NOT in one repo-wide commit.
+* `ViewModeToggle`, `AdminPanel` (both wired to `rbac.types` — Phase 2 roles) and
+  `RaceCloudPanel` (Phase 4 cloud, tab intentionally hidden) are unimported but are
+  PARKED planned-phase scaffolding, not dead code. Leave until those phases are
+  decided or the owner confirms they're abandoned.
 
 ---
 
