@@ -15,6 +15,7 @@ interface RiderState {
   getRidersByCategory: (raceUuid: string, category: string) => RiderProps[];
   updateRider: (updatedRider: RiderProps) => Promise<void>;
   updateAllRiders: (updatedRiders: RiderProps[]) => Promise<void>;
+  patchRiders: (updatedRiders: RiderProps[]) => Promise<void>;
   insertRiders: (newRiders: RiderProps[]) => Promise<void>;
   addNewRider: (newRider: RiderProps) => Promise<void>;
   deleteRider: (riderId: number) => Promise<void>;
@@ -162,6 +163,13 @@ const useRiderStore = create<RiderState>()(
           set((state) => ({
             ...state,
             riders: [...state.riders, ...newRiders],
+            // Mark the imported race as loaded so the next `getRiders` for it
+            // serves the cache. Without this the cache guard stays off after an
+            // import and EVERY screen that mounts re-reads `db.getAll("riders")`
+            // — an async snapshot that replaces the whole array and can revert
+            // edits made while it was in flight (check-ins silently unticking).
+            lastFetchedRaceUuid:
+              newRiders[0]?.raceUuid ?? state.lastFetchedRaceUuid,
           }));
 
           const db = await initIndexedDB();
@@ -192,6 +200,41 @@ const useRiderStore = create<RiderState>()(
           db.close();
         } catch (error) {
           console.error("Error updating rider in IDB:", error);
+        }
+      },
+
+      /**
+       * Batch update that PRESERVES the existing array order, in ONE store set
+       * and ONE IDB transaction.
+       *
+       * Use this for bulk screen actions (e.g. Check-in "Check all"). Looping
+       * `updateRider` instead costs an openDB + transaction PER rider, and the
+       * `persist` middleware re-writes the whole riders array after every one
+       * of those sets — O(n²) puts, which freezes the UI on a real start list
+       * and leaves a wide window for a stale `getRiders` read to overwrite the
+       * result.
+       *
+       * Differs from `updateAllRiders`, which moves the updated riders to the
+       * END of the array — the heat screen depends on that to apply a new sort
+       * order, so don't "simplify" the two into one.
+       */
+      patchRiders: async (updatedRiders) => {
+        if (updatedRiders.length === 0) return;
+        const byId = new Map(updatedRiders.map((r) => [r.id, r]));
+        set((state) => ({
+          ...state,
+          riders: state.riders.map((r) => byId.get(r.id) ?? r),
+        }));
+
+        try {
+          const db = await initIndexedDB();
+          const tx = db.transaction("riders", "readwrite");
+          const store = tx.objectStore("riders");
+          await Promise.all(updatedRiders.map((rider) => store.put(rider)));
+          await tx.done;
+          db.close();
+        } catch (error) {
+          console.error("Error patching riders in IDB:", error);
         }
       },
 

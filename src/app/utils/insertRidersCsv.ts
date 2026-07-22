@@ -26,14 +26,26 @@ const REQUIRED_ANY: RiderFieldKey[][] = [
 ];
 
 export const saveRidersFromCsv = async (csvData: string, raceUuid: string) => {
-   try {
-      const parsed = Papa.parse<string[]>(csvData, { skipEmptyLines: true });
+   const parsed = Papa.parse<string[]>(csvData, { skipEmptyLines: true });
+   if (!parsed?.data || parsed.data.length < 2) {
+      throw new Error("Invalid or empty CSV file.");
+   }
+   await saveRidersFromRows(parsed.data as string[][], raceUuid);
+};
 
-      if (!parsed?.data || parsed.data.length < 2) {
-         throw new Error("Invalid or empty CSV file.");
+/**
+ * Core start-list import (BUGS.md #20): takes an array-of-arrays where row 0 is
+ * the header. Shared by CSV (Papa) and XLSX (parseXLSXFile) so a .xlsx dropped
+ * on the Create Race screen imports exactly like the equivalent .csv — before
+ * this, .xlsx was read as text and silently mangled.
+ */
+export const saveRidersFromRows = async (rows: string[][], raceUuid: string) => {
+   try {
+      if (!rows || rows.length < 2) {
+         throw new Error("Invalid or empty file.");
       }
 
-      const headers = (parsed.data[0] ?? []).map((h) => String(h ?? "").trim());
+      const headers = (rows[0] ?? []).map((h) => String(h ?? "").trim());
       const mappings = await autoMapColumns(headers);
 
       // field → column index
@@ -58,7 +70,7 @@ export const saveRidersFromCsv = async (csvData: string, raceUuid: string) => {
       const heatIdx = col.get("heat");
       if (heatIdx != null) {
          let next = 1;
-         for (const row of parsed.data.slice(1)) {
+         for (const row of rows.slice(1)) {
             const val = row[heatIdx]?.trim();
             if (val && isNaN(Number(val)) && !heatNameToNumber.has(val)) {
                heatNameToNumber.set(val, next++);
@@ -68,7 +80,7 @@ export const saveRidersFromCsv = async (csvData: string, raceUuid: string) => {
 
       // ONE shared row builder for both import paths (BUGS.md #20), so the same
       // file produces the same riders wherever it is dropped.
-      const riders: RiderProps[] = parsed.data
+      const riders: RiderProps[] = rows
          .slice(1)
          .map((row, index) => rowToRider(row, mappings, raceUuid, index, heatNameToNumber));
 

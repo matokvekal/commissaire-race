@@ -178,6 +178,37 @@ See `docs/app-review.md` for full bug list. Top 4 critical:
   no modal, wired via `main/page.tsx` `handleDeleteRace`) and a plain "Remove
   downloaded race" in the Info tab instead of the heavy Danger-Zone confirm.
 
+### Bundle / code-splitting (BUGS.md #1)
+- Initial JS is ~65 kB gz (was 559 kB). Keep it that way:
+  - Routes are `React.lazy` in `App.tsx` (landing `/` stays eager) under one
+    `<Suspense fallback={<Loader/>}>`.
+  - Heavy libs load on demand, never eagerly: **xlsx** via dynamic `import("xlsx")`
+    inside handlers (`Info.tsx`, `CSVImportWizard`, `saveRace`) + the util files
+    (`raceExport`/`raceImport`/`xlsxParser`) are only reached through those;
+    **leaflet** via `lazy(() => import("./map/Map"))`; **tesseract** via
+    `lazy(ImageCapture)`; **supabase** — App.tsx checks `isCloudConfigured()` from
+    `services/cloud/cloudConfig.ts` (env only, no SDK) and dynamically imports the
+    cloud store only when configured.
+  - `Loader` is pure CSS — do NOT reintroduce `@mui/material`/`@emotion`.
+
+### App version
+- Single source of truth: `src/app/version.json` (`{ version, date }`), imported
+  by `components/Version/Version.tsx` and shown in the side-menu footer. Edit it
+  before each release. `VITE_APP_VERSION` still overrides if set at build time.
+
+### Start-list template download
+- `public/start-list-template.xlsx` (synthetic sample rows, NOT real riders) is
+  offered from the side menu (`HeaderMain`) via a BASE_URL `<a download>`. Users
+  fill it in and import. Matches the Hebrew column layout the auto-mapper expects.
+
+### Start-list import paths (xlsx vs csv)
+- Create Race (`saveRace` → `insertRidersCsv`) handles BOTH: `.xlsx` goes through
+  `parseXLSXFile`, `.csv` through `file.text()`+Papa, then the shared
+  `saveRidersFromRows`. Do NOT `file.text()` an xlsx — it's binary and mangles.
+- The Edit-Riders quick importer is CSV/TXT only (its own `parseCSV`, `accept=
+  ".csv,.txt"`). The 4-step wizard (`CSVImportWizard`) handles xlsx via
+  `parseXLSXFile`. All three share `rowToRider` / `autoMapColumns` (BUGS.md #20).
+
 ### Import: "Keep as info" columns
 - The mapping step offers a synthetic target `infoField` ("Keep as info") for any
   UNrecognised column. It's MULTI-USE (many columns can be info) and never

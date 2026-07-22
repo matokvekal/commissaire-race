@@ -17,7 +17,7 @@ interface Props {
 }
 
 const CheckIn: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
-  const { riders, getRiders, updateRider } = useRiderStore();
+  const { riders, getRiders, updateRider, patchRiders } = useRiderStore();
   const { openModal } = useUIStore();
   const [search, setSearch] = useState("");
   const [filterCat, setFilterCat] = useState("all");
@@ -71,29 +71,48 @@ const CheckIn: React.FC<Props> = ({ raceUuid, waveNum, categories }) => {
 
   const catNames = [...new Set(waveRiders.map((r) => r.category))].sort();
 
-  const recordCheckin = (rider: RiderProps, checked: boolean) => {
-    void recordRaceEvent({
+  const recordCheckin = (rider: RiderProps, checked: boolean) =>
+    recordRaceEvent({
       raceUuid,
       riderId: rider.id,
       bibNumber: rider.bibNumber,
       eventType: "RIDER_CHECKIN",
       payload: { riderLocalId: rider.id, riderPatch: { checked } },
     });
-  };
 
   const toggleCheck = (rider: RiderProps) => {
     if (!canForRace(raceUuid, "CHECKIN_RIDER")) return;
     updateRider({ ...rider, checked: !rider.checked });
-    recordCheckin(rider, !rider.checked);
+    void recordCheckin(rider, !rider.checked);
   };
 
-  const checkAll = () => {
+  /**
+   * Check in every rider currently shown, in a SINGLE store write.
+   *
+   * This used to loop `updateRider` + `recordRaceEvent` per rider, which meant
+   * three IndexedDB round-trips each (rider write, `persist` re-writing the
+   * whole array, event write). On a real start list that froze the screen and
+   * a stale in-flight `getRiders` could land mid-flood and revert the ticks.
+   * Keep it batched: one `patchRiders`, then drain the event log serially in
+   * the background so it never competes with the UI write.
+   */
+  const checkAll = async () => {
     if (!canForRace(raceUuid, "CHECKIN_RIDER")) return;
     const unchecked = filtered.filter((r) => !r.checked && !["DNS", "DNF", "DSQ"].includes(r.status));
-    unchecked.forEach((r) => {
-      updateRider({ ...r, checked: true });
-      recordCheckin(r, true);
-    });
+    if (unchecked.length === 0) return;
+
+    const checkedIn = unchecked.map((r) => ({ ...r, checked: true }));
+    await patchRiders(checkedIn);
+
+    void (async () => {
+      for (const r of checkedIn) {
+        try {
+          await recordCheckin(r, true);
+        } catch (e) {
+          console.warn("Check-in event not logged for bib", r.bibNumber, e);
+        }
+      }
+    })();
   };
 
   const allAccountedFor = filtered.length > 0 && filtered.every(

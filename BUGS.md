@@ -11,65 +11,17 @@ after finish fix bug or fiture re organize the md files AGENT BUGS
 
 | #  | Item | Priority | Status |
 |----|------|----------|--------|
-| 1 | JS bundle 1.76 MB (558 kB gz) — slow first load on a phone | 🔴 bottleneck | 🆕 TODO |
-| 2 | ESLint broken project-wide (extends a Next.js preset in a Vite app) | 🟡 tooling | 🆕 TODO — needs OK to add dev-deps |
-| 3 | Demo race redirects to Live with no signposted way back to Setup | 🟢 UX | 🆕 TODO |
-| 4 | Terms gate has no test/dev bypass | 🟡 tooling | 🆕 TODO |
-| 5 | Cleanup: dead-file sweep + single-source-of-truth | 🟢 cleanup | 🟡 PARTIAL — do after #2 |
-| 6 | Playwright / service-worker "error" | — | ⏳ BLOCKED — needs the real error text |
+| 1 | ESLint broken project-wide (extends a Next.js preset in a Vite app) | 🟡 tooling | 🆕 TODO — needs OK to add dev-deps |
+| 2 | Demo race redirects to Live with no signposted way back to Setup | 🟢 UX | 🆕 TODO |
+| 3 | Terms gate has no test/dev bypass | 🟡 tooling | 🆕 TODO |
+| 4 | Cleanup: unused-imports sweep + remove now-unused deps | 🟢 cleanup | 🟡 PARTIAL — do after #1 |
+| 5 | Playwright / service-worker "error" | — | ⏳ BLOCKED — needs the real error text |
 
-Working order (user rule: bottleneck + important first, then the rest, 1 by 1):
-**1 → 2 → 3 → 4 → 5 → (6 blocked).**
-
-> Completed this session (live-log persistence, view-only race light delete,
-> keep-as-info import, dead-file removal + category-bank dedup) were removed from
-> this file — the feature notes live in CLAUDE.md and the code is in git history.
+Working order: **1 → 2 → 3 → 4 → (5 blocked).**
 
 ---
 
-### 1. JS bundle is 1.76 MB — slow first load on a phone — 🔴 TODO (doing first)
-
-`npm run build` warns:
-```
-dist/assets/index-*.js   ~1,758 kB │ gzip: ~558 kB
-```
-Irrelevant on a laptop, but the users are at a start line on phone data. ~558 kB
-gzipped before first paint is slow exactly when it matters, and a PWA cold start
-after an update pays it again.
-
-Likely heavy passengers, all rarely touched:
-* `tesseract.js` — photo/OCR import
-* `xlsx` — export/import
-* `leaflet` + `react-leaflet` — the map tab
-* `@mui/material`, `@mui/x-date-pickers`
-* `@supabase/supabase-js` — cloud sync
-
-**Fix:** `React.lazy` + dynamic `import()` for the OCR wizard, map tab, and Excel
-export/import so none are in the initial chunk; then `manualChunks` for the rest.
-MEASURE before/after — don't guess which import is expensive.
-
-**Validation:** record baseline initial-chunk size; verify it drops materially
-(target < 500 kB raw); verify OCR, map, and Excel still work on demand; full test
-suite green.
-
-agent wrote me , but im not sure its ok to remove need to check Node modules and libraries: likely unused dependencies
-These appear not referenced in source and are good candidates to remove from package.json:
-
-@emotion/react
-@emotion/styled
-@mui/lab
-@mui/x-date-pickers
-@react-google-maps/api
-axios
-dayjs
-react-circular-progressbar
-react-color
-react-leaflet
-Note: @mui/material is used (loader), so keep it unless you replace that component.
-
----
-
-### 2. ESLint is broken project-wide — 🟡 TODO (needs OK to add dev-deps)
+### 1. ESLint is broken project-wide — 🟡 TODO (needs OK to add dev-deps)
 
 `npx eslint` fails: `couldn't find the config "next/core-web-vitals"`.
 `.eslintrc.json` extends the Next.js preset but this is a **Vite** app. So
@@ -86,7 +38,7 @@ in one commit.
 
 ---
 
-### 3. Demo race redirects to Live with no way back — 🟢 TODO
+### 2. Demo race redirects to Live with no way back — 🟢 TODO
 
 `race/[id]/page.tsx` bounces the first open of the demo to `/race/:id/heat/1`,
 one-shot per session, with no indication a Setup view exists. **Fix:** an
@@ -98,7 +50,7 @@ redirect still fires only once per session; a non-demo race is unaffected.
 
 ---
 
-### 4. Terms gate has no test/dev bypass — 🟡 TODO
+### 3. Terms gate has no test/dev bypass — 🟡 TODO
 
 `TermsGate` blocks every control on first load in a fresh profile (broke all E2E
 specs until worked around in `tests/helpers.ts` `acceptTerms()`). **Fix:** a
@@ -110,27 +62,24 @@ for tests without weakening the real path; a `TERMS_VERSION` bump still re-promp
 
 ---
 
-### 5. Cleanup: dead files + single source of truth — 🟡 PARTIAL (rest after #2)
+### 4. Cleanup: unused-imports sweep + remove unused deps — 🟡 PARTIAL (after #1)
 
-Done this pass (the parts provable without ESLint):
-* ✅ Removed dead `ExportCSVButton.tsx` (+ css) and its only consumer
-  `utils/csvExporter.ts` — orphaned since Excel export superseded CSV export.
-* ✅ De-duped the category bank: `Categories.tsx` (`PREDEFINED_TEMPLATES`) and
-  `CategoryManager.tsx` (`PREDEFINED_CATEGORIES`) were byte-identical; both now
-  import `PREDEFINED_CATEGORY_TEMPLATES` from `constants/categoryTemplates.ts`.
-
-Still deferred (needs #2 ESLint, or a product call):
+Already done in earlier passes: dead-file removal (ExportCSVButton, csvExporter),
+category-bank dedup (`constants/categoryTemplates.ts`). Still deferred:
 * ~64 unused imports/locals (`tsc --noUnusedLocals --noUnusedParameters`) — do
   after ESLint so "unused" is provable, and NOT in one repo-wide commit.
-* `ViewModeToggle`, `AdminPanel` (both wired to `rbac.types` — Phase 2 roles) and
-  `RaceCloudPanel` (Phase 4 cloud, tab intentionally hidden) are unimported but are
-  PARKED planned-phase scaffolding, not dead code. Leave until those phases are
-  decided or the owner confirms they're abandoned.
+* Remove now-unused deps from `package.json`. `@mui/material` + `@emotion/*` are
+  no longer imported (Loader is pure CSS now); also candidates: `@mui/lab`,
+  `@mui/x-date-pickers`, `@react-google-maps/api`, `axios`, `dayjs`,
+  `react-circular-progressbar`, `react-color`, `react-leaflet`. Verify each with
+  a grep for imports first. (Bundle already excludes them — this is housekeeping.)
+* `ViewModeToggle`, `AdminPanel` (Phase 2 roles) and `RaceCloudPanel` (Phase 4
+  cloud) are unimported but PARKED planned-phase scaffolding — leave until decided.
 
 ---
 
-### 6. Playwright / service-worker "error" — ⏳ BLOCKED
+### 5. Playwright / service-worker "error" — ⏳ BLOCKED
 
 Only a snippet of `playwright.config.ts` was pasted, no actual error. To fix:
 run `npx playwright test` (or `npm run test:e2e`) and paste the real error/stack
-here. (Unblock ESLint separately via #2.)
+here. (Unblock ESLint separately via #1.)

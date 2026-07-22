@@ -584,17 +584,13 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
     // Clear the track from the previous wave: any rider whose category already
     // finished but who is still "running" (was on the road when the race ended)
     // is finalized now, so starting a new wave leaves no ghosts behind on Live.
+    // They are credited as finishers on the laps they completed — never DNF.
     riders
       .filter((r) => r.raceUuid === raceUuid && r.raceStatus === "running")
       .forEach((r) => {
         const cat = allCategories.find((c) => c.raceUuid === raceUuid && riderInCategory(r, c));
         if (cat?.status === "finished") {
-          const isOut = ["DNF", "DSQ", "DNS"].includes(r.status);
-          allUpdatedRiders.push({
-            ...r,
-            raceStatus: "finished" as const,
-            status: isOut ? r.status : ("finished" as const),
-          });
+          allUpdatedRiders.push(closeOutRiderOnTrack(r));
         }
       });
 
@@ -659,6 +655,36 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
       }));
   };
 
+  /**
+   * Close out a rider who was still on the road when the WAVE closed — either
+   * because the whole wave was finished or because the next wave was started.
+   *
+   * They count as a FINISHER, credited with the laps they actually completed.
+   * They are NOT DNF: DNF is a human classification only — the commissaire
+   * marks it, or the rider reports abandoning. Never infer it from the clock.
+   *
+   * An out-status a commissaire already set (DNF/DSQ/DNS) is preserved.
+   *
+   * Scope matters: finishing a single CATEGORY or a single START must NOT do
+   * this — those riders stay `running` + ON TRACK so they can still finish on
+   * their next crossing (see `closeOutCategoryRiders`). Only the wave-level
+   * sweeps below close them out.
+   */
+  const closeOutRiderOnTrack = (r: RiderProps): RiderProps => ({
+    ...r,
+    raceStatus: "finished" as const,
+    status: ["DNF", "DSQ", "DNS"].includes(r.status) ? r.status : ("finished" as const),
+  });
+
+  /** Riders of this race still on the road, optionally limited to `cats`. */
+  const ridersStillOnTrack = (cats?: CategoryProps[]): RiderProps[] =>
+    riders.filter(
+      (r) =>
+        r.raceUuid === raceUuid &&
+        r.raceStatus === "running" &&
+        (!cats || cats.some((c) => riderInCategory(r, c)))
+    );
+
   const endRace = async (group: StartGroup) => {
     const now = new Date();
     if (countdown?.groupId === group.id) setCountdown(null);
@@ -708,10 +734,15 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
       // Categories that never started have no riders on the road to finalize.
       if (!wasStarted) continue;
 
-      // Same rule as endRace: riders still out keep running (BUGS.md #31).
       const updatedRiders = closeOutCategoryRiders(cat, now);
       if (updatedRiders.length > 0) await updateAllRiders(updatedRiders);
     }
+
+    // The wave is over: nobody is coming back to be clicked in, so every rider
+    // still on the road is closed out as a finisher on the laps they completed.
+    // Unlike finishing a single start, there is no "next crossing" left.
+    const closedOut = ridersStillOnTrack(categories).map(closeOutRiderOnTrack);
+    if (closedOut.length > 0) await updateAllRiders(closedOut);
   };
 
   const adjustTime = (groupId: string, seconds: number) => {
@@ -1089,7 +1120,7 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
                           <span className={styles.catFinishConfirm}>
                             <span className={styles.catFinishConfirmText}>
                               {catOnCourse > 0
-                                ? `${catOnCourse} still out — stay ON TRACK, finish on next crossing.`
+                                ? `Finish category? ${catOnCourse} still out.`
                                 : "Finish this category?"}
                             </span>
                             <button
@@ -1134,12 +1165,10 @@ const [editingStartId, setEditingStartId] = useState<string | null>(null);
                     <span className={styles.confirmText}>
                       {stillOnCourse > 0 ? (
                         <>
-                          Finish this start? {stillOnCourse} rider{stillOnCourse > 1 ? "s" : ""} still
-                          on course will stay on Live marked <strong>ON TRACK</strong> and finish on
-                          their next crossing.
+                          Finish start? {stillOnCourse} still out — stay <strong>ON TRACK</strong>.
                         </>
                       ) : (
-                        "Finish this start? Everyone is in."
+                        "Finish start? Everyone is in."
                       )}
                     </span>
                     <button

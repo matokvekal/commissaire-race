@@ -22,7 +22,7 @@ const THEME_OPTIONS: { value: Theme; label: string; bg: string; accent: string; 
 ];
 
 /** Where side-menu feedback lands. */
-const FEEDBACK_EMAIL = "mictavim@gmail.com";
+const FEEDBACK_EMAIL = "info@commissaire.us";
 
 const SKIN_OPTIONS: { value: Skin; label: string; bg: string; radius: string }[] = [
   { value: 'classic', label: 'Classic', bg: 'linear-gradient(145deg, #63a6fc, #4a8ee7)', radius: '10px' },

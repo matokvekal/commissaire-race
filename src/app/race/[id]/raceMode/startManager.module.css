@@ -384,6 +384,7 @@
 
 .actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   padding: 14px;
 }
@@ -634,22 +635,38 @@
 }
 
 /* ── Inline finish confirmation ── */
+/* The confirm text used to be `white-space: nowrap` inside a non-shrinking
+   flex row: on a phone/tablet the sentence blew the row wider than the screen
+   and pushed the Yes/Cancel buttons off the right edge, so the start could not
+   be confirmed at all. Text now wraps and the buttons drop to their own line
+   rather than overflowing — they must always stay reachable. */
 .confirmInline {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: flex-end;
   gap: 6px;
   background: rgba(255, 120, 48, 0.08);
   border: 1px solid rgba(255, 120, 48, 0.28);
   border-radius: 10px;
   padding: 5px 10px;
-  flex-shrink: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .confirmText {
   font-size: 12px;
   font-weight: 600;
   color: #cc5500;
-  white-space: nowrap;
+  flex: 1 1 140px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.confirmYes,
+.confirmNo {
+  flex-shrink: 0;
 }
 
 /* End-race and confirm buttons: intentional orange action colors, kept */
@@ -710,22 +727,32 @@
   background: rgba(255, 120, 48, 0.1);
 }
 
+/* Same reachability rule as .confirmInline — wrap, never overflow. */
 .catFinishConfirm {
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: flex-end;
   gap: 6px;
-  flex-shrink: 0;
   background: rgba(255, 120, 48, 0.08);
   border: 1px solid rgba(255, 120, 48, 0.28);
   border-radius: 8px;
   padding: 3px 6px;
+  max-width: 100%;
 }
 
 .catFinishConfirmText {
   font-size: 11px;
   font-weight: 600;
   color: #cc5500;
-  max-width: 220px;
+  flex: 1 1 120px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.catFinishYes,
+.catFinishNo {
+  flex-shrink: 0;
 }
 
 .catFinishYes {

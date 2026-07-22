@@ -19,10 +19,23 @@ const timeMs = (time: string | null): number => (time ? new Date(time).getTime()
 
 const OUT_STATUSES = new Set<RiderProps["status"]>(["DNF", "DNS", "DSQ"]);
 
-/** Higher lap count first, then earlier arrival. */
+/**
+ * Higher lap count first, then earlier arrival.
+ *
+ * A rider who was still on the road when the wave closed is credited as a
+ * finisher but has NO `timeArrive` for a lap they never completed. On equal
+ * laps they place BEHIND everyone who actually crossed the line: a missing
+ * time used to read as 0 and sorted them ahead of the whole field.
+ *
+ * So a rider who completed 5 laps and came in at 14:33 beats a rider who
+ * completed 5 laps at 14:32, went out for lap 6 and never returned.
+ */
 const byPlace = (a: RiderProps, b: RiderProps): number => {
    if (b.lapsCounter !== a.lapsCounter) return b.lapsCounter - a.lapsCounter;
-   return timeMs(a.timeArrive) - timeMs(b.timeArrive);
+   const aTime = timeMs(a.timeArrive);
+   const bTime = timeMs(b.timeArrive);
+   if (!aTime || !bTime) return (aTime ? 0 : 1) - (bTime ? 0 : 1);
+   return aTime - bTime;
 };
 
 const calculatePositions = (riders: RiderProps[]): RiderProps[] => {

@@ -1,7 +1,7 @@
 import useRaceStore from "@/stores/racesStore";
 import { RaceProps } from "@/types/types";
 import { FormEvent } from "react";
-import { saveRidersFromCsv } from "./insertRidersCsv";
+import { saveRidersFromCsv, saveRidersFromRows } from "./insertRidersCsv";
 import { clearRaceState } from "@/utils/clearRaceState";
 import Images from "@/constants/Images";
 import { generateRaceId } from "@/services/RaceSync";
@@ -94,9 +94,17 @@ export const saveRace = async (
       // when there are no categories yet — if it won that race you ended up with
       // a race that had riders but no categories, and therefore no schedule and
       // no way to start.
-      const csvData = await file.text();
       try {
-        await saveRidersFromCsv(csvData, newRace.uuid);
+        // .xlsx is binary — read it with the real Excel parser, not file.text()
+        // (which mangles it). CSV keeps the text path. (BUGS.md — xlsx on Create
+        // Race used to silently import garbage.)
+        if (/\.xlsx?$/i.test(file.name)) {
+          const { parseXLSXFile } = await import("./xlsxParser");
+          const { headers, rows } = await parseXLSXFile(file);
+          await saveRidersFromRows([headers, ...rows], newRace.uuid);
+        } else {
+          await saveRidersFromCsv(await file.text(), newRace.uuid);
+        }
       } catch (error) {
         console.error("Error saving riders at saveRidersFromCsv", error);
         throw error;

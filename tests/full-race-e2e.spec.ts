@@ -679,12 +679,14 @@ async function flagOffEarly(page: Page, plan: WavePlan): Promise<void> {
   await openRaceModeTab(page, "Grid");
   const block = startBlockFor(page, cat.startTime);
   await block.getByTestId("finish-start-group").click();
-  // The confirmation spells out what happens to riders still out (BUGS.md #23).
-  await expect(block).toContainText(
-    `${stillOut.length} rider${stillOut.length > 1 ? "s" : ""} still on course`
-  );
+  // The confirmation says how many are still out and that they stay ON TRACK
+  // (BUGS.md #23). Kept SHORT on purpose: the long wording used to overflow the
+  // row and push the confirm button off-screen, so the start could not be
+  // finished at all on a phone/tablet.
+  await expect(block).toContainText(`${stillOut.length} still out`);
   await expect(block).toContainText("ON TRACK");
-  await expect(block).toContainText("finish on their next crossing");
+  // The confirm button must stay reachable, never pushed out of the viewport.
+  await expect(block.getByTestId("confirm-yes")).toBeInViewport();
   await block.getByTestId("confirm-yes").click();
   await expect(block.getByText(/FINISHED/)).toBeVisible();
 
