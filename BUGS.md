@@ -21,22 +21,9 @@ after finish fix bug or fiture re organize the md files AGENT BUGS
 Working order (user rule: bottleneck + important first, then the rest, 1 by 1):
 **1 → 2 → 3 → 4 → 5 → (6 blocked).**
 
-Recently landed (this session):
-* **✅ Live log persisted per wave.** The rider action log (every arrival, newest
-  first) is now mirrored to localStorage keyed `${raceUuid}:heat:${heatId}`, so a
-  mid-wave reload restores the whole log. Hydrates synchronously; a guard stops the
-  old wave's log being written under a new wave's key. Files:
-  `race/[id]/heat/[heatId]/useLapRecording.ts` (+ `persistKey` from `page.tsx`).
-* **✅ View-only (downloaded) races: light delete.** `RaceProps.viewOnly` is set on
-  download; such races get a one-tap trash on the race list card (tap→confirm, no
-  modal) and a light "Remove downloaded race" in the Info tab instead of the heavy
-  Danger-Zone confirm. Files: `DownloadRace.tsx`, `main/page.tsx`, `RaceCard.tsx`,
-  `race/[id]/info/Info.tsx`, `types.ts`.
-* **✅ Import: "Keep as info" for any column.** New synthetic mapping target
-  `infoField` (multi-use, never auto-detected) keeps an UNrecognised column's raw
-  value in `rider.extraFields[<column header>]`, shown in the card's "More info".
-  Files: `types/csv.types.ts`, `components/csv/ColumnMappingStep.tsx`,
-  `PreviewStep.tsx`, `ImportProgressStep.tsx`, `services/riderRowMapper.ts`.
+> Completed this session (live-log persistence, view-only race light delete,
+> keep-as-info import, dead-file removal + category-bank dedup) were removed from
+> this file — the feature notes live in CLAUDE.md and the code is in git history.
 
 ---
 
